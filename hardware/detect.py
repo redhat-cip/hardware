@@ -19,28 +19,39 @@
 '''Main entry point for hardware and system detection routines in eDeploy.'''
 
 
-from commands import getstatusoutput as cmd
-import diskinfo
 import fcntl
+import getopt
+import json
+import os
+import pprint
+import re
+import socket
+import string
+import struct
+from subprocess import CalledProcessError
+from subprocess import check_output
+from subprocess import PIPE
+from subprocess import Popen
+import sys
+import xml.etree.ElementTree as ET
+
+import detect_utils
+import diskinfo
 import hpacucli
 import infiniband as ib
 import ipmi
-import json
 import megacli
 from netaddr import IPNetwork
-import os
-import socket
-import struct
-import string
-from subprocess import Popen, PIPE
-import sys
-import xml.etree.ElementTree as ET
-import re
-import detect_utils
-import pprint
-import getopt
 
 SIOCGIFNETMASK = 0x891b
+
+
+def cmd(cmdline):
+    'Equivalent of commands.getstatusoutput'
+    try:
+        return 0, check_output(cmdline, shell=True)
+    except CalledProcessError as excpt:
+        return excpt.returncode, excpt.output
 
 
 def output_lines(cmdline):
@@ -59,7 +70,7 @@ def size_in_gb(size):
         # we need to compute the size in TB by
         # considering the input as a float to be
         # multiplied by 1000
-        return str(int(float(ret[:-2])*1000))
+        return str(int(float(ret[:-2]) * 1000))
     else:
         return ret
 
@@ -101,7 +112,8 @@ def detect_hpa(hw_lst):
                         value = disk_infos[disk_info]
                         if disk_info == "size":
                             value = size_in_gb(disk_infos[disk_info])
-                            global_pdisk_size = global_pdisk_size + float(value)
+                            global_pdisk_size = (global_pdisk_size +
+                                                 float(value))
                         hw_lst.append(('disk', disk[0], disk_info,
                                        value))
         except hpacucli.Error as expt:
@@ -124,14 +136,17 @@ def detect_megacli(hw_lst):
         for ctrl in range(ctrl_num):
             ctrl_info = megacli.adp_all_info(ctrl)
             for entry in ctrl_info.keys():
-                hw_lst.append(('megaraid', 'Controller_%d' % (ctrl), '%s' % entry, '%s' % ctrl_info[entry]))
+                hw_lst.append(('megaraid', 'Controller_%d' % (ctrl),
+                               '%s' % entry, '%s' % ctrl_info[entry]))
 
             for enc in megacli.enc_info(ctrl):
                 if "Enclosure" in enc.keys():
                     for key in enc.keys():
                         if "ExitCode" in key or "Enclosure" in key:
                             continue
-                        hw_lst.append(('megaraid', 'Controller_%d/Enclosure_%s' % (ctrl, enc["Enclosure"]),
+                        hw_lst.append(('megaraid',
+                                       'Controller_%d/Enclosure_%s' %
+                                       (ctrl, enc["Enclosure"]),
                                        '%s' % key, '%s' % enc[key]))
 
                 for slot_num in range(enc['NumberOfSlots']):
@@ -158,7 +173,9 @@ def detect_megacli(hw_lst):
                                    'id',
                                    '%s:%d' % (info['EnclosureDeviceId'],
                                               slot_num)))
-                    disk_size = size_in_gb("%s %s" % (info['CoercedSize'].split()[0], info['CoercedSize'].split()[1]))
+                    disk_size = size_in_gb("%s %s" %
+                                           (info['CoercedSize'].split()[0],
+                                            info['CoercedSize'].split()[1]))
                     global_pdisk_size = global_pdisk_size + float(disk_size)
                     hw_lst.append(('pdisk',
                                    disk,
@@ -166,23 +183,32 @@ def detect_megacli(hw_lst):
                                    disk_size))
 
                     for key in info.keys():
-                        ignore_list = ['PdType', 'EnclosureDeviceId', 'CoercedSize', 'ExitCode']
+                        ignore_list = ['PdType', 'EnclosureDeviceId',
+                                       'CoercedSize', 'ExitCode']
                         if key not in ignore_list:
                             if "DriveTemperature" in key:
                                 if "C" in str(info[key].split()[0]):
-                                    hw_lst.append(('pdisk', disk, key, str(info[key].split()[0].split("C")[0]).strip()))
-                                    hw_lst.append(('pdisk', disk, "%s_units" % key, "Celsius"))
+                                    a = str(info[key].split()[0].split("C")[0])
+                                    hw_lst.append(('pdisk', disk, key,
+                                                   a.strip()))
+                                    hw_lst.append(('pdisk', disk,
+                                                   "%s_units" % key,
+                                                   "Celsius"))
                                 else:
-                                    hw_lst.append(('pdisk', disk, key, str(info[key]).strip()))
+                                    hw_lst.append(('pdisk', disk, key,
+                                                   str(info[key]).strip()))
 
                             elif "InquiryData" in key:
                                 count = 0
                                 for mystring in info[key].split():
-                                    hw_lst.append(('pdisk', disk, "%s[%d]" % (key, count), str(mystring.strip())))
+                                    hw_lst.append(('pdisk', disk,
+                                                   "%s[%d]" % (key, count),
+                                                   str(mystring.strip())))
                                     count = count + 1
 
                             else:
-                                hw_lst.append(('pdisk', disk, key, str(info[key]).strip()))
+                                hw_lst.append(('pdisk', disk, key,
+                                               str(info[key]).strip()))
 
                 if global_pdisk_size > 0:
                     hw_lst.append(('pdisk',
@@ -214,14 +240,14 @@ def detect_megacli(hw_lst):
                                        disk,
                                        'number_of_drives',
                                        str(info['NumberOfDrives'])))
-                    except:
+                    except KeyError:
                         pass
                     try:
                         hw_lst.append(('ldisk',
                                        disk,
                                        'number_of_drives_per_span',
                                        str(info['NumberOfDrivesPerSpan'])))
-                    except:
+                    except KeyError:
                         pass
                     hw_lst.append(('ldisk',
                                    disk,
@@ -258,13 +284,14 @@ def detect_disks(hw_lst):
     for name in disks:
         hw_lst.append(('disk', name, 'size', str(sizes[name])))
         item_list = ['device/vendor', 'device/model', 'device/rev',
-                     'queue/optimal_io_size', 'queue/physical_block_size', 'queue/rotational']
+                     'queue/optimal_io_size', 'queue/physical_block_size',
+                     'queue/rotational']
         for my_item in item_list:
             try:
                 with open('/sys/block/%s/%s' % (name, my_item), 'r') as dev:
                     hw_lst.append(('disk', name, my_item.split('/')[1],
                                    dev.readline().rstrip('\n').strip()))
-            except Exception, excpt:
+            except Exception as excpt:
                 sys.stderr.write(
                     'Failed at getting disk information '
                     'at /sys/block/%s/device/%s: %s\n' % (name,
@@ -285,8 +312,8 @@ def detect_disks(hw_lst):
         # In some VMs, the disk-by id doesn't exists
         if os.path.exists('/dev/disk/by-id/'):
             for entry in os.listdir('/dev/disk/by-id/'):
-                if os.path.realpath('/dev/disk/by-id/' + entry).split('/')[-1] == \
-                   name:
+                idp = os.path.realpath('/dev/disk/by-id/' + entry).split('/')
+                if idp[-1] == name:
                     id_name = "id"
                     if entry.startswith('wwn'):
                         id_name = "wwn-id"
@@ -309,8 +336,8 @@ def detect_ipmi(hw_lst):
     modprobe("ipmi_smb")
     modprobe("ipmi_si")
     modprobe("ipmi_devintf")
-    if os.path.exists('/dev/ipmi0') or os.path.exists('/dev/ipmi/0') \
-            or os.path.exists('/dev/ipmidev/0'):
+    if (os.path.exists('/dev/ipmi0') or os.path.exists('/dev/ipmi/0') or
+       os.path.exists('/dev/ipmidev/0')):
         for channel in range(0, 16):
             status, _ = cmd('ipmitool channel info %d 2>&1 | grep -sq Volatile'
                             % channel)
@@ -346,7 +373,8 @@ def detect_infiniband(hw_lst):
 
 To detect if an IB device is present, we search for a pci device.
 This pci device shall be from vendor Mellanox (15b3) form class 0280
-Class 280 stands for a Network Controller while ethernet device are 0200'''
+Class 280 stands for a Network Controller while ethernet device are 0200.
+'''
     status, _ = cmd("lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
     if status == 0:
         ib_card = 0
@@ -368,7 +396,7 @@ Class 280 stands for a Network Controller while ethernet device are 0200'''
                            'sys_guid', ib_infos['sys_guid']))
             hw_lst.append(('infiniband', 'card%i' % ib_card,
                            'node_guid', ib_infos['node_guid']))
-            for port in range(1, int(nb_ports)+1):
+            for port in range(1, int(nb_ports) + 1):
                 ib_port_infos = ib.ib_port_info(card_type, port)
                 hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
                                'state', ib_port_infos['state']))
@@ -453,7 +481,8 @@ def detect_system(hw_lst, output=None):
             if name is not None:
                 find_element(elt, 'product', 'name', 'motherboard', 'system')
                 find_element(elt, 'vendor', 'vendor', 'motherboard', 'system')
-                find_element(elt, 'version', 'version', 'motherboard', 'system')
+                find_element(elt, 'version', 'version', 'motherboard',
+                             'system')
                 find_element(elt, 'serial', 'serial', 'motherboard', 'system')
 
         for elt in xml.findall(".//node[@id='firmware']"):
@@ -469,14 +498,14 @@ def detect_system(hw_lst, output=None):
                 continue
             try:
                 location = re.search('memory(:.*)', elt.attrib['id']).group(1)
-            except:
+            except AttributeError:
                 location = ''
             name = elt.find('physid')
             if name is not None:
                 find_element(elt, 'size', 'size', 'total', 'memory')
                 for bank_list in elt.findall(".//node[@id]"):
                     if 'bank:' in bank_list.get('id'):
-                        bank_count = bank_count+1
+                        bank_count = bank_count + 1
                         for bank in elt.findall(".//node[@id='%s']" %
                                                 (bank_list.get('id'))):
                             bank_id = bank_list.get('id').replace("bank:",
@@ -595,14 +624,14 @@ def detect_system(hw_lst, output=None):
                 hw_lst.append(('cpu', 'physical_%s' % (socket_count),
                                'flags', cpu_flags.strip()))
 
-                socket_count = socket_count+1
+                socket_count = socket_count + 1
     else:
         sys.stderr.write("Unable to run lshw: %s\n" % output)
 
     hw_lst.append(('cpu', 'physical', 'number', str(socket_count)))
     status, output = cmd('nproc')
     if status == 0:
-        hw_lst.append(('cpu', 'logical', 'number', str(output)))
+        hw_lst.append(('cpu', 'logical', 'number', str(output).strip()))
 
     osvendor_cmd = output_lines("lsb_release -is")
     for line in osvendor_cmd:
@@ -627,7 +656,8 @@ def detect_system(hw_lst, output=None):
                        line.rstrip('\n').strip()))
 
 
-def read_hwmon(hw, entry, sensor, label_name, appendix, processor_num, entry_name):
+def read_hwmon(hw, entry, sensor, label_name, appendix, processor_num,
+               entry_name):
     try:
         hwmon = "%s_%s" % (sensor, appendix)
         filename = "/sys/devices/platform/%s/%s" % (entry, hwmon)
@@ -637,15 +667,18 @@ def read_hwmon(hw, entry, sensor, label_name, appendix, processor_num, entry_nam
                 # Let's try to find if we are in this case
                 filename = "/sys/devices/platform/%s/%s" % (entry, hwmon[:16])
                 if not os.path.isfile(filename):
-                    sys.stderr.write("read_hwmon: No entry found for %s/%s\n" % (label_name, entry_name))
+                    sys.stderr.write("read_hwmon: No entry found for %s/%s\n" %
+                                     (label_name, entry_name))
                     return
             else:
-                sys.stderr.write("read_hwmon: No entry found for %s/%s\n" % (label_name, entry_name))
+                sys.stderr.write("read_hwmon: No entry found for %s/%s\n" %
+                                 (label_name, entry_name))
                 return
 
         value = open(filename, 'r').readline().strip()
-        hw.append(('cpu', 'physical_%d' % processor_num, "%s/%s" % (label_name, entry_name), value))
-    except:
+        hw.append(('cpu', 'physical_%d' % processor_num, "%s/%s" %
+                   (label_name, entry_name), value))
+    except Exception:
         pass
 
 
@@ -657,15 +690,23 @@ def detect_temperatures(hw):
                 if label.startswith("temp") and label.endswith("_label"):
                     sensor = label.split("_")[0]
                     try:
-                        label_name = open("/sys/devices/platform/%s/%s_label" % (entry, sensor), 'r').readline().strip().replace(" ", "_")
-                    except:
-                        sys.stderr.write("detect_temperatures: Cannot open label on %s/%s\n" % (entry, sensor))
+                        with open("/sys/devices/platform/%s/%s_label" %
+                                  (entry, sensor), 'r') as f:
+                            label_name = f.readline().strip().replace(" ", "_")
+                    except Exception:
+                        sys.stderr.write("detect_temperatures: "
+                                         "Cannot open label on %s/%s\n" %
+                                         (entry, sensor))
                         continue
 
-                    read_hwmon(hw, entry, sensor, label_name, "input", processor_num, "temperature")
-                    read_hwmon(hw, entry, sensor, label_name, "max", processor_num, "max")
-                    read_hwmon(hw, entry, sensor, label_name, "crit", processor_num, "critical")
-                    read_hwmon(hw, entry, sensor, label_name, "crit_alarm", processor_num, "critical_alarm")
+                    read_hwmon(hw, entry, sensor, label_name, "input",
+                               processor_num, "temperature")
+                    read_hwmon(hw, entry, sensor, label_name, "max",
+                               processor_num, "max")
+                    read_hwmon(hw, entry, sensor, label_name, "crit",
+                               processor_num, "critical")
+                    read_hwmon(hw, entry, sensor, label_name, "crit_alarm",
+                               processor_num, "critical_alarm")
 
 
 def parse_ahci(hrdw, words):
@@ -713,11 +754,11 @@ def _main(options):
 
 
 def print_help():
-    print 'detect.py help page'
-    print
-    print '-h or --help    : Print this help'
-    print '-H or --human   : Print output in human readable format'
-    print
+    print('detect.py help page')
+    print()
+    print('-h or --help    : Print this help')
+    print('-H or --human   : Print output in human readable format')
+    print()
 
 
 if __name__ == "__main__":
@@ -726,8 +767,9 @@ if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hH", ['help', 'human'])
     except getopt.GetoptError:
-        print "Error: One of the options passed to the cmdline was not supported"
-        print "Please fix your command line or read the help (-h option)"
+        print("Error: One of the options passed to the"
+              " cmdline was not supported")
+        print("Please fix your command line or read the help (-h option)")
         sys.exit(2)
 
     for opt, arg in opts:
