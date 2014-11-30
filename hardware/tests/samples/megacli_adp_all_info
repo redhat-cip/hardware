@@ -1,0 +1,20 @@
+megacli -adpallinfo -aALL
+ 
+Adapter #0
+ 
+==============================================================================
+                    Versions
+                ================
+Product Name    : PERC H710 Mini
+Serial No       : 29F026R
+FW Package Build: 21.1.0-0007
+
+                Device Present
+                ================
+Virtual Drives    : 1 
+  Degraded        : 0 
+  Offline         : 0 
+Physical Devices  : 7 
+  Disks           : 6 
+  Critical Disks  : 0 
+  Failed Disks    : 0 
