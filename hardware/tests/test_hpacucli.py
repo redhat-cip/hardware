@@ -16,8 +16,10 @@
 # under the License.
 
 import unittest
-import pexpect
+
 import mock
+import pexpect
+from utils import sample
 
 from hardware import hpacucli
 
@@ -63,21 +65,23 @@ class TestParsing(unittest.TestCase):
     def test_parse_ctrl_pd_all_show_unassigned(self):
         # => ctrl slot=2 pd all show
         return self.assertEqual(
-            hpacucli.parse_ctrl_pd_all_show(CTRL_PD_ALL_SHOW_UNASSIGNED_OUTPUT),
+            hpacucli.parse_ctrl_pd_all_show(
+                CTRL_PD_ALL_SHOW_UNASSIGNED_OUTPUT),
             [('unassigned',
-                 [('1I:1:1', 'SATA', '1 TB', 'OK'),
-                  ('1I:1:2', 'SATA', '1 TB', 'OK'),
-                  ('1I:1:3', 'SATA', '1 TB', 'OK'),
-                  ('1I:1:4', 'SATA', '1 TB', 'OK'),
-                  ('2I:1:5', 'SATA', '1 TB', 'OK'),
-                  ('2I:1:6', 'SATA', '1 TB', 'OK'),
-                  ('2I:1:7', 'Solid State SATA', '100 GB', 'OK'),
-                  ('2I:1:8', 'Solid State SATA', '100 GB', 'OK')])])
+              [('1I:1:1', 'SATA', '1 TB', 'OK'),
+               ('1I:1:2', 'SATA', '1 TB', 'OK'),
+               ('1I:1:3', 'SATA', '1 TB', 'OK'),
+               ('1I:1:4', 'SATA', '1 TB', 'OK'),
+               ('2I:1:5', 'SATA', '1 TB', 'OK'),
+               ('2I:1:6', 'SATA', '1 TB', 'OK'),
+               ('2I:1:7', 'Solid State SATA', '100 GB', 'OK'),
+               ('2I:1:8', 'Solid State SATA', '100 GB', 'OK')])])
 
     def test_parse_ctrl_pd_all_show_unassigned_hpssacli(self):
         # => ctrl slot=0 pd all show
         return self.assertEqual(
-            hpacucli.parse_ctrl_pd_all_show(CTRL_PD_ALL_SHOW_UNASSIGNED_OUTPUT_HPSSACLI),
+            hpacucli.parse_ctrl_pd_all_show(
+                CTRL_PD_ALL_SHOW_UNASSIGNED_OUTPUT_HPSSACLI),
             [('unassigned',
              [('1I:1:1', 'SATA', '2 TB', 'OK'),
               ('1I:1:2', 'SATA', '2 TB', 'OK'),
@@ -140,13 +144,15 @@ class TestController(unittest.TestCase):
                                 )
 
     def test_ctrl_pd_all_show(self):
-        self.cli.process.before = 'ctrl slot=2 pd all show' + CTRL_PD_ALL_SHOW_OUTPUT
+        self.cli.process.before = ('ctrl slot=2 pd all show' +
+                                   CTRL_PD_ALL_SHOW_OUTPUT)
         return self.assertEqual(self.cli.ctrl_pd_all_show('slot=2'),
                                 CTRL_PD_ALL_SHOW_RESULT
                                 )
 
     def test_ctrl_ld_all_show(self):
-        self.cli.process.before = 'ctrl slot=2 ld all show' + CTRL_LD_ALL_SHOW_OUTPUT
+        self.cli.process.before = ('ctrl slot=2 ld all show' +
+                                   CTRL_LD_ALL_SHOW_OUTPUT)
         return self.assertEqual(self.cli.ctrl_ld_all_show('slot=2'),
                                 CTRL_LD_ALL_SHOW_RESULT
                                 )
@@ -160,14 +166,17 @@ class TestController(unittest.TestCase):
 
     @unittest.skip("WIP")
     def test_ctrl_create_ld(self):
-        self.cli.process.before = 'ctrl slot=2 ld 2 show' + CTRL_LD_ALL_SHOW_OUTPUT + CTRL_LD_SHOW_OUTPUT
+        self.cli.process.before = ('ctrl slot=2 ld 2 show' +
+                                   CTRL_LD_ALL_SHOW_OUTPUT +
+                                   CTRL_LD_SHOW_OUTPUT)
         return self.assertEqual(
             self.cli.ctrl_create_ld('slot=2', ('2I:1:7', '2I:1:8'), '1'),
             '/dev/sda'
             )
 
     def test_timeout_expect(self):
-        self.cli.process.expect = mock.MagicMock(side_effect=pexpect.TIMEOUT(''))
+        self.cli.process.expect = (
+            mock.MagicMock(side_effect=pexpect.TIMEOUT('')))
         return self.assertRaises(hpacucli.Error, self.cli.ctrl_all_show)
 
 ##############################################################################
@@ -224,7 +233,7 @@ Smart Array P420 in Slot 2
 
 CTRL_PD_ALL_SHOW_RESULT = [
     ('array A', [('2I:1:7', 'Solid State SATA', '100 GB', 'OK'),
-                ('2I:1:8', 'Solid State SATA', '100 GB', 'OK')]),
+                 ('2I:1:8', 'Solid State SATA', '100 GB', 'OK')]),
     ('array B', [('1I:1:1', 'SATA', '1 TB', 'OK')]),
     ('array C', [('1I:1:2', 'SATA', '1 TB', 'OK')]),
     ('array D', [('1I:1:3', 'SATA', '1 TB', 'OK')]),
@@ -456,34 +465,7 @@ Smart Array P420i in Slot 0 (Embedded)
 '''
 
 # => ctrl slot=2 ld 1 show
-CTRL_LD_SHOW_OUTPUT = '''
-
-Smart Array P420 in Slot 2
-
-   array A
-
-      Logical Drive: 1
-         Size: 93.1 GB
-         Fault Tolerance: 1
-         Heads: 255
-         Sectors Per Track: 32
-         Cylinders: 23934
-         Strip Size: 256 KB
-         Full Stripe Size: 256 KB
-         Status: OK
-         Caching:  Enabled
-         Unique Identifier: 600508B1001CE81A48ACAE0E3331C2F6
-         Disk Name: /dev/sda
-         Mount Points: None
-         Logical Drive Label: A299BBB1PDKRH0ARH4F1R6D4B9
-         Mirror Group 0:
-            physicaldrive 2I:1:7 (port 2I:box 1:bay 7, Solid State SATA, 100 GB, OK)
-         Mirror Group 1:
-            physicaldrive 2I:1:8 (port 2I:box 1:bay 8, Solid State SATA, 100 GB, OK)
-         Drive Type: Data
-         Caching Association: None
-
-'''
+CTRL_LD_SHOW_OUTPUT = sample('ctrl_ld_show')
 
 CTRL_LD_SHOW_RESULT = {
     'Caching': 'Enabled',

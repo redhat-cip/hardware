@@ -15,21 +15,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import unittest
+import os
 
-from utils import sample
-
-from hardware import ipmi
+_BASEDIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestIpmi(unittest.TestCase):
+def sample(name):
+    return open(os.path.join(_BASEDIR, "samples", name)).read()
 
-    def test_parse_lan_info(self):
-        res = []
-        ipmi.parse_lan_info(sample('ipmi_lan_info'), res)
-        self.assertEqual(len(res), 19)
-
-if __name__ == "__main__":
-    unittest.main()
-
-# test_ipmi.py ends here
+# utils.py ends here

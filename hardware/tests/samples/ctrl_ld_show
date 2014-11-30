@@ -1,0 +1,27 @@
+
+
+Smart Array P420 in Slot 2
+
+   array A
+
+      Logical Drive: 1
+         Size: 93.1 GB
+         Fault Tolerance: 1
+         Heads: 255
+         Sectors Per Track: 32
+         Cylinders: 23934
+         Strip Size: 256 KB
+         Full Stripe Size: 256 KB
+         Status: OK
+         Caching:  Enabled
+         Unique Identifier: 600508B1001CE81A48ACAE0E3331C2F6
+         Disk Name: /dev/sda
+         Mount Points: None
+         Logical Drive Label: A299BBB1PDKRH0ARH4F1R6D4B9
+         Mirror Group 0:
+            physicaldrive 2I:1:7 (port 2I:box 1:bay 7, Solid State SATA, 100 GB, OK)
+         Mirror Group 1:
+            physicaldrive 2I:1:8 (port 2I:box 1:bay 8, Solid State SATA, 100 GB, OK)
+         Drive Type: Data
+         Caching Association: None
+

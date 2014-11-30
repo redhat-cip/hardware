@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -15,8 +15,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from commands import getoutput as cmd
 import os
+
+from detect_utils import cmd
 
 
 def sizeingb(size):
@@ -59,7 +60,7 @@ def _main():
     names = [name for name, size in sizes.items() if size > 0]
     perfs = diskperfs(names)
     for name in names:
-        print '%s %d GB (%.2f MB/s)' % (name, sizes[name], perfs[name])
+        print('%s %d GB (%.2f MB/s)' % (name, sizes[name], perfs[name]))
 
 if __name__ == "__main__":
     _main()

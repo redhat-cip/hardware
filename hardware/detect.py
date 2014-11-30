@@ -28,14 +28,13 @@ import re
 import socket
 import string
 import struct
-from subprocess import CalledProcessError
-from subprocess import check_output
 from subprocess import PIPE
 from subprocess import Popen
 import sys
 import xml.etree.ElementTree as ET
 
 import detect_utils
+from detect_utils import cmd
 import diskinfo
 import hpacucli
 import infiniband as ib
@@ -44,20 +43,6 @@ import megacli
 from netaddr import IPNetwork
 
 SIOCGIFNETMASK = 0x891b
-
-
-def cmd(cmdline):
-    'Equivalent of commands.getstatusoutput'
-    try:
-        return 0, check_output(cmdline, shell=True)
-    except CalledProcessError as excpt:
-        return excpt.returncode, excpt.output
-
-
-def output_lines(cmdline):
-    "Run a shell command and returns the output as lines."
-    res = Popen(cmdline, shell=True, stdout=PIPE)
-    return res.stdout
 
 
 def size_in_gb(size):
@@ -629,28 +614,28 @@ def detect_system(hw_lst, output=None):
         sys.stderr.write("Unable to run lshw: %s\n" % output)
 
     hw_lst.append(('cpu', 'physical', 'number', str(socket_count)))
-    status, output = cmd('nproc')
+    status, output = detect_utils.cmd('nproc')
     if status == 0:
         hw_lst.append(('cpu', 'logical', 'number', str(output).strip()))
 
-    osvendor_cmd = output_lines("lsb_release -is")
+    osvendor_cmd = detect_utils.output_lines("lsb_release -is")
     for line in osvendor_cmd:
         hw_lst.append(('system', 'os', 'vendor', line.rstrip('\n').strip()))
 
-    osinfo_cmd = output_lines("lsb_release -ds | tr -d '\"'")
+    osinfo_cmd = detect_utils.output_lines("lsb_release -ds | tr -d '\"'")
     for line in osinfo_cmd:
         hw_lst.append(('system', 'os', 'version', line.rstrip('\n').strip()))
 
-    uname_cmd = output_lines("uname -r")
+    uname_cmd = detect_utils.output_lines("uname -r")
     for line in uname_cmd:
         hw_lst.append(('system', 'kernel', 'version',
                        line.rstrip('\n').strip()))
 
-    arch_cmd = output_lines("uname -i")
+    arch_cmd = detect_utils.output_lines("uname -i")
     for line in arch_cmd:
         hw_lst.append(('system', 'kernel', 'arch', line.rstrip('\n').strip()))
 
-    cmdline_cmd = output_lines("cat /proc/cmdline")
+    cmdline_cmd = detect_utils.output_lines("cat /proc/cmdline")
     for line in cmdline_cmd:
         hw_lst.append(('system', 'kernel', 'cmdline',
                        line.rstrip('\n').strip()))

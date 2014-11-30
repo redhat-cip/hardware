@@ -17,8 +17,9 @@
 
 '''Fetch information about Infiniband cards.'''
 
-from commands import getoutput as cmd
 import re
+
+from detect_utils import cmd
 
 
 def ib_card_drv():
@@ -31,8 +32,9 @@ def ib_card_drv():
 #   'device_type': 'MT4099',
 #   'hw_ver': '0', 'nb_ports': '2'}
 def ib_global_info(card_drv):
-    '''Return global info of a IB card in a python dict. (take in argument a
-       card_drv (ex: mlx4_0)).
+    '''Return global info of a IB card in a python dict.
+
+Take in argument a card_drv (ex: mlx4_0).
     '''
     global_card_info = {}
     global_info = cmd('ibstat %s -s' % card_drv)
@@ -62,8 +64,9 @@ def ib_global_info(card_drv):
 # 'physical_state': 'Down', 'sm_lid': '0', 'state': 'Down', 'lmc': '0'}
 def ib_port_info(card_drv, port):
     '''Return port infos of a IB card_drv in a python dict.
-       (take in argument the card_drv name and the port number (ex: mlx4_0,1))
-    '''
+
+Take in argument the card_drv name and the port number (ex: mlx4_0,1).
+'''
     port_infos = {}
     port_desc = cmd('ibstat %s %i' % (card_drv, port))
     for line in port_desc.split('\n'):

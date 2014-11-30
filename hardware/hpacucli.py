@@ -21,6 +21,7 @@ about disks, RAID arrays or controllers or to configure them.
 
 import os
 import re
+
 import pexpect
 
 
@@ -134,8 +135,10 @@ ERROR_REGEXP = re.compile('Error: (.*)', re.M)
 
 
 def parse_error(output):
-    '''Parse the output of an hpacucli sub-command for an error and raise an
-Error exception if one is found.'''
+    '''Parse the output of an hpacucli sub-command for an error.
+
+Raises an Error exception if one is found.
+'''
     res = ERROR_REGEXP.search(output)
     if res:
         raise Error(res.group(1))
@@ -174,15 +177,20 @@ PROMPT_REGEXP = re.compile('=> ')
 
 
 class Cli:
-    '''Class to launch an hpacucli command in the background and to
-interact with it to configure or gather information.'''
+    '''Cli class.
+
+Class to launch an hpacucli command in the background and to
+interact with it to configure or gather information.
+'''
     def __init__(self, debug=False):
         self.process = None
         self.debug = debug
 
     def launch(self):
-        '''Launch an hpacucli from /usr/sbin. Must be called before
-any other method.'''
+        '''Launch an hpacucli from /usr/sbin.
+
+Must be called before any other method.
+'''
         # With the hpsa kernel module, we need to load the sg kernel
         # module before to have everything working. So we always load
         # it.
@@ -195,7 +203,7 @@ any other method.'''
         if path:
             try:
                 if self.debug:
-                    print 'Launching', path
+                    print('Launching', path)
                 self.process = pexpect.spawn(path)
                 self.process.expect(PROMPT_REGEXP)
             except (OSError, pexpect.EOF, pexpect.TIMEOUT):
@@ -205,10 +213,13 @@ any other method.'''
             return False
 
     def _sendline(self, line):
-        '''Internal method to send a command to the hpacucli, wait for
-the prompt and return the output string.'''
+        '''Internal method to interact with hpacucli.
+
+Send a command to the hpacucli, wait for the prompt and
+returns the output string.
+'''
         if self.debug:
-            print line
+            print(line)
         self.process.sendline(line)
         try:
             self.process.expect(PROMPT_REGEXP)
@@ -220,38 +231,50 @@ the prompt and return the output string.'''
         return ret
 
     def ctrl_all_show(self):
-        '''Send the "ctrl all show" sub-command and return its output
-parsed in a structured data.'''
+        '''Send the "ctrl all show" sub-command.
+
+Returns its output parsed in a structured data.
+'''
         return parse_ctrl_all_show(
             self._sendline('ctrl all show'))
 
     def ctrl_show(self, ctrl):
-        '''Send the "ctrl all show" sub-command and return its output
-parsed in a structured data.'''
+        '''Send the "ctrl all show" sub-command.
+
+Returns its output parsed in a structured data.
+'''
         return parse_ctrl_show(
             self._sendline('ctrl %s show' % ctrl))
 
     def ctrl_pd_all_show(self, selector):
-        '''Send the "ctrl <selector> pd all show" sub-command and
-return its output parsed in a structured data.'''
+        '''Send the "ctrl <selector> pd all show" sub-command.
+
+Returns its output parsed in a structured data.
+'''
         return parse_ctrl_pd_all_show(
             self._sendline('ctrl %s pd all show' % selector))
 
     def ctrl_pd_disk_show(self, selector, disk):
-        '''Send the "ctrl <selector> pd <disk> show" sub-command and
-return its output parsed in a structured data.'''
+        '''Send the "ctrl <selector> pd <disk> show" sub-command.
+
+Returns its output parsed in a structured data.
+'''
         return parse_ctrl_pd_disk_show(
             self._sendline('ctrl %s pd %s show' % (selector, disk)))
 
     def ctrl_ld_all_show(self, selector):
-        '''Send the "ctrl <selector> ld all show" sub-command and
-return its output parsed in a structured data.'''
+        '''Send the "ctrl <selector> ld all show" sub-command.
+
+Returns its output parsed in a structured data.
+'''
         return parse_ctrl_ld_all_show(
             self._sendline('ctrl %s ld all show' % selector))
 
     def ctrl_ld_show(self, selector, ldid):
-        '''Send the "ctrl <selector> ld <ldid> show" sub-command and
-return its output parsed in a structured data.'''
+        '''Send the "ctrl <selector> ld <ldid> show" sub-command.
+
+Returns its output parsed in a structured data.
+'''
         return parse_ctrl_ld_show(
             self._sendline('ctrl %s ld %s show' % (selector, ldid)))
 
@@ -261,9 +284,14 @@ return its output parsed in a structured data.'''
         return True
 
     def ctrl_create_ld(self, selector, drives, raid):
-        '''Send the "ctrl <selector> create type=ld drives=<drives>
-raid=<raid>" sub-command and return the created device name like
-/dev/sda.'''
+        '''ctrl_create_ld method.
+
+Send the "ctrl <selector> create type=ld drives=<drives> raid=<raid>"
+sub-command.
+
+Returns the created device name like /dev/sda.
+
+        '''
         self._sendline(
             'ctrl %s create type=ld drives=%s raid=%s' %
             (selector, ','.join(drives), raid))
@@ -292,7 +320,7 @@ def _main():
             for disk in disks:
                 print(disk)
         for ld in cli.ctrl_ld_all_show(slot):
-            print cli.ctrl_ld_show(slot, ld[1][0][0])
+            print(cli.ctrl_ld_show(slot, ld[1][0][0]))
 
 if __name__ == "__main__":
     _main()

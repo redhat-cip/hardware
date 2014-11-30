@@ -18,7 +18,8 @@
 '''Wrapper functions around the megacli command.'''
 
 import re
-from subprocess import Popen, PIPE
+from subprocess import PIPE
+from subprocess import Popen
 
 SEP_REGEXP = re.compile(r'\s*:\s*')
 
@@ -51,7 +52,7 @@ def split_parts(sep, output):
     arr = []
     start = idx[0]
     for num in idx[1:]:
-        arr.append('\n'.join(lines[start:num-1]))
+        arr.append('\n'.join(lines[start:num - 1]))
         start = num
     arr.append('\n'.join(lines[start:]))
     return arr
@@ -64,8 +65,10 @@ def run_megacli(*args):
 
 
 def run_and_parse(*args):
-    '''Run the megacli command in a subprocess and return the output
-as an associative array.'''
+    '''Run the megacli command in a subprocess.
+
+Returns the output as an associative array.
+'''
     res = run_megacli(*args)
     return parse_output(res)
 
@@ -134,25 +137,25 @@ if __name__ == "__main__":
     import pprint
 
     for ctrl_num in range(adp_count()):
-        print 'Controler', ctrl_num
+        print('Controler', ctrl_num)
         pprint.pprint(adp_all_info(ctrl_num))
 
         encs = enc_info(ctrl_num)
 
-        print
+        print()
 
-        print 'Enclosing:'
+        print('Enclosing:')
         pprint.pprint(encs)
 
         for enc in encs:
             for disk_num in range(enc['NumberOfPhysicalDrives']):
-                print
-                print 'Physical disk', disk_num
+                print()
+                print('Physical disk', disk_num)
                 pprint.pprint(pdinfo(ctrl_num, enc['DeviceId'], disk_num))
 
         for ld_num in range(ld_get_num(ctrl_num)):
-            print
-            print 'Logical disk', ld_num
+            print()
+            print('Logical disk', ld_num)
             pprint.pprint(ld_get_info(ctrl_num, ld_num))
 
 # megacli.py ends here

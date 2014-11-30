@@ -1,0 +1,38 @@
+Chassis ID TLV
+	MAC: 58:f3:9c:81:ad:95
+Port ID TLV
+	Ifname: Ethernet1/14
+Time to Live TLV
+	120
+Port Description TLV
+	SRV-51D4-14
+System Name TLV
+	AC3K-51D4-05.local.odcnoord.nl
+System Description TLV
+	Cisco Nexus Operating System (NX-OS) Software 6.0(2)U2(5)
+TAC support: http://www.cisco.com/tac
+Copyright (c) 2002-2014, Cisco Systems, Inc. All rights reserved.
+System Capabilities TLV
+	System capabilities:  Bridge, Router
+	Enabled capabilities: Bridge, Router
+Management Address TLV
+	IPv4: 10.100.5.24
+	Ifindex: 83886080
+CEE DCBX TLV
+	Control TLV:
+	  SeqNo: 1, AckNo: 1
+	Priority Groups TLV:
+	  Enabled, Not Willing, No Error
+	  PGID Priorities:  0:[0,1,2,3,4,5,6,7]
+	  PGID Percentages: 0:100% 1:0% 2:0% 3:0% 4:0% 5:0% 6:0% 7:0%
+	  Number of TC's supported: 1
+Cisco 4-wire Power-via-MDI TLV
+	4-Pair PoE supported
+	Spare pair Detection/Classification not required
+	PD Spare pair Desired State: Disabled
+	PSE Spare pair Operational State: Disabled
+Unidentified Org Specific TLV
+	OUI: 0x000142, Subtype: 2, Info: 23282328232823282328232823282328
+Port VLAN ID TLV
+	PVID: 100
+End of LLDPDU TLV

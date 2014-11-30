@@ -1,0 +1,20 @@
+Chassis ID TLV
+	MAC: f8:b1:56:15:e6:c6
+Port ID TLV
+	Ifname: gi1/1
+Time to Live TLV
+	120
+MAC/PHY Configuration Status TLV
+	Auto-negotiation supported and enabled
+	PMD auto-negotiation capabilities: 0x6c01
+	MAU type: 1000 BaseTFD
+Port Description TLV
+	gigabitethernet1/1
+System Name TLV
+	Switch POD
+System Description TLV
+	R1-2401 VRTX 1Gb Switch Module
+System Capabilities TLV
+	System capabilities:  Bridge
+	Enabled capabilities: Bridge
+End of LLDPDU TLV

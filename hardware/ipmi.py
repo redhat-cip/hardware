@@ -17,9 +17,10 @@
 
 'Set of functions to manage IPMI'
 
-from commands import getstatusoutput as cmd
 import re
 import sys
+
+from detect_utils import cmd
 
 
 def setup_user(channel, username, password):

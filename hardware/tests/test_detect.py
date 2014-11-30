@@ -16,19 +16,14 @@
 # under the License.
 
 import fcntl
-import mock
-import os
 import socket
 import unittest
 
+import mock
+from utils import sample
+
 from hardware import detect
 from hardware import detect_utils
-
-_BASEDIR = os.path.dirname(os.path.abspath(__file__))
-
-
-def sample(name):
-    return os.path.join(_BASEDIR, "samples", name)
 
 
 class Keeper:
@@ -65,8 +60,8 @@ class TestDetect(unittest.TestCase):
 
     def _save_functions(self, nbproc, nbphys):
         # replace the call to nproc by a fake result
-        self.save = detect.cmd
-        self.output_lines = detect.output_lines
+        self.save = detect_utils.cmd
+        self.output_lines = detect_utils.output_lines
         self.saved_ntoa = socket.inet_ntoa
         self.saved_ioctl = fcntl.ioctl
         self.saved_get_uuid = detect.get_uuid
@@ -91,14 +86,14 @@ class TestDetect(unittest.TestCase):
         def fake_ethtool_status(arg, arg1):
             return []
 
-        detect.cmd = fake
+        detect_utils.cmd = fake
         keeper = Keeper('detect.output_lines',
                         [('Ubuntu', ),
                          ('Ubuntu 14.04 LTS', ),
                          ('3.13.0-24-generic', ),
                          ('x86_64', ),
                          ('BOOT_IMAGE=/boot/vmlinuz', )])
-        detect.output_lines = mock.MagicMock(side_effect=keeper.fake)
+        detect_utils.output_lines = mock.MagicMock(side_effect=keeper.fake)
         socket.inet_ntoa = fake_ntoa
         fcntl.ioctl = fake_ioctl
         detect.get_uuid = fake_get_uuid
@@ -200,10 +195,10 @@ class TestDetect(unittest.TestCase):
 
     def test_parse_dmesg(self):
         hw = []
-        detect.parse_dmesg(hw,
-                           open(sample('dmesg')).read())
+        detect.parse_dmesg(hw, sample('dmesg'))
         self.assertEqual(hw, [('ahci', '0000:00:1f.2:', 'flags',
-                               '64bit apst clo ems led ncq part pio slum sntf')])
+                               '64bit apst clo ems led '
+                               'ncq part pio slum sntf')])
 
     def _restore_functions(self):
         detect.cmd = self.save
@@ -217,7 +212,7 @@ class TestDetect(unittest.TestCase):
     def test_detect_system_3(self):
         l = []
         self._save_functions("4", 2)
-        detect.detect_system(l, open(sample('lshw3')).read())
+        detect.detect_system(l, sample('lshw3'))
         self._restore_functions()
         self.assertEqual(
             l,
@@ -261,7 +256,12 @@ class TestDetect(unittest.TestCase):
              ('cpu', 'physical_0', 'version', 'AMD'),
              ('cpu', 'physical_0', 'frequency', '1000000000'),
              ('cpu', 'physical_0', 'clock', '200000000'),
-             ('cpu', 'physical_0', 'flags', 'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow rep_good nopl extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy cpufreq'),
+             ('cpu', 'physical_0', 'flags',
+              'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic '
+              'sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht '
+              'syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow '
+              'rep_good nopl extd_apicid pni cx16 lahf_lm cmp_legacy svm '
+              'extapic cr8_legacy cpufreq'),
              ('cpu', 'physical_1', 'physid', '4'),
              ('cpu', 'physical_1', 'product',
               'Dual-Core AMD Opteron(tm) Processor 8218'),
@@ -269,7 +269,12 @@ class TestDetect(unittest.TestCase):
              ('cpu', 'physical_1', 'version', 'AMD'),
              ('cpu', 'physical_1', 'frequency', '1000000000'),
              ('cpu', 'physical_1', 'clock', '200000000'),
-             ('cpu', 'physical_1', 'flags', 'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow rep_good nopl extd_apicid pni cx16 lahf_lm cmp_legacy svm extapic cr8_legacy cpufreq'),
+             ('cpu', 'physical_1', 'flags',
+              'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep '
+              'mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht '
+              'syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow '
+              'rep_good nopl extd_apicid pni cx16 lahf_lm cmp_legacy svm '
+              'extapic cr8_legacy cpufreq'),
              ('cpu', 'physical', 'number', '2'),
              ('cpu', 'logical', 'number', '4'),
              ('system', 'os', 'vendor', 'Ubuntu'),
@@ -283,7 +288,7 @@ class TestDetect(unittest.TestCase):
     def test_detect_system_2(self):
         l = []
         self._save_functions("4", 1)
-        detect.detect_system(l, open(sample('lshw2')).read())
+        detect.detect_system(l, sample('lshw2'))
         self._restore_functions()
         self.assertEqual(
             l,
@@ -302,7 +307,7 @@ class TestDetect(unittest.TestCase):
              ('memory', 'total', 'size', '8589934592'),
              ('memory', 'bank:0', 'size', '4294967296'),
              ('memory', 'bank:0', 'clock', '1600000000'),
-             ('memory', 'bank:0',  'description',
+             ('memory', 'bank:0', 'description',
               'SODIMM DDR3 Synchrone 1600 MHz (0,6 ns)'),
              ('memory', 'bank:0', 'vendor', 'Samsung'),
              ('memory', 'bank:0', 'product', 'M471B5273CH0-CK0'),
@@ -340,7 +345,8 @@ class TestDetect(unittest.TestCase):
              ('network', 'wlan0', 'driver', 'iwlwifi'),
              ('network', 'wlan0', 'latency', '0'),
              ('network', 'wlan0', 'serial', '84:3a:4b:33:62:82'),
-             ('network', 'wwan0', 'firmware', 'Mobile Broadband Network Device'),
+             ('network', 'wwan0', 'firmware',
+              'Mobile Broadband Network Device'),
              ('network', 'wwan0', 'link', 'no'),
              ('network', 'wwan0', 'driver', 'cdc_ncm'),
              ('network', 'wwan0', 'serial', '02:15:e0:ec:01:00'),
@@ -348,13 +354,23 @@ class TestDetect(unittest.TestCase):
              ('cpu', 'physical_0', 'product',
               'Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz'),
              ('cpu', 'physical_0', 'vendor', 'Intel Corp.'),
-             ('cpu', 'physical_0', 'version', 'Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz'),
+             ('cpu', 'physical_0', 'version',
+              'Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz'),
              ('cpu', 'physical_0', 'frequency', '2601000000'),
              ('cpu', 'physical_0', 'clock', '100000000'),
              ('cpu', 'physical_0', 'cores', '2'),
              ('cpu', 'physical_0', 'enabled_cores', '2'),
              ('cpu', 'physical_0', 'threads', '4'),
-             ('cpu', 'physical_0', 'flags', 'x86-64 fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx rdtscp constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase smep erms cpufreq'),
+             ('cpu', 'physical_0', 'flags',
+              'x86-64 fpu fpu_exception wp vme de pse tsc msr pae mce cx8 '
+              'apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr '
+              'sse sse2 ss ht tm pbe syscall nx rdtscp constant_tsc '
+              'arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc '
+              'aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx '
+              'smx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic '
+              'popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm '
+              'ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi '
+              'flexpriority ept vpid fsgsbase smep erms cpufreq'),
              ('cpu', 'physical', 'number', '1'),
              ('cpu', 'logical', 'number', '4'),
              ('system', 'os', 'vendor', 'Ubuntu'),
@@ -369,7 +385,7 @@ class TestDetect(unittest.TestCase):
         self.maxDiff = None
         l = []
         self._save_functions("7", 4)
-        detect.detect_system(l, open(sample('lshw')).read())
+        detect.detect_system(l, sample('lshw'))
         self._restore_functions()
         self.assertEqual(
             l,
@@ -435,25 +451,38 @@ class TestDetect(unittest.TestCase):
              ('cpu', 'physical_0', 'product',
               'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
              ('cpu', 'physical_0', 'vendor', 'Intel Corp.'),
-             ('cpu', 'physical_0', 'version', 'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
+             ('cpu', 'physical_0', 'version',
+              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
              ('cpu', 'physical_0', 'frequency', '800000000'),
              ('cpu', 'physical_0', 'clock', '25000000'),
-             ('cpu', 'physical_0', 'flags', 'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx rdtscp x86-64 constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm ida arat xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase smep erms cpufreq'),
+             ('cpu', 'physical_0', 'flags',
+              'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep '
+              'mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 '
+              'ss ht tm pbe syscall nx rdtscp x86-64 constant_tsc '
+              'arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc '
+              'aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx '
+              'smx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic '
+              'popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm '
+              'ida arat xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority '
+              'ept vpid fsgsbase smep erms cpufreq'),
              ('cpu', 'physical_1', 'physid', '5'),
              ('cpu', 'physical_1', 'vendor', 'Intel(R) Corporation'),
-             ('cpu', 'physical_1', 'version', 'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
+             ('cpu', 'physical_1', 'version',
+              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
              ('cpu', 'physical_1', 'frequency', '800000000'),
              ('cpu', 'physical_1', 'clock', '25000000'),
              ('cpu', 'physical_1', 'flags', 'cpufreq'),
              ('cpu', 'physical_2', 'physid', 'a'),
              ('cpu', 'physical_2', 'vendor', 'Intel(R) Corporation'),
-             ('cpu', 'physical_2', 'version', 'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
+             ('cpu', 'physical_2', 'version',
+              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
              ('cpu', 'physical_2', 'frequency', '800000000'),
              ('cpu', 'physical_2', 'clock', '25000000'),
              ('cpu', 'physical_2', 'flags', 'cpufreq'),
              ('cpu', 'physical_3', 'physid', 'f'),
              ('cpu', 'physical_3', 'vendor', 'Intel(R) Corporation'),
-             ('cpu', 'physical_3', 'version', 'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
+             ('cpu', 'physical_3', 'version',
+              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
              ('cpu', 'physical_3', 'frequency', '800000000'),
              ('cpu', 'physical_3', 'clock', '25000000'),
              ('cpu', 'physical_3', 'flags', 'cpufreq'),
