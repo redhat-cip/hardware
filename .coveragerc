@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = hardware
+omit = hardware/tests/*,hardware/openstack/*
+
+[report]
+ignore-errors = True
