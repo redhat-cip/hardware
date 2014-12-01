@@ -17,3 +17,4 @@ Features
   * memory settings
   * processor features
 
+* filter hardware according to hardware profiles
