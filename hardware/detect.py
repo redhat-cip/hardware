@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
 #
@@ -746,7 +745,7 @@ def print_help():
     print()
 
 
-if __name__ == "__main__":
+def main():
     options = {}
 
     try:
