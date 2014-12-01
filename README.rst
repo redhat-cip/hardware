@@ -8,6 +8,7 @@ Features
 --------
 
 * detect hardware features of a Linux systems:
+
   * RAID
   * hard drives
   * IPMI
