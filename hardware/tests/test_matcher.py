@@ -17,7 +17,7 @@
 
 import unittest
 
-import matcher
+from hardware import matcher
 
 
 class TestMatcher(unittest.TestCase):
