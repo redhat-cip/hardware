@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -17,6 +17,7 @@
 
 '''Functions to match according to a requirement specification.'''
 
+import logging
 import re
 import sys
 try:
@@ -200,5 +201,52 @@ def match_multiple(lines, spec, arr):
     while match_spec(spec, lines, arr, adder=_appender):
         ret = True
     return ret
+
+
+def generate_filename_and_macs(items):
+    '''Generate a file name for a hardware using DMI information.
+
+(product name and version) then if the DMI serial number is
+available we use it unless we lookup the first mac address.
+As a result, we do have a filename like :
+
+<dmi_product_name>-<dmi_product_version>-{dmi_serial_num|mac_address}
+'''
+
+    # Duplicate items as it will be modified by match_* functions
+    hw_items = list(items)
+    sysvars = {}
+    sysvars['sysname'] = ''
+
+    match_spec(('system', 'product', 'vendor', '$sysprodvendor'),
+               hw_items, sysvars)
+
+    if 'sysprodvendor' in sysvars:
+        sysvars['sysname'] += (re.sub(r'\W+', '', sysvars['sysprodvendor']) +
+                               '-')
+
+    match_spec(('system', 'product', 'name', '$sysprodname'),
+               hw_items, sysvars)
+
+    if 'sysprodname' in sysvars:
+        sysvars['sysname'] = re.sub(r'\W+', '', sysvars['sysprodname']) + '-'
+
+    match_spec(('system', 'product', 'serial', '$sysserial'),
+               hw_items, sysvars)
+
+    # Let's use any existing DMI serial number or take the first mac address
+    if 'sysserial' in sysvars:
+        sysvars['sysname'] += re.sub(r'\W+', '', sysvars['sysserial'])
+
+    # we always need to have the mac addresses for pxemngr
+    if match_multiple(hw_items,
+                      ('network', '$eth', 'serial', '$serial'),
+                      sysvars):
+        if 'sysserial' not in sysvars:
+            sysvars['sysname'] += sysvars['serial'][0].replace(':', '-')
+    else:
+        logging.warning('unable to detect network macs')
+
+    return sysvars
 
 # matcher.py ends here
