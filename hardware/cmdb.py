@@ -23,7 +23,8 @@ import logging
 import pprint
 import shutil
 
-from generate import is_included
+# generate must be exposed for eval to work correctly in load_cmdb
+from generate import is_included, generate  # NOQA
 
 
 def cmdb_filename(cfg_dir, name):
