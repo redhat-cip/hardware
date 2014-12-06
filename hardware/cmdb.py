@@ -24,7 +24,11 @@ import pprint
 import shutil
 
 # generate must be exposed for eval to work correctly in load_cmdb
-from generate import is_included, generate  # NOQA
+from hardware.generate import is_included, generate  # noqa
+
+
+class CmdbError(Exception):
+    pass
 
 
 def cmdb_filename(cfg_dir, name):
@@ -52,22 +56,6 @@ def save_cmdb(cfg_dir, name, cmdb):
         pprint.pprint(cmdb, stream=open(filename, 'w'))
     except IOError as xcpt:
         logging.error("exception while saving CMDB %s" % str(xcpt))
-
-_ERROR_CB = None
-
-
-def set_warning_error(cb):
-    'Define the callback to be used by warning_error'
-    global _ERROR_CB
-    _ERROR_CB = cb
-
-
-def warning_error(error):
-    'Use the callback set by set_warning_error or log the error'
-    if _ERROR_CB:
-        _ERROR_CB(error)
-    else:
-        logging.error(error)
 
 
 def update_cmdb(cmdb, var, pref, forced_find):
@@ -103,11 +91,9 @@ found.
                     break
                 idx += 1
             else:
-                warning_error("No more entry in the CMDB, aborting.")
-                return False
+                raise CmdbError("No more entry in the CMDB, aborting.")
         else:
-            warning_error("No entry matched in the CMDB, aborting.")
-            return False
+            raise CmdbError("No entry matched in the CMDB, aborting.")
     return True
 
 # cmdb.py ends here
