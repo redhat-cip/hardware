@@ -19,9 +19,9 @@ import unittest
 
 import mock
 import pexpect
-from utils import sample
 
 from hardware import hpacucli
+from hardware.tests.utils import sample
 
 
 class TestParsing(unittest.TestCase):

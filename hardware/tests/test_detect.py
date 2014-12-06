@@ -20,10 +20,10 @@ import socket
 import unittest
 
 import mock
-from utils import sample
 
 from hardware import detect
 from hardware import detect_utils
+from hardware.tests.utils import sample
 
 
 class Keeper:

@@ -20,7 +20,7 @@
 import re
 import sys
 
-from detect_utils import cmd
+from hardware.detect_utils import cmd
 
 
 def setup_user(channel, username, password):

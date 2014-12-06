@@ -19,7 +19,7 @@
 
 import re
 
-from detect_utils import cmd
+from hardware.detect_utils import cmd
 
 
 def ib_card_drv():

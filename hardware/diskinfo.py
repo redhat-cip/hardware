@@ -17,7 +17,7 @@
 
 import os
 
-from detect_utils import cmd
+from hardware.detect_utils import cmd
 
 
 def sizeingb(size):

@@ -51,14 +51,14 @@ class TestCmdb(unittest.TestCase):
     def test_update_cmdb_full(self):
         data = [{'a': 2, 'used': 1}]
         var = {'a': 1}
-        result = cmdb.update_cmdb(data, var, var, False)
-        self.assertFalse(result, cmdb)
+        self.assertRaises(cmdb.CmdbError, cmdb.update_cmdb,
+                          data, var, var, False)
 
     def test_update_cmdb_full2(self):
         data = [{'a': 'ff:ff'}]
         var = {'a': 'FF:FF'}
-        result = cmdb.update_cmdb(data, var, var, True)
-        self.assertFalse(result, cmdb)
+        self.assertRaises(cmdb.CmdbError, cmdb.update_cmdb,
+                          data, var, var, True)
 
 
 if __name__ == "__main__":

@@ -15,15 +15,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import sys
 import unittest
 
 from hardware import diskinfo
+
+if sys.version > '3':
+    long = int
 
 
 class TestDiskinfo(unittest.TestCase):
 
     def test_sizeingb(self):
-        return self.assertEqual(diskinfo.sizeingb(977105060), 500L)
+        return self.assertEqual(diskinfo.sizeingb(977105060), long(500))
 
     def test_parse_hdparm_output(self):
         return self.assertEqual(

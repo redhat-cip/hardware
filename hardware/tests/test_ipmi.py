@@ -17,9 +17,8 @@
 
 import unittest
 
-from utils import sample
-
 from hardware import ipmi
+from hardware.tests.utils import sample
 
 
 class TestIpmi(unittest.TestCase):

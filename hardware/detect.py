@@ -25,21 +25,21 @@ import os
 import pprint
 import re
 import socket
-import string
 import struct
 from subprocess import PIPE
 from subprocess import Popen
 import sys
 import xml.etree.ElementTree as ET
 
-import detect_utils
-from detect_utils import cmd
-import diskinfo
-import hpacucli
-import infiniband as ib
-import ipmi
-import megacli
 from netaddr import IPNetwork
+
+from hardware import detect_utils
+from hardware.detect_utils import cmd
+from hardware import diskinfo
+from hardware import hpacucli
+from hardware import infiniband as ib
+from hardware import ipmi
+from hardware import megacli
 
 SIOCGIFNETMASK = 0x891b
 
@@ -569,7 +569,7 @@ def detect_system(hw_lst, output=None):
                                        output_ip.split('\n')[0].lower()))
                 else:
                     find_element(elt, 'serial', 'serial', name.text, 'network',
-                                 transform=string.lower)
+                                 transform=lambda x: x.lower())
 
                 detect_utils.get_ethtool_status(hw_lst, name.text)
                 detect_utils.get_lld_status(hw_lst, name.text)

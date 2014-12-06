@@ -18,9 +18,8 @@
 
 import unittest
 
-from utils import sample
-
 from hardware import detect_utils
+from hardware.tests.utils import sample
 
 
 class TestParsing(unittest.TestCase):
