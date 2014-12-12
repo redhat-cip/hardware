@@ -26,9 +26,11 @@ which means try first to match hardware specs from the hw1 hardware
 profile and matches only 3 times then try hw2 any number of times.
 '''
 
+import errno
 import logging
 import os
 import pprint
+import time
 
 from hardware import cmdb
 from hardware import matcher
@@ -41,15 +43,18 @@ class StateError(Exception):
 
 
 class State(object):
-    def __init__(self, data=None, cfg_dir=None, filename=None):
+    def __init__(self, data=None, cfg_dir=None, filename=None, lockname=None):
         self._data = data
         self._state_filename = filename
         self._cfg_dir = cfg_dir
+        self._lockname = lockname
 
     def load(self, cfg_dir):
         'Load a state file from the given directory'
         self._cfg_dir = cfg_dir
         self._state_filename = os.path.join(cfg_dir, 'state')
+        self._validate_lockname()
+        self.lock()
         logging.info('Reading state from %s' % self._state_filename)
         self._data = eval(open(self._state_filename).read(-1))
 
@@ -95,6 +100,10 @@ Returns True if the state is modified and needs to be saved.
                 return _INVALID_SPECS
         else:
             return _INVALID_SPECS
+
+    def _validate_lockname(self):
+        if not self._lockname:
+            self._lockname = os.path.join(self._cfg_dir, 'lock')
 
     def find_match(self, hw_items):
         '''Finds an hardware profile matching the hardware items in the state
@@ -146,5 +155,32 @@ Returns the name of the matching profile.
                     'Unable to match requirements on the following available '
                     'roles in %s: %s'
                     % (self._cfg_dir, ', '.join(valid_roles)))
+
+    def lock(self):
+        '''Lock a file and return a file descriptor.
+
+Need to call unlock to release the lock.
+        '''
+        self._validate_lockname()
+        count = 0
+        while True:
+            try:
+                self._lock_fd = os.open(self._lockname,
+                                        os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                break
+            except OSError as xcpt:
+                if xcpt.errno != errno.EEXIST:
+                    raise
+                if count % 30 == 0:
+                    logging.debug('waiting for lock %s' % self._lockname)
+                time.sleep(1)
+                count += 1
+        return self._lock_fd
+
+    def unlock(self):
+        'Called after the lock function to release a lock.'
+        if self._lock_fd:
+            os.close(self._lock_fd)
+            os.unlink(self._lockname)
 
 # state.py ends here

@@ -15,6 +15,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
+import shutil
+import tempfile
 import unittest
 
 from hardware import state
@@ -44,6 +47,14 @@ class TestState(unittest.TestCase):
         items = [('a', 'b', 'c', 'd')]
         obj._load_specs = lambda x: items
         self.assertEqual(obj.find_match(items), ('hw', {}))
+
+    def test_lock(self):
+        tmpdir = tempfile.mkdtemp()
+        obj = state.State(data=[], cfg_dir=tmpdir)
+        obj.lock()
+        self.assertTrue(os.path.exists(obj._lockname), obj._lockname)
+        obj.unlock()
+        shutil.rmtree(tmpdir)
 
 if __name__ == "__main__":
     unittest.main()
