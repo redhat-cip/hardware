@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -261,6 +261,14 @@ class TestMatcher(unittest.TestCase):
         arr = {}
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
         self.assertEqual(arr['disk'], 'vda')
+
+    def test_regexp(self):
+        specs = [('network', '$eth', 'serial', 'regexp(^28:d2:)')]
+        lines = [
+            ('network', 'eth0', 'serial', '28:d2:44:1b:0a:8b'),
+            ]
+        arr = {}
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
 
     def test_backtrack(self):
         specs = [

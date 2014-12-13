@@ -70,6 +70,12 @@ def _network(left, right):
         return False
 
 
+def _regexp(left, right):
+    'Helper for match_spec.'
+    print(left, right)
+    return re.search(right, left) is not None
+
+
 def _in(elt, _list):
     'Helper for match_spec.'
     # build a list from the string or return False
