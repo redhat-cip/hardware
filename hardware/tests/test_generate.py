@@ -74,6 +74,13 @@ class TestGenerate(unittest.TestCase):
         self.assertEqual(list(generate._generate_range('D7-H.1.0.0')),
                          ['D7-H.1.0.0'])
 
+    def test_generate_norange(self):
+        model = {'gw': '192.168.1.1'}
+        self.assertEqual(
+            generate.generate(model),
+            [{'gw': '192.168.1.1'}]
+            )
+
     def test_generate(self):
         model = {'gw': '192.168.1.1',
                  'ip': '192.168.1.10-12',
@@ -135,6 +142,75 @@ class TestGenerate(unittest.TestCase):
                  }
         result = generate.generate(model)
         self.assertEqual(result, [model])
+
+    def test_generate_deeper(self):
+        model = {'=cmdb':
+                 {'gw': False,
+                  '=ip': '192.168.1.10-12',
+                  '=hostname': 'host10-12'}}
+        self.assertEqual(
+            generate.generate(model, prefix='='),
+            [{'cmdb':
+              {'gw': False,
+               'ip': '192.168.1.10',
+               'hostname': 'host10'}},
+             {'cmdb':
+              {'gw': False,
+               'ip': '192.168.1.11',
+               'hostname': 'host11'}},
+             {'cmdb':
+              {'gw': False,
+               'ip': '192.168.1.12',
+               'hostname': 'host12'}}]
+            )
+
+    def test_generate_hosts(self):
+        model = {'=host10-12':
+                 {'=cmdb':
+                  {'gw': ['192.168.1.1', '192.168.1.2'],
+                   '=ip': '192.168.1.10-12'}}}
+        self.assertEqual(
+            generate.generate_dict(model, prefix='='),
+            {'host10':
+             {'cmdb':
+              {'gw': ['192.168.1.1', '192.168.1.2'],
+               'ip': '192.168.1.10'}},
+             'host11':
+             {'cmdb':
+              {'gw': ['192.168.1.1', '192.168.1.2'],
+               'ip': '192.168.1.11'}},
+             'host12':
+             {'cmdb':
+              {'gw': ['192.168.1.1', '192.168.1.2'],
+               'ip': '192.168.1.12'}}}
+            )
+
+
+class TestMerge(unittest.TestCase):
+
+    def test_merge(self):
+        dic1 = {'a': 1}
+        dic2 = {'b': 2}
+        generate.merge(dic1, dic2)
+        self.assertEqual(dic1['b'], 2)
+
+    def test_merge_identical(self):
+        dic1 = {'a': 1}
+        dic2 = {'a': 2}
+        generate.merge(dic1, dic2)
+        self.assertEqual(dic1['a'], 2)
+
+    def test_merge_subdict(self):
+        dic1 = {'a': {'b': 2}}
+        dic2 = {'a': {'c': 3}}
+        generate.merge(dic1, dic2)
+        self.assertEqual(dic1['a']["c"], 3)
+
+    def test_merge_lists(self):
+        dic1 = {'a': [1, 2]}
+        dic2 = {'a': [3, 4]}
+        generate.merge(dic1, dic2)
+        self.assertEqual(dic1['a'], [1, 2, 3, 4])
 
 if __name__ == "__main__":
     unittest.main()

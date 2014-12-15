@@ -18,7 +18,11 @@
 ''' Generate range of values according to a model.
 '''
 
+from itertools import izip
 import re
+import types
+
+_PREFIX = None
 
 
 def _generate_range(num_range):
@@ -50,7 +54,7 @@ _RANGE_REGEXP = re.compile(r'^(.*?)([0-9]+-[0-9]+(:([0-9]+-[0-9]+))*)(.*)$')
 _IPV4_RANGE_REGEXP = re.compile(r'^[0-9:\-.]+$')
 
 
-def _generate_values(pattern):
+def _generate_values(pattern, prefix=_PREFIX):
     '''Create a generator for ranges of IPv4 or names.
 
 Ranges are defined like 10-12:15-18 or from a list of entries.
@@ -58,7 +62,19 @@ Ranges are defined like 10-12:15-18 or from a list of entries.
     if isinstance(pattern, list) or isinstance(pattern, tuple):
         for elt in pattern:
             yield elt
-    else:
+    elif isinstance(pattern, dict):
+        for key, entry in pattern.items():
+            if not prefix or key[0] == prefix:
+                if prefix:
+                    pattern[key[1:]] = _generate_values(entry)
+                else:
+                    pattern[key] = _generate_values(entry)
+                del pattern[key]
+            else:
+                pattern[key] = entry
+        while True:
+            yield pattern
+    elif isinstance(pattern, str):
         parts = pattern.split('.')
         if (_IPV4_RANGE_REGEXP.search(pattern) and
             len(parts) == 4 and (pattern.find(':') != -1 or
@@ -82,38 +98,92 @@ Ranges are defined like 10-12:15-18 or from a list of entries.
             else:
                 for _ in xrange(16387064):
                     yield pattern
+    else:
+        for _ in xrange(16387064):
+            yield pattern
 
 
-_STRING_TYPE = type('')
+STRING_TYPE = type('')
+GENERATOR_TYPE = types.GeneratorType
 
 
-def generate(model):
+def _call_nexts(model):
+    'Walk through the model to call next() on all generators.'
+    entry = {}
+    generated = False
+    for key in model.keys():
+        if isinstance(model[key], GENERATOR_TYPE):
+            entry[key] = model[key].next()
+            generated = True
+        elif isinstance(model[key], dict):
+            entry[key] = _call_nexts(model[key])
+        else:
+            entry[key] = model[key]
+    # We can have nested generators so call again
+    if generated:
+        return _call_nexts(entry)
+    else:
+        return entry
+
+
+def generate(model, prefix=_PREFIX):
     '''Generate a list of dict according to a model.
 
 Ipv4 ranges are handled by _generate_ip.
 '''
     # Safe guard for models without ranges
     for value in model.values():
-        if type(value) != _STRING_TYPE:
+        if type(value) != STRING_TYPE:
             break
         elif _RANGE_REGEXP.search(value):
             break
     else:
         return [model]
-    # The model has a range starting from here
+    # The model has at least one range starting from here
     result = []
-    copy = {}
-    copy.update(model)
-    for key, value in copy.items():
-        copy[key] = _generate_values(value)
+    yielded = {}
+    yielded.update(model)
+    for key, value in yielded.items():
+        if not prefix or key[0] == prefix:
+            if prefix:
+                yielded[key[1:]] = _generate_values(value, prefix)
+                del yielded[key]
+            else:
+                if isinstance(value, str) and not _RANGE_REGEXP.search(value):
+                    yielded[key] = value
+                else:
+                    yielded[key] = _generate_values(value, prefix)
+        else:
+            yielded[key] = value
     while True:
         try:
-            entry = {}
-            for key in copy:
-                entry[key] = copy[key].next()
-            result.append(entry)
+            result.append(_call_nexts(yielded))
         except StopIteration:
             break
+    return result
+
+
+def generate_dict(model, prefix=_PREFIX):
+    '''Generate a dict with ranges in keys and values.'''
+    result = {}
+    for thekey in model.keys():
+        if not prefix or thekey[0] == prefix:
+            if prefix:
+                key = thekey[1:]
+            else:
+                key = thekey
+            for newkey, val in izip(list(_generate_values(key, prefix)),
+                                    generate(model[thekey], prefix)):
+                try:
+                    result[newkey] = merge(result[key], val)
+                except KeyError:
+                    result[newkey] = val
+        else:
+            key = thekey
+            try:
+                result[key] = merge(result[key], model[key])
+            except KeyError:
+                result[key] = model[key]
     return result
 
 
@@ -126,5 +196,20 @@ def is_included(dict1, dict2):
         except KeyError:
             return False
     return True
+
+
+def merge(user, default):
+    'Merge 2 data structures'
+    for key, val in default.iteritems():
+        if key not in user:
+            user[key] = val
+        else:
+            if isinstance(user[key], dict) and isinstance(val, dict):
+                user[key] = merge(user[key], val)
+            elif isinstance(user[key], list) and isinstance(val, list):
+                user[key] = user[key] + val
+            else:
+                user[key] = val
+    return user
 
 # generate.py ends here
