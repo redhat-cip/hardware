@@ -182,5 +182,6 @@ Need to call unlock to release the lock.
         if self._lock_fd:
             os.close(self._lock_fd)
             os.unlink(self._lockname)
+            self._lock_fd = None
 
 # state.py ends here
