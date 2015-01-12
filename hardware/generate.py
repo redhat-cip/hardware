@@ -18,11 +18,15 @@
 ''' Generate range of values according to a model.
 '''
 
-from itertools import izip
 import re
+import sys
 import types
 
 _PREFIX = None
+
+
+if sys.version_info.major:
+    xrange = range
 
 
 def _generate_range(num_range):
@@ -113,7 +117,7 @@ def _call_nexts(model):
     generated = False
     for key in model.keys():
         if isinstance(model[key], GENERATOR_TYPE):
-            entry[key] = model[key].next()
+            entry[key] = next(model[key])
             generated = True
         elif isinstance(model[key], dict):
             entry[key] = _call_nexts(model[key])
@@ -172,8 +176,8 @@ def generate_dict(model, prefix=_PREFIX):
                 key = thekey[1:]
             else:
                 key = thekey
-            for newkey, val in izip(list(_generate_values(key, prefix)),
-                                    generate(model[thekey], prefix)):
+            for newkey, val in zip(list(_generate_values(key, prefix)),
+                                   generate(model[thekey], prefix)):
                 try:
                     result[newkey] = merge(result[key], val)
                 except KeyError:
@@ -200,7 +204,7 @@ def is_included(dict1, dict2):
 
 def merge(user, default):
     'Merge 2 data structures'
-    for key, val in default.iteritems():
+    for key, val in default.items():
         if key not in user:
             user[key] = val
         else:

@@ -51,7 +51,7 @@ class TestGenerate(unittest.TestCase):
     def test_generate_nothing(self):
         model = 'host'
         result = generate._generate_values(model)
-        self.assertEqual(result.next(),
+        self.assertEqual(next(result),
                          'host')
 
     def test_generate_range(self):

@@ -529,8 +529,10 @@ def detect_system(hw_lst, output=None):
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     try:
                         netmask = socket.inet_ntoa(
-                            fcntl.ioctl(sock, SIOCGIFNETMASK,
-                                        struct.pack('256s', name.text))[20:24])
+                            fcntl.ioctl(
+                                sock, SIOCGIFNETMASK,
+                                struct.pack('256s',
+                                            name.text.encode('utf-8')))[20:24])
                         hw_lst.append(
                             ('network', name.text, 'ipv4-netmask', netmask))
                         cidr = get_cidr(netmask)
@@ -539,9 +541,9 @@ def detect_system(hw_lst, output=None):
                         hw_lst.append(
                             ('network', name.text, 'ipv4-network',
                              "%s" % IPNetwork('%s/%s' % (ipv4, cidr)).network))
-                    except Exception:
-                        sys.stderr.write('unable to get info for %s\n'
-                                         % name.text)
+                    except Exception as excpt:
+                        sys.stderr.write('unable to get info for %s: %s\n'
+                                         % (name.text, str(excpt)))
 
                 find_element(elt, "configuration/setting[@id='link']", 'link',
                              name.text, 'network', 'value')

@@ -104,7 +104,7 @@ def enc_info(ctrl):
     'Get enclosing info on a controller.'
     parts = split_parts(' +Enclosure [0-9]+:',
                         run_megacli('EncInfo -a%d' % ctrl))
-    all_ = map(parse_output, parts)
+    all_ = list(map(parse_output, parts))
     for entry in all_:
         for key in entry.keys():
             if re.search('Enclosure\d+', key):

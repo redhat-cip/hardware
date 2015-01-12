@@ -21,7 +21,7 @@ from hardware.detect_utils import cmd
 
 
 def sizeingb(size):
-    return (size * 512) / (1000 * 1000 * 1000)
+    return int((size * 512) / (1000 * 1000 * 1000))
 
 
 def disksize(name):
