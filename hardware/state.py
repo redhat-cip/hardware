@@ -48,6 +48,7 @@ class State(object):
         self._state_filename = filename
         self._cfg_dir = cfg_dir
         self._lockname = lockname
+        self._lockfd = None
 
     def load(self, cfg_dir):
         'Load a state file from the given directory'
