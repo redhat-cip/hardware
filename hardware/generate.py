@@ -179,7 +179,7 @@ def generate_dict(model, prefix=_PREFIX):
             for newkey, val in zip(list(_generate_values(key, prefix)),
                                    generate(model[thekey], prefix)):
                 try:
-                    result[newkey] = merge(result[key], val)
+                    result[newkey] = merge(result[newkey], val)
                 except KeyError:
                     result[newkey] = val
         else:
