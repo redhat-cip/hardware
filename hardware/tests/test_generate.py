@@ -15,6 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from collections import OrderedDict
 import unittest
 
 from hardware import generate
@@ -165,16 +166,18 @@ class TestGenerate(unittest.TestCase):
             )
 
     def test_generate_hosts(self):
-        model = {'=host10-12':
-                 {'=cmdb':
-                  {'gw': ['192.168.1.1', '192.168.1.2'],
-                   '=ip': '192.168.1.10-12'}}}
+        model = OrderedDict([('host10', {'foo': 'bar'}),
+                             ('=host10-12',
+                              {'=cmdb':
+                               {'gw': ['192.168.1.1', '192.168.1.2'],
+                                '=ip': '192.168.1.10-12'}})])
         self.assertEqual(
             generate.generate_dict(model, prefix='='),
             {'host10':
              {'cmdb':
               {'gw': ['192.168.1.1', '192.168.1.2'],
-               'ip': '192.168.1.10'}},
+               'ip': '192.168.1.10'},
+              'foo': 'bar'},
              'host11':
              {'cmdb':
               {'gw': ['192.168.1.1', '192.168.1.2'],
