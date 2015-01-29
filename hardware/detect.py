@@ -134,7 +134,6 @@ def detect_megacli(hw_lst):
                                        '%s' % key, '%s' % enc[key]))
 
                 for slot_num in range(enc['NumberOfSlots']):
-                    disk_count += 1
                     disk = 'disk%d' % slot_num
                     info = megacli.pdinfo(ctrl,
                                           enc['DeviceId'],
@@ -144,6 +143,7 @@ def detect_megacli(hw_lst):
                     if 'PdType' not in info.keys():
                         continue
 
+                    disk_count += 1
                     hw_lst.append(('pdisk',
                                    disk,
                                    'ctrl',
