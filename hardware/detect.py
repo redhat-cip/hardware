@@ -613,6 +613,7 @@ def detect_system(hw_lst, output=None):
                 socket_count = socket_count + 1
     else:
         sys.stderr.write("Unable to run lshw: %s\n" % output)
+        return False
 
     hw_lst.append(('cpu', 'physical', 'number', str(socket_count)))
     status, output = detect_utils.cmd('nproc')
@@ -640,6 +641,7 @@ def detect_system(hw_lst, output=None):
     for line in cmdline_cmd:
         hw_lst.append(('system', 'kernel', 'cmdline',
                        line.rstrip('\n').strip()))
+    return True
 
 
 def read_hwmon(hw, entry, sensor, label_name, appendix, processor_num,
@@ -725,7 +727,8 @@ def _main(options):
     detect_hpa(hrdw)
     detect_megacli(hrdw)
     detect_disks(hrdw)
-    detect_system(hrdw)
+    if not detect_system(hrdw):
+        sys.exit(1)
     detect_ipmi(hrdw)
     detect_infiniband(hrdw)
     detect_temperatures(hrdw)
