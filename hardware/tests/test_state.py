@@ -20,6 +20,8 @@ import shutil
 import tempfile
 import unittest
 
+from mock import patch
+
 from hardware import state
 
 
@@ -55,6 +57,45 @@ class TestState(unittest.TestCase):
         self.assertTrue(os.path.exists(obj._lockname), obj._lockname)
         obj.unlock()
         shutil.rmtree(tmpdir)
+
+    @patch('hardware.cmdb.load_cmdb',
+           return_value=[{'hostname': 'node1',
+                          'm': 'dd:ee:ff'}])
+    @patch('hardware.state.State._load_specs',
+           return_value=[('disk', '$disk1', 'size', '20'),
+                         ('disk', '$disk2', 'size', 'gt(20)'),
+                         ('disk', '$disk3', 'size', 'ge(20)'),
+                         ('disk', '$disk4', 'size', 'lt(20)'),
+                         ('disk', '$disk5', 'size', 'le(20)'),
+                         ('network', '$eth', 'serial', '$$m'),
+                         ('network', '$eth2', 'serial', 'aa:bb:cc'),
+                         ('network', '$eth3', 'serial', '$$m2'),
+                         ('network', '$eth4', 'link', 'yes'),
+                         ('memory', 'total', 'size', '8388608'),
+                         ('cpu', 'logical', 'number', '4')])
+    def test_hardware_info(self, *args):
+        obj = state.State(data=[('hw1', '*')])
+        data = obj.hardware_info('node1')
+        self.assertEqual(data, {'disks': [{'size': '20Gi'},
+                                          {'size': '21Gi'},
+                                          {'size': '20Gi'},
+                                          {'size': '19Gi'},
+                                          {'size': '20Gi'}],
+                                'nics': [{'mac': 'dd:ee:ff'},
+                                         {'mac': 'aa:bb:cc'},
+                                         {'mac': 'none'},
+                                         {'mac': 'none'}],
+                                'memory': 8192,
+                                'ncpus': 4})
+
+    @patch('hardware.cmdb.load_cmdb',
+           return_value=[{'hostname': 'node1'}])
+    @patch('hardware.state.State._load_specs',
+           return_value=[])
+    def test_hardware_info_empty(self, *args):
+        obj = state.State(data=[('hw1', '*')])
+        data = obj.hardware_info('node1')
+        self.assertEqual(data, {})
 
 if __name__ == "__main__":
     unittest.main()
