@@ -124,7 +124,7 @@ class TestGenerate(unittest.TestCase):
             result)
 
     def test_generate_list(self):
-        result = generate.generate({'hostname': ('hosta', 'hostb', 'hostc')})
+        result = generate.generate({'hostname': ['hosta', 'hostb', 'hostc']})
         self.assertEqual(
             result,
             [{'hostname': 'hosta'},
@@ -187,6 +187,30 @@ class TestGenerate(unittest.TestCase):
               {'gw': ['192.168.1.1', '192.168.1.2'],
                'ip': '192.168.1.12'}}}
             )
+
+    def test_generate_tuple(self):
+        disk_struct = (
+            {'size_gb': 50,
+             'raid_level': '1+0',
+             'disk_type': 'hdd',
+             'interface_type': 'sas',
+             'volume_name': 'root_volume',
+             'is_root_volume': 'true'},
+            {'size_gb': 100,
+             'number_of_physical_disks': 3,
+             'raid_level': '5',
+             'disk_type': 'hdd',
+             'interface_type': 'sas',
+             'volume_name': 'data_volume'}
+        )
+        model = {
+            'hostname': 'node1-2',
+            'logical_disks': disk_struct
+        }
+        result = generate.generate(model)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]['logical_disks'], disk_struct)
+        self.assertEqual(result[1]['logical_disks'], disk_struct)
 
 
 class TestMerge(unittest.TestCase):

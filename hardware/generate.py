@@ -63,7 +63,7 @@ def _generate_values(pattern, prefix=_PREFIX):
 
 Ranges are defined like 10-12:15-18 or from a list of entries.
 '''
-    if isinstance(pattern, list) or isinstance(pattern, tuple):
+    if isinstance(pattern, list):
         for elt in pattern:
             yield elt
     elif isinstance(pattern, dict):
