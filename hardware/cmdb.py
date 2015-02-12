@@ -26,6 +26,8 @@ import shutil
 # generate must be exposed for eval to work correctly in load_cmdb
 from hardware.generate import is_included, generate  # noqa
 
+LOG = logging.getLogger('hardware.cmdb')
+
 
 class CmdbError(Exception):
     pass
@@ -45,7 +47,7 @@ def load_cmdb(cfg_dir, name):
         return eval(open(filename).read(-1))
     except IOError as xcpt:
         if xcpt.errno != errno.ENOENT:
-            logging.error("exception while processing CMDB %s" % str(xcpt))
+            LOG.error("exception while processing CMDB %s" % str(xcpt))
         return None
 
 
@@ -55,7 +57,7 @@ def save_cmdb(cfg_dir, name, cmdb):
     try:
         pprint.pprint(cmdb, stream=open(filename, 'w'))
     except IOError as xcpt:
-        logging.error("exception while saving CMDB %s" % str(xcpt))
+        LOG.error("exception while saving CMDB %s" % str(xcpt))
 
 
 def update_cmdb(cmdb, var, pref, forced_find):

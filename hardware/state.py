@@ -37,6 +37,8 @@ from hardware import matcher
 
 _INVALID_SPECS = [('<unknown>', '<unknown>', '<unknown>', '<unknown>')]
 
+LOG = logging.getLogger('hardware.state')
+
 
 class StateError(Exception):
     pass
@@ -56,7 +58,7 @@ class State(object):
         self._state_filename = os.path.join(cfg_dir, 'state')
         self._validate_lockname()
         self.lock()
-        logging.info('Reading state from %s' % self._state_filename)
+        LOG.info('Reading state from %s' % self._state_filename)
         self._data = eval(open(self._state_filename).read(-1))
 
     def failed_profile(self, prof):
@@ -64,7 +66,7 @@ class State(object):
 
 Returns True if the state is modified and needs to be saved.
 '''
-        logging.info("Received failure for role %s" % prof)
+        LOG.info("Received failure for role %s" % prof)
         idx = 0
         times = '*'
         name = None
@@ -97,7 +99,7 @@ Returns True if the state is modified and needs to be saved.
             if os.path.exists(fname):
                 return eval(open(fname, 'r').read(-1))
             else:
-                logging.info('Specs file %s not found' % fname)
+                LOG.info('Specs file %s not found' % fname)
                 return _INVALID_SPECS
         else:
             return _INVALID_SPECS
@@ -118,14 +120,14 @@ Returns the name of the matching profile.
         name = None
         valid_roles = []
         for name, times in self._data:
-            logging.info('testing %s' % name)
+            LOG.info('testing %s' % name)
             if times == '*' or int(times) > 0:
                 valid_roles.append(name)
                 specs = self._load_specs(name)
                 var = {}
                 var2 = {}
                 if matcher.match_all(hw_items, specs, var, var2):
-                    logging.info('Specs %s matches' % name)
+                    LOG.info('Specs %s matches' % name)
 
                     forced = (var2 != {})
 
@@ -134,8 +136,8 @@ Returns the name of the matching profile.
 
                     if times != '*':
                         self._data[idx] = (name, int(times) - 1)
-                        logging.info('Decrementing %s to %d' %
-                                     (name, int(times) - 1))
+                        LOG.info('Decrementing %s to %d' %
+                                 (name, int(times) - 1))
 
                     db = cmdb.load_cmdb(self._cfg_dir, name)
                     if db:
@@ -173,7 +175,7 @@ Need to call unlock to release the lock.
                 if xcpt.errno != errno.EEXIST:
                     raise
                 if count % 30 == 0:
-                    logging.debug('waiting for lock %s' % self._lockname)
+                    LOG.debug('waiting for lock %s' % self._lockname)
                 time.sleep(1)
                 count += 1
         return self._lock_fd

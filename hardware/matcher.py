@@ -28,6 +28,8 @@ except ImportError:
 
 _FUNC_REGEXP = re.compile(r'^(.*)\((.*)\)')
 
+LOG = logging.getLogger('hardware.matcher')
+
 
 def _adder(array, index, value):
     'Auxiliary function to add a value to an array.'
@@ -251,7 +253,7 @@ As a result, we do have a filename like :
         if 'sysserial' not in sysvars:
             sysvars['sysname'] += sysvars['serial'][0].replace(':', '-')
     else:
-        logging.warning('unable to detect network macs')
+        LOG.warning('unable to detect network macs')
 
     return sysvars
 
