@@ -224,11 +224,31 @@ class TestMatcher(unittest.TestCase):
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
         self.assertEqual(arr['disk'], 'vda')
 
+    def test_not(self):
+        specs = [('network', '$eth', 'serial', '$mac=not(regexp(^28:d2:))')]
+        lines = [('network', 'eth0', 'serial', '20:d2:44:1b:0a:8b')]
+        arr = {}
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
+        self.assertEqual(arr['eth'], 'eth0')
+        self.assertEqual(arr['mac'], '20:d2:44:1b:0a:8b')
+
+    def test_and(self):
+        specs = [('disk', '$disk', 'size', 'and(gt(20), lt(50))')]
+        lines = [('disk', 'vda', 'size', '40')]
+        arr = {}
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
+        self.assertEqual(arr['disk'], 'vda')
+
+    def test_or(self):
+        specs = [('disk', '$disk', 'size', 'or(lt(20), gt(30))')]
+        lines = [('disk', 'vda', 'size', '40')]
+        arr = {}
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
+        self.assertEqual(arr['disk'], 'vda')
+
     def test_network(self):
         specs = [('network', '$eth', 'ipv4', 'network(192.168.2.0/24)')]
-        lines = [
-            ('network', 'eth0', 'ipv4', '192.168.2.2'),
-            ]
+        lines = [('network', 'eth0', 'ipv4', '192.168.2.2')]
         arr = {}
         if matcher._HAS_IPADDR:
             self.assertTrue(matcher.match_all(lines, specs, arr, {}))
@@ -236,9 +256,7 @@ class TestMatcher(unittest.TestCase):
 
     def test_le_var(self):
         specs = [('disk', '$disk', 'size', '$size=le(20)')]
-        lines = [
-            ('disk', 'vda', 'size', '20'),
-            ]
+        lines = [('disk', 'vda', 'size', '20')]
         arr = {}
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
         self.assertEqual(arr['disk'], 'vda')
@@ -246,27 +264,21 @@ class TestMatcher(unittest.TestCase):
 
     def test_in(self):
         specs = [('disk', '$disk', 'size', 'in(10, 20, 30)')]
-        lines = [
-            ('disk', 'vda', 'size', '20'),
-            ]
+        lines = [('disk', 'vda', 'size', '20')]
         arr = {}
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
         self.assertEqual(arr['disk'], 'vda')
 
     def test_in2(self):
         specs = [('disk', '$disk=in("vda", "vdb")', 'size', '20')]
-        lines = [
-            ('disk', 'vda', 'size', '20'),
-            ]
+        lines = [('disk', 'vda', 'size', '20')]
         arr = {}
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
         self.assertEqual(arr['disk'], 'vda')
 
     def test_regexp(self):
         specs = [('network', '$eth', 'serial', 'regexp(^28:d2:)')]
-        lines = [
-            ('network', 'eth0', 'serial', '28:d2:44:1b:0a:8b'),
-            ]
+        lines = [('network', 'eth0', 'serial', '28:d2:44:1b:0a:8b')]
         arr = {}
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
 

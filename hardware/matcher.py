@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2013-2015 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -25,8 +25,6 @@ try:
     _HAS_IPADDR = True
 except ImportError:
     _HAS_IPADDR = False
-
-_FUNC_REGEXP = re.compile(r'^(.*)\((.*)\)')
 
 LOG = logging.getLogger('hardware.matcher')
 
@@ -64,6 +62,21 @@ def _le(left, right):
     return int(left) <= int(right)
 
 
+def _not(_, right):
+    'Helper for match_spec.'
+    return not right
+
+
+def _and(_, left, right):
+    'Helper for match_spec.'
+    return left and right
+
+
+def _or(_, left, right):
+    'Helper for match_spec.'
+    return left or right
+
+
 def _network(left, right):
     'Helper for match_spec.'
     if _HAS_IPADDR:
@@ -74,23 +87,45 @@ def _network(left, right):
 
 def _regexp(left, right):
     'Helper for match_spec.'
-    print(left, right)
     return re.search(right, left) is not None
 
 
-def _in(elt, _list):
+def _in(elt, *lst):
     'Helper for match_spec.'
-    # build a list from the string or return False
-    try:
-        lst = eval('(' + _list + ')')
-    except Exception:
-        return False
-    # cast into an int or do nothing
-    try:
-        elt = int(elt)
-    except ValueError:
-        pass
     return elt in lst
+
+
+_FUNC_REGEXP = re.compile(r'^([^(]+)'          # function name
+                          r'\(\s*([^,]+)'      # first argument
+                          r'(?:\s*,\s*(.+))?'  # remaining optional arguments
+                          r'\)$')              # last parenthesis
+
+
+def _call_func(func, implicit, res):
+    'Helper function for extract_result and match_spec'
+    args = [implicit, res.group(2)]
+    # split the optional arguments if we have some
+    if res.group(3):
+        args = args + re.split(r'\s*,\s*', res.group(3))
+    # remove strings delimiters
+    args = [x.strip('\'"') for x in args]
+    print('_call_func', func, implicit, args)
+    # call function
+    args = [_extract_result(implicit, x) for x in args]
+    return func(*args)
+
+
+def _extract_result(implicit, expr):
+    'Helper function for match_spec'
+    res = _FUNC_REGEXP.search(expr)
+    if res:
+        func_name = '_' + res.group(1)
+        if func_name in globals():
+            return _call_func(globals()[func_name], implicit, res)
+        else:
+            return expr
+    else:
+        return expr
 
 
 def match_spec(spec, lines, arr, adder=_adder):
@@ -122,7 +157,8 @@ def match_spec(spec, lines, arr, adder=_adder):
                 if res:
                     func_name = '_' + res.group(1)
                     if func_name in globals():
-                        if not globals()[func_name](line[idx], res.group(2)):
+                        if not _call_func(globals()[func_name],
+                                          line[idx], res):
                             if var == func:
                                 break
                         else:
