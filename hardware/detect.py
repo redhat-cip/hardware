@@ -412,6 +412,13 @@ def get_uuid():
     return uuid_cmd.stdout.read().rstrip()
 
 
+def get_value(hw_lst, first, second, third):
+    for i in hw_lst:
+        if first in i[0] and second in i[1] and third in i[2]:
+            return i[3]
+    return ''
+
+
 def detect_system(hw_lst, output=None):
     'Detect system characteristics from the output of lshw.'
 
@@ -439,26 +446,23 @@ def detect_system(hw_lst, output=None):
     else:
         status, output = cmd('lshw -xml')
     if status == 0:
+        mobo_id = ''
+        nic_id = ''
         xml = ET.fromstring(output)
         find_element(xml, "./node/serial", 'serial')
         find_element(xml, "./node/product", 'name')
         find_element(xml, "./node/vendor", 'vendor')
         find_element(xml, "./node/version", 'version')
         uuid = get_uuid()
+
         if uuid:
-            # If we have an uuid, let's manage a quirk list of stupid
-            # serial numbers TYAN or Supermicro are known to provide
-            # dirty serial numbers In that case, let's use the uuid
-            # instead
-            for i in hw_lst:
-                if 'system' in i[0] and 'product' in i[1] and 'serial' in i[2]:
-                    # Does the current serial number is part of the quirk list
-                    if i[3] in ['0123456789']:
-                        # Let's delete the stupid SN and use the UUID instead
-                        hw_lst.remove(i)
-                        hw_lst.append(('system', 'product', 'serial', uuid))
-                        break
-            hw_lst.append(('system', 'product', 'uuid', uuid))
+            # If we have an uuid, we shall check if it's part of a
+            # known list of broken uuid
+            # If so let's delete the uuid instead of reporting a stupid thing
+            if uuid in ['Not']:
+                uuid = ''
+            else:
+                hw_lst.append(('system', 'product', 'uuid', uuid))
 
         for elt in xml.findall(".//node[@id='core']"):
             name = elt.find('physid')
@@ -468,6 +472,7 @@ def detect_system(hw_lst, output=None):
                 find_element(elt, 'version', 'version', 'motherboard',
                              'system')
                 find_element(elt, 'serial', 'serial', 'motherboard', 'system')
+                mobo_id = get_value(hw_lst, 'system', 'motherboard', 'serial')
 
         for elt in xml.findall(".//node[@id='firmware']"):
             name = elt.find('physid')
@@ -573,6 +578,11 @@ def detect_system(hw_lst, output=None):
                     find_element(elt, 'serial', 'serial', name.text, 'network',
                                  transform=lambda x: x.lower())
 
+                if not nic_id:
+                    nic_id = get_value(hw_lst, 'network',
+                                       name.text, 'serial')
+                    nic_id = nic_id.replace(':', '')
+
                 detect_utils.get_ethtool_status(hw_lst, name.text)
                 detect_utils.get_lld_status(hw_lst, name.text)
 
@@ -611,6 +621,33 @@ def detect_system(hw_lst, output=None):
                                'flags', cpu_flags.strip()))
 
                 socket_count = socket_count + 1
+
+        # Let's manage a quirk list of stupid serial numbers TYAN
+        # or Supermicro are known to provide dirty serial numbers
+        # In that case, let's use another serial
+        for i in hw_lst:
+            if 'system' in i[0] and 'product' in i[1] and 'serial' in i[2]:
+                # Does the current serial number is part of the quirk list
+                if i[3] in ['0123456789', '0000000000']:
+
+                    # Let's delete the stupid SN and use the another ID instead
+                    # Items are ordered by level of confidence
+                    new_serial = ''
+
+                    if uuid:
+                        new_serial = uuid
+                    elif mobo_id:
+                        new_serial = mobo_id
+                    elif nic_id:
+                        new_serial = nic_id
+
+                    if new_serial:
+                        hw_lst.remove(i)
+                        hw_lst.append(('system', 'product', 'serial',
+                                      new_serial))
+
+                    break
+
     else:
         sys.stderr.write("Unable to run lshw: %s\n" % output)
         return False
