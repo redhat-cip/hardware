@@ -496,6 +496,23 @@ class TestDetect(unittest.TestCase):
              ]
             )
 
+    def test_get_value(self):
+        self.assertEqual(detect._get_value([('a', 'b', 'c', 'd')],
+                                           'a', 'b', 'c'),
+                         'd')
+
+    def test_fix_bad_serial_zero(self):
+        hwl = [('system', 'product', 'serial', '0000000000')]
+        detect.fix_bad_serial(hwl, 'uuid', '', '')
+        self.assertEqual(detect._get_value(hwl, 'system', 'product', 'serial'),
+                         'uuid')
+
+    def test_fix_bad_serial_mobo(self):
+        hwl = [('system', 'product', 'serial', '0123456789')]
+        detect.fix_bad_serial(hwl, '', 'mobo', '')
+        self.assertEqual(detect._get_value(hwl, 'system', 'product', 'serial'),
+                         'mobo')
+
 IPMI_SDR = '''UID Light        | 0x00              | ok
 Sys. Health LED  | 0x00              | ok
 Power Supply 1   | 90 Watts          | ok

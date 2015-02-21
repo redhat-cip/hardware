@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2013-2015 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -172,9 +172,9 @@ def detect_megacli(hw_lst):
                         if key not in ignore_list:
                             if "DriveTemperature" in key:
                                 if "C" in str(info[key].split()[0]):
-                                    a = str(info[key].split()[0].split("C")[0])
+                                    pdisk = info[key].split()[0].split("C")[0]
                                     hw_lst.append(('pdisk', disk, key,
-                                                   a.strip()))
+                                                   str(pdisk).strip()))
                                     hw_lst.append(('pdisk', disk,
                                                    "%s_units" % key,
                                                    "Celsius"))
@@ -412,6 +412,13 @@ def get_uuid():
     return uuid_cmd.stdout.read().rstrip()
 
 
+def _get_value(hw_lst, *vect):
+    for i in hw_lst:
+        if i[0:3] == vect:
+            return i[3]
+    return ''
+
+
 def detect_system(hw_lst, output=None):
     'Detect system characteristics from the output of lshw.'
 
@@ -439,26 +446,23 @@ def detect_system(hw_lst, output=None):
     else:
         status, output = cmd('lshw -xml')
     if status == 0:
+        mobo_id = ''
+        nic_id = ''
         xml = ET.fromstring(output)
         find_element(xml, "./node/serial", 'serial')
         find_element(xml, "./node/product", 'name')
         find_element(xml, "./node/vendor", 'vendor')
         find_element(xml, "./node/version", 'version')
         uuid = get_uuid()
+
         if uuid:
-            # If we have an uuid, let's manage a quirk list of stupid
-            # serial numbers TYAN or Supermicro are known to provide
-            # dirty serial numbers In that case, let's use the uuid
-            # instead
-            for i in hw_lst:
-                if 'system' in i[0] and 'product' in i[1] and 'serial' in i[2]:
-                    # Does the current serial number is part of the quirk list
-                    if i[3] in ['0123456789']:
-                        # Let's delete the stupid SN and use the UUID instead
-                        hw_lst.remove(i)
-                        hw_lst.append(('system', 'product', 'serial', uuid))
-                        break
-            hw_lst.append(('system', 'product', 'uuid', uuid))
+            # If we have an uuid, we shall check if it's part of a
+            # known list of broken uuid
+            # If so let's delete the uuid instead of reporting a stupid thing
+            if uuid in ['Not']:
+                uuid = ''
+            else:
+                hw_lst.append(('system', 'product', 'uuid', uuid))
 
         for elt in xml.findall(".//node[@id='core']"):
             name = elt.find('physid')
@@ -468,6 +472,7 @@ def detect_system(hw_lst, output=None):
                 find_element(elt, 'version', 'version', 'motherboard',
                              'system')
                 find_element(elt, 'serial', 'serial', 'motherboard', 'system')
+                mobo_id = _get_value(hw_lst, 'system', 'motherboard', 'serial')
 
         for elt in xml.findall(".//node[@id='firmware']"):
             name = elt.find('physid')
@@ -573,6 +578,11 @@ def detect_system(hw_lst, output=None):
                     find_element(elt, 'serial', 'serial', name.text, 'network',
                                  transform=lambda x: x.lower())
 
+                if not nic_id:
+                    nic_id = _get_value(hw_lst, 'network',
+                                        name.text, 'serial')
+                    nic_id = nic_id.replace(':', '')
+
                 detect_utils.get_ethtool_status(hw_lst, name.text)
                 detect_utils.get_lld_status(hw_lst, name.text)
 
@@ -611,6 +621,9 @@ def detect_system(hw_lst, output=None):
                                'flags', cpu_flags.strip()))
 
                 socket_count = socket_count + 1
+
+        fix_bad_serial(hw_lst, uuid, mobo_id, nic_id)
+
     else:
         sys.stderr.write("Unable to run lshw: %s\n" % output)
         return False
@@ -644,7 +657,36 @@ def detect_system(hw_lst, output=None):
     return True
 
 
-def read_hwmon(hw, entry, sensor, label_name, appendix, processor_num,
+def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
+    'Fix bad serial number'
+    # Let's manage a quirk list of stupid serial numbers TYAN
+    # or Supermicro are known to provide dirty serial numbers
+    # In that case, let's use another serial
+    for i in hw_lst:
+        if i[0:3] == ('system', 'product', 'serial'):
+            # Does the current serial number is part of the quirk list
+            if i[3] in ['0123456789', '0000000000']:
+
+                # Let's delete the stupid SN and use the another ID instead
+                # Items are ordered by level of confidence
+                new_serial = ''
+
+                if uuid:
+                    new_serial = uuid
+                elif mobo_id:
+                    new_serial = mobo_id
+                elif nic_id:
+                    new_serial = nic_id
+
+                if new_serial:
+                    hw_lst.remove(i)
+                    hw_lst.append(('system', 'product', 'serial',
+                                  new_serial))
+
+                break
+
+
+def read_hwmon(hwlst, entry, sensor, label_name, appendix, processor_num,
                entry_name):
     try:
         hwmon = "%s_%s" % (sensor, appendix)
@@ -664,13 +706,13 @@ def read_hwmon(hw, entry, sensor, label_name, appendix, processor_num,
                 return
 
         value = open(filename, 'r').readline().strip()
-        hw.append(('cpu', 'physical_%d' % processor_num, "%s/%s" %
-                   (label_name, entry_name), value))
+        hwlst.append(('cpu', 'physical_%d' % processor_num, "%s/%s" %
+                      (label_name, entry_name), value))
     except Exception:
         pass
 
 
-def detect_temperatures(hw):
+def detect_temperatures(hwlst):
     for entry in os.listdir("/sys/devices/platform/"):
         if entry.startswith("coretemp."):
             processor_num = int(entry.split(".")[1])
@@ -679,21 +721,22 @@ def detect_temperatures(hw):
                     sensor = label.split("_")[0]
                     try:
                         with open("/sys/devices/platform/%s/%s_label" %
-                                  (entry, sensor), 'r') as f:
-                            label_name = f.readline().strip().replace(" ", "_")
+                                  (entry, sensor), 'r') as fsensor:
+                            label_name = fsensor.readline()
+                            label_name = label_name.strip().replace(" ", "_")
                     except Exception:
                         sys.stderr.write("detect_temperatures: "
                                          "Cannot open label on %s/%s\n" %
                                          (entry, sensor))
                         continue
 
-                    read_hwmon(hw, entry, sensor, label_name, "input",
+                    read_hwmon(hwlst, entry, sensor, label_name, "input",
                                processor_num, "temperature")
-                    read_hwmon(hw, entry, sensor, label_name, "max",
+                    read_hwmon(hwlst, entry, sensor, label_name, "max",
                                processor_num, "max")
-                    read_hwmon(hw, entry, sensor, label_name, "crit",
+                    read_hwmon(hwlst, entry, sensor, label_name, "crit",
                                processor_num, "critical")
-                    read_hwmon(hw, entry, sensor, label_name, "crit_alarm",
+                    read_hwmon(hwlst, entry, sensor, label_name, "crit_alarm",
                                processor_num, "critical_alarm")
 
 
@@ -734,7 +777,7 @@ def _main(options):
     detect_temperatures(hrdw)
     detect_utils.get_ddr_timing(hrdw)
     detect_utils.ipmi_sdr(hrdw)
-    status, output = cmd("dmesg")
+    _, output = cmd("dmesg")
     parse_dmesg(hrdw, output)
     if "human" in options.keys():
         pprint.pprint(hrdw)
@@ -754,14 +797,14 @@ def main():
     options = {}
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hH", ['help', 'human'])
+        opts, _ = getopt.getopt(sys.argv[1:], "hH", ['help', 'human'])
     except getopt.GetoptError:
         print("Error: One of the options passed to the"
               " cmdline was not supported")
         print("Please fix your command line or read the help (-h option)")
         sys.exit(2)
 
-    for opt, arg in opts:
+    for opt, _ in opts:
         if opt in ("-h", "--help"):
             print_help()
             sys.exit(0)
