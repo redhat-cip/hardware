@@ -109,7 +109,6 @@ def _call_func(func, implicit, res):
         args = args + re.split(r'\s*,\s*', res.group(3))
     # remove strings delimiters
     args = [x.strip('\'"') for x in args]
-    print('_call_func', func, implicit, args)
     # call function
     args = [_extract_result(implicit, x) for x in args]
     return func(*args)
