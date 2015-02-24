@@ -1,17 +1,12 @@
-If you would like to contribute to the development of OpenStack,
-you must follow the steps in the "If you're a developer, start here"
-section of this page:
+If you would like to contribute to the development of the hardware
+module, use Pull Requests from github:
 
-   http://wiki.openstack.org/HowToContribute
+   https://github.com/enovance/hardware
 
-Once those steps have been completed, changes to OpenStack
-should be submitted for review via the Gerrit tool, following
-the workflow documented at:
+To report a bug, take a look if you bug has already been reported on:
 
-   http://wiki.openstack.org/GerritWorkflow
+https://github.com/enovance/hardware/issues
 
-Pull requests submitted through GitHub will be ignored.
+If your bug is new, it should be filed on GitHub:
 
-Bugs should be filed on Launchpad, not GitHub:
-
-   https://bugs.launchpad.net/hardware
+   https://github.com/enovance/hardware/issues/new
