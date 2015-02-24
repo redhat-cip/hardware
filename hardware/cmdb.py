@@ -20,6 +20,7 @@
 
 import errno
 import logging
+import os
 import pprint
 import shutil
 
@@ -35,7 +36,7 @@ class CmdbError(Exception):
 
 def cmdb_filename(cfg_dir, name):
     'Return the cmdb filename.'
-    return cfg_dir + name + '.cmdb'
+    return os.path.join(cfg_dir, name + '.cmdb')
 
 
 def load_cmdb(cfg_dir, name):
