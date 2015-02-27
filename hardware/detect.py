@@ -18,8 +18,8 @@
 '''Main entry point for hardware and system detection routines in eDeploy.'''
 
 
+import argparse
 import fcntl
-import getopt
 import json
 import os
 import pprint
@@ -33,6 +33,9 @@ import xml.etree.ElementTree as ET
 
 from netaddr import IPNetwork
 
+from hardware.benchmark import cpu as bm_cpu
+from hardware.benchmark import disk as bm_disk
+from hardware.benchmark import mem as bm_mem
 from hardware import detect_utils
 from hardware.detect_utils import cmd
 from hardware import diskinfo
@@ -779,36 +782,63 @@ def _main(options):
     detect_utils.ipmi_sdr(hrdw)
     _, output = cmd("dmesg")
     parse_dmesg(hrdw, output)
+
+    if "benchmark_cpu" in options:
+        bm_cpu.cpu_perf(hrdw)
+
+    if "benchmark_mem" in options:
+        bm_mem.mem_perf(hrdw)
+
+    if "benchmark_disk" in options:
+        bm_disk.disk_perf(hrdw,
+                          destructive=options['benchmark_disk_destructive'])
+
     if "human" in options.keys():
         pprint.pprint(hrdw)
     else:
         print(json.dumps(hrdw))
 
 
-def print_help():
-    print('detect.py help page')
-    print()
-    print('-h or --help    : Print this help')
-    print('-H or --human   : Print output in human readable format')
-    print()
-
-
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-H', '--human',
+                        help='Print output in human readable format',
+                        action='store_true',
+                        default=False)
+    parser.add_argument('--benchmark', '-b',
+                        help=('Run benchmark for specific components. '
+                              'Valid components are: disk, cpu, mem'),
+                        metavar='component',
+                        nargs='+')
+    parser.add_argument('--benchmark-disk-destructive',
+                        help=('If specified make the disk component benchmark '
+                              'to be destructive'),
+                        action='store_true',
+                        default=False)
+
     options = {}
+    args = parser.parse_args()
+    if args.human:
+        options["human"] = True
+    if args.benchmark:
+        invalid_opts = []
+        for opt in args.benchmark:
+            opt_ = opt.lower()
+            if opt_ == 'cpu':
+                options['benchmark_cpu'] = True
+            elif opt_ == 'mem':
+                options['benchmark_mem'] = True
+            elif opt_ == 'disk':
+                options['benchmark_disk'] = True
+                options['benchmark_disk_destructive'] = (
+                    args.benchmark_disk_destructive)
+            else:
+                invalid_opts.append(opt)
 
-    try:
-        opts, _ = getopt.getopt(sys.argv[1:], "hH", ['help', 'human'])
-    except getopt.GetoptError:
-        print("Error: One of the options passed to the"
-              " cmdline was not supported")
-        print("Please fix your command line or read the help (-h option)")
-        sys.exit(2)
-
-    for opt, _ in opts:
-        if opt in ("-h", "--help"):
-            print_help()
-            sys.exit(0)
-        elif opt in ("-H", "--human"):
-            options["human"] = True
+        if invalid_opts:
+            print('"%s" is/are not valid benchmark component(s). Check '
+                  '--help to see the list of acceptable values' %
+                  ', '.join(invalid_opts))
+            sys.exit(1)
 
     _main(options)
