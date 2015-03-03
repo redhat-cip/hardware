@@ -255,14 +255,9 @@ Need to call unlock to release the lock.
                             nics.append({"mac": db[var]})
                         else:
                             print('cmdb setting %s not found' % var)
-                            nics.append({"mac": 'none'})
                     else:
                         nics.append({"mac": info['mac']})
-                else:
-                    nics.append({"mac": 'none'})
                 info = {}
-            else:
-                nics.append({"mac": 'none'})
         return nics
 
     def hardware_info(self, hostname):
