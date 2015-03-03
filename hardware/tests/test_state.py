@@ -82,9 +82,7 @@ class TestState(unittest.TestCase):
                                           {'size': '19Gi'},
                                           {'size': '20Gi'}],
                                 'nics': [{'mac': 'dd:ee:ff'},
-                                         {'mac': 'aa:bb:cc'},
-                                         {'mac': 'none'},
-                                         {'mac': 'none'}],
+                                         {'mac': 'aa:bb:cc'}],
                                 'memory': 8192,
                                 'ncpus': 4})
 
