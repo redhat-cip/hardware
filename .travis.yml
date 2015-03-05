@@ -1,12 +1,14 @@
 language: python
-python: 2.7
+python:
+  - '2.7'
+  - '3.3'
+  - pypy
 env:
-  - TOX_ENV=py27
-  - TOX_ENV=pypy
-  - TOX_ENV=py33
+  - TOX_ENV=unit
   - TOX_ENV=pep8
   - TOX_ENV=pylint
 install:
+  - sudo apt-get install -qq bc
   - pip install tox
 script:
-  - tox -e $TOX_ENV
+  - if [ $TOX_ENV = unit ]; then PYENV=py$(echo $TRAVIS_PYTHON_VERSION|sed -e 's/^py//' -e 's/\.//'); tox -e $PYENV; elif [ $TRAVIS_PYTHON_VERSION = 2.7 ] tox -e $TOX_ENV; fi
