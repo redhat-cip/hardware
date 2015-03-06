@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (C) 2015 eNovance SAS <licensing@enovance.com>
 #
@@ -24,11 +24,17 @@ level=$1
 shift
 tmpfile=$(mktemp)
 
+cleanup() {
+    rm -f $tmpfile
+}
+
+trap cleanup 0
+
 pylint "$@" | tee $tmpfile
 
 score=$(sed -n 's@.*rated at \(.*\)/10 .*@\1@p' < $tmpfile)
 
-if [ $(bc <<< "$score >= $level") -eq 1 ]; then
+if [ $(echo "$score >= $level" | bc) -eq 1 ]; then
     exit 0
 else
     exit 1
