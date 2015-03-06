@@ -32,7 +32,7 @@ trap cleanup 0
 
 pylint "$@" | tee $tmpfile
 
-score=$(sed -n 's@.*rated at \(.*\)/10 .*@\1@p' < $tmpfile)
+score=$(sed -n 's@.*rated at \([0-9.]*\)/10.*@\1@p' < $tmpfile)
 
 set -x
 
