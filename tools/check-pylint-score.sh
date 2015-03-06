@@ -34,7 +34,9 @@ pylint "$@" | tee $tmpfile
 
 score=$(sed -n 's@.*rated at \(.*\)/10 .*@\1@p' < $tmpfile)
 
-if [ $(echo "$score >= $level" | bc) -eq 1 ]; then
+set -x
+
+if [ "$(echo "$score >= $level" | bc)" -eq 1 ]; then
     exit 0
 else
     exit 1
