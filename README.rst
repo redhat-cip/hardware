@@ -2,6 +2,9 @@
 hardware
 ===============================
 
+.. image:: https://travis-ci.org/enovance/hardware.svg?branch=master
+    :target: https://travis-ci.org/enovance/hardware
+
 Hardware detection and classification utilities
 
 Features
