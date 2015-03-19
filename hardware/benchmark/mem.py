@@ -22,17 +22,15 @@ import re
 import subprocess
 import sys
 
-import psutil
-
 from hardware.benchmark import utils
 
 
 def get_available_memory():
-    """Get the amount of available memory."""
-    try:
-        return psutil.virtual_memory().total
-    except Exception:
-        return psutil.avail_phymem()
+    """Return the total amount of available memory, in bytes."""
+    with open('/proc/meminfo', 'r') as f:
+        for line in f:
+            if line.startswith('MemFree:'):
+                return int(line.split()[1]) * 1024
 
 
 def check_mem_size(block_size, cpu_count):
