@@ -35,7 +35,7 @@ def run_sysbench_cpu(hw_lst, max_time, cpu_count, processor_num=None):
 
     """
     taskset = ''
-    if processor_num:
+    if processor_num is not None:
         sys.stderr.write('Benchmarking CPU %d for %d seconds (%d threads)\n' %
                          (processor_num, max_time, cpu_count))
         taskset = 'taskset %s' % hex(1 << processor_num)
@@ -54,7 +54,7 @@ def run_sysbench_cpu(hw_lst, max_time, cpu_count, processor_num=None):
             _, perf = line_.split(':')
 
             value = str(int(int(perf) / max_time))
-            if processor_num:
+            if processor_num is not None:
                 hw_lst.append(('cpu',
                                'logical_%d' % processor_num,
                                'loops_per_sec', value))
