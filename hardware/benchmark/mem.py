@@ -59,7 +59,7 @@ def run_sysbench_memory_threaded(hw_lst, max_time, block_size, cpu_count,
     """Running memtest on a processor."""
     check_mem = check_mem_size(block_size, cpu_count)
     taskset = ''
-    if processor_num:
+    if processor_num is not None:
         if check_mem is False:
             msg = ("Avoid Benchmarking memory @%s "
                    "from CPU %d, not enough memory\n")
@@ -90,7 +90,7 @@ def run_sysbench_memory_threaded(hw_lst, max_time, block_size, cpu_count,
         if "transferred" in line:
             _, right = line.rstrip('\n').replace(' ', '').split('(')
             perf, _ = right.split('.')
-            if processor_num:
+            if processor_num is not None:
                 hw_lst.append(('cpu',
                                'logical_%d' % processor_num,
                                'bandwidth_%s' % block_size,
