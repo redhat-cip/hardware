@@ -48,7 +48,7 @@ def check_mem_size(block_size, cpu_count):
 
     size_in_bytes = (unit_in_bytes * int(dsplit.findall(block_size)[0])
                      * cpu_count)
-    if (size_in_bytes > get_available_memory()):
+    if size_in_bytes > get_available_memory():
         return False
 
     return True

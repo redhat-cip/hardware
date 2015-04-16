@@ -68,7 +68,7 @@ def parse_lldtool(hw_lst, interface_name, lines):
                     right = right.strip('\t').replace("/", "_")
                     # If we never had this sub_header for this header
                     # let's add one
-                    if (left != sub_header):
+                    if left != sub_header:
                         sub_header = left
                         header = header + "/" + sub_header
                     content = right
@@ -280,7 +280,7 @@ def read_SMART_ata(hw, device, optional_flag="", mode=""):
             break
         try:
             fields = line.split()
-            if (len(fields) < 10):
+            if len(fields) < 10:
                 raise
             values["id"] = fields[0]
             values["name"] = fields[1]
@@ -340,7 +340,7 @@ def read_SMART(hw, device, optional_flag=""):
     if optional_flag:
         optional_string = " with %s" % optional_flag
 
-    if (os.path.exists(device)):
+    if os.path.exists(device):
         sys.stderr.write(
             "read_smart: Reading S.M.A.R.T information on %s%s\n" %
             (device, optional_string))
@@ -398,7 +398,7 @@ def get_ddr_timing(hw_):
             found = True
             continue
 
-        if (found is True):
+        if found is True:
             (ddr_channel, tCL, tRCD, tRP, tRAS,
              tRRD, tRFC, tWR, tWTPr,
              tRTPr, tFAW, B2B) = line.rstrip('\n').replace('|', ' ').split()

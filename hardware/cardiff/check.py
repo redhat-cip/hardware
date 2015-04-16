@@ -114,7 +114,7 @@ def compute_deviance_percentage(item, df):
     # checking the variance is useless
     if df[item].count() == 1:
         return 0
-    return (df[item].std() / df[item].mean() * 100)
+    return df[item].std() / df[item].mean() * 100
 
 
 def print_detail(detail_options, details, df, matched_category):
@@ -615,10 +615,10 @@ def memory_perf(systems, unique_id, group_number, detail_options,
                         if not perf[1] in memory:
                             memory.append(perf[1])
                         series.append(float(perf[3]))
-                    elif ("threaded_bandwidth_%s" % mode) in perf[2]:
+                    elif "threaded_bandwidth_%s" % mode in perf[2]:
                         threaded_perf[system] = float(perf[3])
                         found_data = float(perf[3])
-                    elif ("forked_bandwidth_%s" % mode) in perf[2]:
+                    elif "forked_bandwidth_%s" % mode in perf[2]:
                         forked_perf[system] = float(perf[3])
                         found_data = float(perf[3])
 

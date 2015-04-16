@@ -97,7 +97,7 @@ def run_fio(hw_lst, disks_list, mode, io_size, time, rampup_time):
             continue
         if ("read : io=" in line) or ("write: io=" in line):
             # read : io=169756KB, bw=16947KB/s, iops=4230, runt= 10017msec
-            if (len(disks_list) > 1):
+            if len(disks_list) > 1:
                 mode_str = "simultaneous_%s_%s" % (mode, io_size)
             else:
                 mode_str = "standalone_%s_%s" % (mode, io_size)
@@ -169,7 +169,7 @@ def disk_perf(hw_lst, destructive=False, running_time=10):
         run_fio(hw_lst, ['%s' % disk],
                 "randread", "4k", running_time, RAMP_TIME)
 
-    if (disks_num > 1):
+    if disks_num > 1:
         if destructive:
             run_fio(hw_lst, get_disks_name(hw_lst, True),
                     "write", "1M", running_time, RAMP_TIME)

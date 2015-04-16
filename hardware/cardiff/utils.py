@@ -44,7 +44,7 @@ def write_gnuplot_file(filename, index, value):
             lines = (line.rstrip() for line in f)
             found = False
             for line in lines:
-                if (int(line.split()[0].strip()) == index):
+                if int(line.split()[0].strip()) == index:
                     found = True
                     new_lines.append("%s %.2f" % (line.strip(), value))
                 else:
@@ -57,7 +57,7 @@ def write_gnuplot_file(filename, index, value):
 
 def do_print(mode, level, string, *args):
     global print_level
-    if (level & int(print_level) != level):
+    if level & int(print_level) != level:
         return
     final_string = "%-34s: %-8s: " + string
     final_args = (mode, Levels.message[int(level)])
