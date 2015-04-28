@@ -38,8 +38,6 @@ load-plugins=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-# C0325 - superfluous parens (want for python3 compat) 
-disable=C0325
 
 
 [REPORTS]

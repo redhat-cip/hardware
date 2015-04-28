@@ -18,6 +18,7 @@
 '''Main entry point for hardware and system detection routines in eDeploy.'''
 
 
+from __future__ import print_function
 import argparse
 import fcntl
 import json

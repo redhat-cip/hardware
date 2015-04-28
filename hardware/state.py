@@ -26,6 +26,7 @@ which means try first to match hardware specs from the hw1 hardware
 profile and matches only 3 times then try hw2 any number of times.
 '''
 
+from __future__ import print_function
 import errno
 import logging
 import os
