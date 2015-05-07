@@ -122,7 +122,7 @@ def print_detail(detail_options, details, df, matched_category):
     if (utils.print_level & utils.Levels.DETAIL) != utils.Levels.DETAIL:
         return
     if len(df.loc[details]) > 0:
-        print("")
+        print()
         print("%-34s: %-8s: %s" % (matched_category[0],
                                    utils.Levels.message[utils.print_level],
                                    detail_options['item']))
@@ -189,7 +189,7 @@ def network_perf(systems, unique_id, group_number, detail_options,
         matched_category = []
         for net in df.transpose().columns:
             if have_net_data is False:
-                print("")
+                print()
                 print("Group %d : Checking network disks perf" % group_number)
                 have_net_data = True
             consistent = []
@@ -251,7 +251,7 @@ def logical_disks_perf(systems, unique_id, group_number, detail_options,
         matched_category = []
         for disk in df.transpose().columns:
             if have_disk_data is False:
-                print("")
+                print()
                 print("Group %d : Checking logical disks perf" % group_number)
                 have_disk_data = True
             consistent = []
@@ -546,7 +546,7 @@ def cpu_perf(systems, unique_id, group_number, detail_options,
 
         for cpu in df.transpose().columns:
             if have_cpu_data is False:
-                print("")
+                print()
                 print("Group %d : Checking CPU perf" % group_number)
                 have_cpu_data = True
             print_perf(2, 7, df.transpose()[cpu], df, mode, cpu, consistent,
@@ -646,7 +646,7 @@ def memory_perf(systems, unique_id, group_number, detail_options,
         df = DataFrame(results)
         for memory in df.transpose().columns:
             if have_memory_data is False:
-                print("")
+                print()
                 print("Group %d : Checking Memory perf" % group_number)
                 have_memory_data = True
 

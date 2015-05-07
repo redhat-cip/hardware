@@ -192,7 +192,7 @@ def analyze_data(global_params, pattern, ignore_list, detail, rampup_value=0,
     compare_performance(bench_values, unique_id, systems_groups, detail,
                         rampup_value, current_dir)
     print("##########################################")
-    print("")
+    print()
     return bench_values
 
 

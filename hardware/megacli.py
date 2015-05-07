@@ -143,19 +143,19 @@ if __name__ == "__main__":
 
         encs = enc_info(ctrl_num)
 
-        print("")
+        print()
 
         print('Enclosing:')
         pprint.pprint(encs)
 
         for enc in encs:
             for disk_num in range(enc['NumberOfPhysicalDrives']):
-                print("")
+                print()
                 print('Physical disk', disk_num)
                 pprint.pprint(pdinfo(ctrl_num, enc['DeviceId'], disk_num))
 
         for ld_num in range(ld_get_num(ctrl_num)):
-            print("")
+            print()
             print('Logical disk', ld_num)
             pprint.pprint(ld_get_info(ctrl_num, ld_num))
 
