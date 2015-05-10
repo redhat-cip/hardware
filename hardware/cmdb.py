@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2014-2015 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -43,22 +43,29 @@ def load_cmdb(cfg_dir, name):
     'Load the cmdb.'
     filename = cmdb_filename(cfg_dir, name)
     try:
-        if "generate(" in open(filename).read(20):
-            shutil.copy2(filename, filename + ".orig")
         return eval(open(filename).read(-1))
     except IOError as xcpt:
         if xcpt.errno != errno.ENOENT:
-            LOG.error("exception while processing CMDB %s" % str(xcpt))
+            LOG.error("exception while processing CMDB (%s) %s" % (filename,
+                                                                   str(xcpt)))
         return None
 
 
 def save_cmdb(cfg_dir, name, cmdb):
     'Save the cmdb.'
     filename = cmdb_filename(cfg_dir, name)
+    # backup the cmdb if there is a generate call in it
+    try:
+        if "generate(" in open(filename).read(20):
+            shutil.copy2(filename, filename + ".orig")
+    except IOError as xcpt:
+        LOG.warning("Unable to backup CMDB (%s) %s" % (filename, str(xcpt)))
+    # save the new version of the cmdb
     try:
         pprint.pprint(cmdb, stream=open(filename, 'w'))
     except IOError as xcpt:
-        LOG.error("exception while saving CMDB %s" % str(xcpt))
+        LOG.error("exception while saving CMDB (%s) %s" % (filename,
+                                                           str(xcpt)))
 
 
 def update_cmdb(cmdb, var, pref, forced_find):
