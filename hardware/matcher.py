@@ -261,32 +261,25 @@ As a result, we do have a filename like :
     sysvars = {}
     sysvars['sysname'] = ''
 
-    match_spec(('system', 'product', 'vendor', '$sysprodvendor'),
-               hw_items, sysvars)
-
-    if 'sysprodvendor' in sysvars:
+    if match_spec(('system', 'product', 'vendor', '$sysprodvendor'),
+                  hw_items, sysvars):
         sysvars['sysname'] += (re.sub(r'\W+', '', sysvars['sysprodvendor']) +
                                '-')
 
-    match_spec(('system', 'product', 'name', '$sysprodname'),
-               hw_items, sysvars)
-
-    if 'sysprodname' in sysvars:
+    if match_spec(('system', 'product', 'name', '$sysprodname'),
+                  hw_items, sysvars):
         sysvars['sysname'] = re.sub(r'\W+', '', sysvars['sysprodname']) + '-'
 
-    match_spec(('system', 'product', 'serial', '$sysserial'),
-               hw_items, sysvars)
-
     # Let's use any existing DMI serial number or take the first mac address
-    if 'sysserial' in sysvars:
-        sysvars['sysname'] += re.sub(r'\W+', '', sysvars['sysserial'])
+    if match_spec(('system', 'product', 'serial', '$sysserial'),
+                  hw_items, sysvars):
+        sysvars['sysname'] += re.sub(r'\W+', '', sysvars['sysserial']) + '-'
 
     # we always need to have the mac addresses for pxemngr
     if match_multiple(hw_items,
                       ('network', '$eth', 'serial', '$serial'),
                       sysvars):
-        if 'sysserial' not in sysvars:
-            sysvars['sysname'] += sysvars['serial'][0].replace(':', '-')
+        sysvars['sysname'] += sysvars['serial'][0].replace(':', '-')
     else:
         LOG.warning('unable to detect network macs')
 

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
+# Copyright (C) 2013-2015 eNovance SAS <licensing@enovance.com>
 #
 # Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
@@ -332,24 +332,20 @@ class TestMatcher(unittest.TestCase):
     def test_generate_filename_and_macs(self):
         items = [('system', 'product', 'serial', 'Sysname'),
                  ('network', 'eth0', 'serial', 'mac')]
-        clone = list(items)
         self.assertEqual(matcher.generate_filename_and_macs(items),
-                         {'sysname': 'Sysname',
+                         {'sysname': 'Sysname-mac',
                           'sysserial': 'Sysname',
                           'eth': ['eth0'],
                           'serial': ['mac'],
                           })
-        self.assertEqual(items, clone)
 
     def test_generate_filename_and_macs_no_sysname(self):
         items = [('network', 'eth0', 'serial', 'aa:bb:cc')]
-        clone = list(items)
         self.assertEqual(matcher.generate_filename_and_macs(items),
                          {'serial': ['aa:bb:cc'],
                           'eth': ['eth0'],
                           'sysname': 'aa-bb-cc',
                           })
-        self.assertEqual(items, clone)
 
     def test_generate_filename_and_macs_virtualbox(self):
         items = [('disk', 'sda', 'size', '8'),
@@ -368,8 +364,9 @@ class TestMatcher(unittest.TestCase):
                  ('network', 'eth0', 'driver', 'e1000'),
                  ('system', 'cpu', 'number', '1')]
         result = matcher.generate_filename_and_macs(items)
-        self.assertTrue('serial' in result, result)
-        self.assertTrue('eth' in result, result)
+        self.assertEqual(result['sysname'], 'VirtualBox-0-08-00-27-6f-77-22')
+        self.assertEqual(result['serial'], ['08:00:27:6f:77:22'])
+        self.assertEqual(result['eth'], ['eth0'])
 
 if __name__ == "__main__":
     unittest.main()
