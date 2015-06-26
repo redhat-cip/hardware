@@ -540,7 +540,7 @@ def main():
                 sys.exit(2)
 
             temp_rampup_values = [int(name) for name in os.listdir(rampup_dir)
-                                  if os.path.isdir(rampup_dir + name)]
+                                  if os.path.isdir(rampup_dir + '/' + name)]
             if not rampup_values:
                 rampup_values = temp_rampup_values
                 if len(rampup_values) < 2:
@@ -598,8 +598,8 @@ def main():
                                      rampup_value, max(rampup_values),
                                      current_dir))
 
-            plot_results(current_dir, rampup_values, metrics,
-                         bench_values, titles, rampup_dirs, [])
+            plot_results(current_dir, rampup_values, job, metrics,
+                         bench_values, titles, rampup_dirs)
 
         if len(titles.keys()) > 1:
             final_directory_name = ""
