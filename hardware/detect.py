@@ -768,6 +768,18 @@ def parse_dmesg(hrdw, output):
             parse_ahci(hrdw, words)
 
 
+def clean_str(val):
+    'Cleanup a bad string (invalid UTF-8 encoding)'
+    if isinstance(val, bytes):
+        val = val.decode('UTF-8', 'replace')
+    return val
+
+
+def clean_tuples(lst):
+    'Clean a list of tuples from bad UTF-8 strings'
+    return [tuple([clean_str(val) for val in elt]) for elt in lst]
+
+
 def _main(options):
     'Command line entry point.'
     hrdw = []
@@ -793,6 +805,8 @@ def _main(options):
     if "benchmark_disk" in options:
         bm_disk.disk_perf(hrdw,
                           destructive=options['benchmark_disk_destructive'])
+
+    hrdw = clean_tuples(hrdw)
 
     if "human" in options.keys():
         pprint.pprint(hrdw)
