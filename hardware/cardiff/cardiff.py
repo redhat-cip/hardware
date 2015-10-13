@@ -302,7 +302,7 @@ def do_plot(current_dir, gpm_dir, main_title, subtitle, name, unit, titles,
                              (expected_value, expected_value))
             myfile.write("\n")
 
-        f.write("call \'%s/graph2D.gpm\' \'%s' \'%s\' \'%s\' \'%s\' \'%s\' "
+        f.write("call \'%s/graph2D.gpm\' \"%s" \"%s\" \'%s\' \'%s\' \'%s\' "
                 "\'%s\'\n" % (current_dir, main_title, subtitle,
                               current_dir + "/" + name + ".plot",
                               name, current_dir + name, unit))
