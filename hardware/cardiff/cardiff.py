@@ -120,7 +120,10 @@ def compare_performance(bench_values, unique_id, systems_groups, detail,
                                          'disk', group)
         check.logical_disks_perf(systems, unique_id,
                                  systems_groups.index(group),
-                                 detail, rampup_value, current_dir)
+                                 detail, "KBps", rampup_value, current_dir)
+        check.logical_disks_perf(systems, unique_id,
+                                 systems_groups.index(group),
+                                 detail, "IOps", rampup_value, current_dir)
 
     for group in systems_groups:
         systems = utils.find_sub_element(bench_values, unique_id, 'cpu', group)
@@ -382,8 +385,10 @@ def plot_results(current_dir, rampup_values, job, metrics, bench_values,
     if "storage" in job:
         unit["deviance"] = "KB/sec"
         unit["deviance_percentage"] = "% of deviance (vs mean perf)"
-        unit["mean"] = unit["deviance"]
-        unit["sum"] = unit["deviance"]
+        unit["mean-KBps"] = unit["deviance"]
+        unit["sum-KBps"] = unit["deviance"]
+        unit["sum-IOps"] = "IO/sec"
+        unit["mean-IOps"] = "IO/sec"
         bench_type = "%s bandwidth" % job
         context = ("%d %s threads per host, blocksize=%s, "
                    "mode=%s, access=%s" %
