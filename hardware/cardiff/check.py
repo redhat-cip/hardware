@@ -169,7 +169,7 @@ def network_perf(systems, unique_id, group_number, detail_options,
     have_net_data = False
     sets = search_item(systems, unique_id, "network", r"(.*)", [], [])
     modes = ['bandwidth', 'requests_per_sec']
-    for mode in modes:
+    for mode in sorted(modes):
         results = {}
         for system in sets:
             net = []
@@ -200,7 +200,7 @@ def network_perf(systems, unique_id, group_number, detail_options,
             tolerance_min = 2
 
             print_perf(tolerance_min, tolerance_max, df.transpose()[net], df,
-                       mode, net, consistent, curious, unstable,
+                       mode, net, consistent, curious, unstable, "",
                        rampup_value, current_dir)
             if mode == 'bandwidth':
                 unit = "MB/sec"
@@ -219,7 +219,7 @@ def network_perf(systems, unique_id, group_number, detail_options,
 
 
 def logical_disks_perf(systems, unique_id, group_number, detail_options,
-                       rampup_value=0, current_dir=""):
+                       perf_unit, rampup_value=0, current_dir=""):
     have_disk_data = False
     sets = search_item(systems, unique_id, "disk", r"[a-z]d(\S+)", [],
                        ['simultaneous', 'standalone'])
@@ -228,13 +228,13 @@ def logical_disks_perf(systems, unique_id, group_number, detail_options,
     # Searching for modes ran in this benchmark
     for system in sets:
         for perf in sets[system]:
-            if perf[2] not in modes:
+            if perf[2] not in modes and perf_unit in perf[2]:
                 modes.append(perf[2])
 
     if len(modes) == 0:
         return
 
-    for mode in modes:
+    for mode in sorted(modes):
         results = {}
         for system in sets:
             disks = []
@@ -267,17 +267,17 @@ def logical_disks_perf(systems, unique_id, group_number, detail_options,
                 tolerance_max = 15
 
             print_perf(tolerance_min, tolerance_max, df.transpose()[disk], df,
-                       mode, disk, consistent, curious, unstable, rampup_value,
-                       current_dir)
+                       mode, disk, consistent, curious, unstable, "-%s" % perf_unit,
+                       rampup_value, current_dir)
 
             prepare_detail(detail_options, group_number, mode, disk, details,
                            matched_category)
             print_summary("%-30s %s" % (mode, disk), consistent, "consistent",
-                          "IOps", df)
+                          perf_unit, df)
             print_summary("%-30s %s" % (mode, disk), curious, "curious",
-                          "IOps", df)
+                          perf_unit, df)
             print_summary("%-30s %s" % (mode, disk), unstable, "unstable",
-                          "IOps", df)
+                          perf_unit, df)
 
         print_detail(detail_options, details, df, matched_category)
 
@@ -347,7 +347,7 @@ def cpu(global_params, systems, unique_id):
 
 def print_perf(tolerance_min, tolerance_max, item, df, mode, title,
                consistent=None, curious=None, unstable=None,
-               rampup_value=0, current_dir=""):
+               sub_graph="", rampup_value=0, current_dir=""):
     # Tolerance_min represents the min where variance
     # shall be considered (in %)
     # Tolerance_max represents the maximum that variance
@@ -371,9 +371,9 @@ def print_perf(tolerance_min, tolerance_max, item, df, mode, title,
                                  rampup_value, variance_group)
         utils.write_gnuplot_file(current_dir + "/deviance_percentage.plot",
                                  rampup_value, variance_tolerance)
-        utils.write_gnuplot_file(current_dir + "/mean.plot", rampup_value,
+        utils.write_gnuplot_file(current_dir + "/mean%s.plot"% sub_graph, rampup_value,
                                  mean_group)
-        utils.write_gnuplot_file(current_dir + "/sum.plot", rampup_value,
+        utils.write_gnuplot_file(current_dir + "/sum%s.plot" % sub_graph, rampup_value,
                                  sum_group)
 
     if variance_tolerance > tolerance_max:
@@ -504,7 +504,7 @@ def cpu_perf(systems, unique_id, group_number, detail_options,
     modes = ['bogomips', 'loops_per_sec']
     sets = search_item(systems, unique_id, "cpu", "(.*)", [], modes)
     global_perf = dict()
-    for mode in modes:
+    for mode in sorted(modes):
         results = {}
         for system in sets:
             cpu = []
@@ -550,7 +550,7 @@ def cpu_perf(systems, unique_id, group_number, detail_options,
                 print("Group %d : Checking CPU perf" % group_number)
                 have_cpu_data = True
             print_perf(2, 7, df.transpose()[cpu], df, mode, cpu, consistent,
-                       curious, unstable, rampup_value, current_dir)
+                       curious, unstable, "", rampup_value, current_dir)
             prepare_detail(detail_options, group_number, mode, cpu, details,
                            matched_category)
 
@@ -596,7 +596,7 @@ def memory_perf(systems, unique_id, group_number, detail_options,
     have_memory_data = False
     modes = ['1K', '4K', '1M', '16M', '128M', '256M', '1G', '2G']
     sets = search_item(systems, unique_id, "cpu", "(.*)", [], modes)
-    for mode in modes:
+    for mode in sorted(modes):
         real_mode = "Memory benchmark %s" % mode
         results = {}
         threaded_perf = dict()
@@ -651,7 +651,7 @@ def memory_perf(systems, unique_id, group_number, detail_options,
                 have_memory_data = True
 
             print_perf(1, 7, df.transpose()[memory], df, real_mode, memory,
-                       consistent, curious, unstable, rampup_value,
+                       consistent, curious, unstable, "", rampup_value,
                        current_dir)
             matched_category = []
             prepare_detail(detail_options, group_number, mode, memory,
