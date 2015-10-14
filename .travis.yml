@@ -11,4 +11,4 @@ install:
   - sudo apt-get install -qq bc findutils
   - pip install tox
 script:
-  - if [ $TOX_ENV = unit ]; then PYENV=py$(echo $TRAVIS_PYTHON_VERSION|sed -e 's/^py//' -e 's/\.//'); tox -e $PYENV; elif [ $TRAVIS_PYTHON_VERSION = 2.7 ]; then tox -e $TOX_ENV; fi
+  - if [ $TOX_ENV = unit ]; then PYENV=py$(echo $TRAVIS_PYTHON_VERSION|sed -e 's/^py//' -e 's/\.//'); travis_wait tox -e $PYENV; elif [ $TRAVIS_PYTHON_VERSION = 2.7 ]; then travis_wait tox -e $TOX_ENV; fi
