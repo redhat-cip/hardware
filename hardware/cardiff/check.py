@@ -60,7 +60,7 @@ def search_item(systems, unique_id, item, regexp, exclude_list=[],
                         shall_be_added = True
 
                 if (shall_be_excluded is False) or (shall_be_added is True):
-                    current_set.add(stuff)
+                    current_set.add(tuple(stuff))
     return sets
 
 
