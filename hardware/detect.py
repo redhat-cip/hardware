@@ -237,26 +237,31 @@ def detect_megacli(hw_lst):
                                        str(info['NumberOfDrivesPerSpan'])))
                     except KeyError:
                         pass
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'raid_level',
-                                   info['RaidLevel']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'sector_size',
-                                   str(info['SectorSize'])))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'state',
-                                   info['State']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'Size',
-                                   size_in_gb(info['Size'])))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'strip_size',
-                                   info['StripSize']))
+                    if 'RaidLevel' in info:
+                        hw_lst.append(('ldisk',
+                                       disk,
+                                       'raid_level',
+                                       info['RaidLevel']))
+                    if 'SectorSize' in info:
+                        hw_lst.append(('ldisk',
+                                       disk,
+                                       'sector_size',
+                                       str(info['SectorSize'])))
+                    if 'State' in info:
+                        hw_lst.append(('ldisk',
+                                       disk,
+                                       'state',
+                                       info['State']))
+                    if 'Size' in info:
+                        hw_lst.append(('ldisk',
+                                       disk,
+                                       'Size',
+                                       size_in_gb(info['Size'])))
+                    if 'StripSize' in info:
+                        hw_lst.append(('ldisk',
+                                       disk,
+                                       'strip_size',
+                                       info['StripSize']))
         hw_lst.append(('disk', 'megaraid', 'count', str(disk_count)))
         return True
     else:
