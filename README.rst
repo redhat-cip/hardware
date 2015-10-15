@@ -2,8 +2,8 @@
 hardware
 ===============================
 
-.. image:: https://travis-ci.org/enovance/hardware.svg?branch=master
-    :target: https://travis-ci.org/enovance/hardware
+.. image:: https://travis-ci.org/redhat-cip/hardware.svg?branch=master
+    :target: https://travis-ci.org/redhat-cip/hardware
 
 Hardware detection and classification utilities
 
