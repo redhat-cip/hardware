@@ -267,8 +267,8 @@ def logical_disks_perf(systems, unique_id, group_number, detail_options,
                 tolerance_max = 15
 
             print_perf(tolerance_min, tolerance_max, df.transpose()[disk], df,
-                       mode, disk, consistent, curious, unstable, "-%s" % perf_unit,
-                       rampup_value, current_dir)
+                       mode, disk, consistent, curious,
+                       unstable, "-%s" % perf_unit, rampup_value, current_dir)
 
             prepare_detail(detail_options, group_number, mode, disk, details,
                            matched_category)
@@ -371,10 +371,10 @@ def print_perf(tolerance_min, tolerance_max, item, df, mode, title,
                                  rampup_value, variance_group)
         utils.write_gnuplot_file(current_dir + "/deviance_percentage.plot",
                                  rampup_value, variance_tolerance)
-        utils.write_gnuplot_file(current_dir + "/mean%s.plot"% sub_graph, rampup_value,
-                                 mean_group)
-        utils.write_gnuplot_file(current_dir + "/sum%s.plot" % sub_graph, rampup_value,
-                                 sum_group)
+        utils.write_gnuplot_file(current_dir + "/mean%s.plot" % sub_graph,
+                                 rampup_value, mean_group)
+        utils.write_gnuplot_file(current_dir + "/sum%s.plot" % sub_graph,
+                                 rampup_value, sum_group)
 
     if variance_tolerance > tolerance_max:
         utils.do_print(mode, utils.Levels.ERROR,
