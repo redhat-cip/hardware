@@ -207,56 +207,19 @@ def detect_megacli(hw_lst):
                 for ld_num in range(megacli.ld_get_num(ctrl)):
                     disk = 'disk%d' % ld_num
                     info = megacli.ld_get_info(ctrl, ld_num)
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'current_access_policy',
-                                   info['CurrentAccessPolicy']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'current_cache_policy',
-                                   info['CurrentCachePolicy']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'disk_cache_policy',
-                                   info['DiskCachePolicy']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'name',
-                                   info['Name']))
-                    try:
+                    ignore_list = ['Size']
+
+                    for item in info.keys():
+                        if item not in ignore_list:
+                            hw_lst.append(('ldisk',
+                                           disk,
+                                           item,
+                                           str(info[item])))
+                    if 'Size' in info:
                         hw_lst.append(('ldisk',
                                        disk,
-                                       'number_of_drives',
-                                       str(info['NumberOfDrives'])))
-                    except KeyError:
-                        pass
-                    try:
-                        hw_lst.append(('ldisk',
-                                       disk,
-                                       'number_of_drives_per_span',
-                                       str(info['NumberOfDrivesPerSpan'])))
-                    except KeyError:
-                        pass
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'raid_level',
-                                   info['RaidLevel']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'sector_size',
-                                   str(info['SectorSize'])))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'state',
-                                   info['State']))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'Size',
-                                   size_in_gb(info['Size'])))
-                    hw_lst.append(('ldisk',
-                                   disk,
-                                   'strip_size',
-                                   info['StripSize']))
+                                       'Size',
+                                       size_in_gb(info['Size'])))
         hw_lst.append(('disk', 'megaraid', 'count', str(disk_count)))
         return True
     else:
