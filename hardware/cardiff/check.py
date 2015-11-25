@@ -64,50 +64,38 @@ def search_item(systems, unique_id, item, regexp, exclude_list=[],
     return sets
 
 
-def physical_hpa_disks(global_params, systems, unique_id):
+def physical_hpa_disks(systems, unique_id):
     sets = search_item(systems, unique_id, "disk", r"(\d+)I:(\d+):(\d+)",
                        ['current_temperature_(c)',
                         'maximum_temperature_(c)',
                         'serial_number'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups,
-                              "Physical Disks (HP Controllers)")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def physical_megaraid_disks(global_params, systems, unique_id):
+def physical_megaraid_disks(systems, unique_id):
     sets = search_item(systems, unique_id, "pdisk", r"disk(\d+)",
                        ['Wwn', 'SasAddress', 'DriveTemperature'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups,
-                              "Physical Disks (Megaraid Controllers)")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def logical_disks(global_params, systems, unique_id):
+def logical_disks(systems, unique_id):
     sets = search_item(systems, unique_id, "disk", r"[a-z]d(\S+)",
                        ['simultaneous', 'standalone', 'id', 'serial_number',
                         'SMART/'], [],
                        ['when_failed', 'vendor', 'product', 'health'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Logical Disks")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def ahci(global_params, systems, unique_id):
+def ahci(systems, unique_id):
     sets = search_item(systems, unique_id, "ahci", r".*")
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "AHCI Controller")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def ipmi(global_params, systems, unique_id):
+def ipmi(systems, unique_id):
     sets = search_item(systems, unique_id, "ipmi",
                        "(?!(.*Temp$|.*RPM$)).*",
                        ['mac-address', 'ip-address'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "IPMI SDR")
-    return groups
+    return compare_sets.compare(sets)
 
 
 def compute_deviance_percentage(item, df):
@@ -282,67 +270,51 @@ def logical_disks_perf(systems, unique_id, group_number, detail_options,
         print_detail(detail_options, details, df, matched_category)
 
 
-def hpa(global_params, systems, unique_id):
+def hpa(systems, unique_id):
     sets = search_item(systems, unique_id, "hpa", "(.*)",
                        ['cache_serial_number', 'serial_number'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "HPA Controller")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def megaraid(global_params, systems, unique_id):
+def megaraid(systems, unique_id):
     sets = search_item(systems, unique_id, "megaraid", "(.*)",
                        ['SerialNo', 'SasAddress', 'ControllerTemperature',
                         'VendorSpecific', 'RocTemperature'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Megaraid Controller")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def systems(global_params, systems, unique_id):
+def systems(systems, unique_id):
     sets = search_item(systems, unique_id, "system", "(.*)",
                        ['serial', 'uuid'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "System")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def firmware(global_params, systems, unique_id):
+def firmware(systems, unique_id):
     sets = search_item(systems, unique_id, "firmware", "(.*)")
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Firmware")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def memory_timing(global_params, systems, unique_id):
+def memory_timing(systems, unique_id):
     sets = search_item(systems, unique_id, "memory", "DDR(.*)")
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Memory Timing(RAM)")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def memory_banks(global_params, systems, unique_id):
+def memory_banks(systems, unique_id):
     sets = search_item(systems, unique_id, "memory", "bank(.*)", ['serial'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Memory Banks(RAM)")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def network_interfaces(global_params, systems, unique_id):
+def network_interfaces(systems, unique_id):
     sets = search_item(systems, unique_id, "network", "(.*)",
                        ['serial', 'ipv4'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Network Interfaces")
-    return groups
+    return compare_sets.compare(sets)
 
 
-def cpu(global_params, systems, unique_id):
+def cpu(systems, unique_id):
     sets = search_item(systems, unique_id, "cpu", "(.*)",
                        ['bogomips', 'loops_per_sec', 'bandwidth',
                         'cache_size', '/temperature'])
-    groups = compare_sets.compare(sets)
-    compare_sets.print_groups(global_params, groups, "Processors")
-    return groups
+    return compare_sets.compare(sets)
 
 
 def print_perf(tolerance_min, tolerance_max, item, df, mode, title,

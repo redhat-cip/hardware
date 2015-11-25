@@ -19,7 +19,6 @@ import os
 import unittest
 
 from hardware.cardiff import check
-from hardware.cardiff import compare_sets
 from hardware.cardiff import utils
 
 

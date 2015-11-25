@@ -88,28 +88,31 @@ def compare_disks(global_params, bench_values, unique_id, systems_groups):
         compare_sets.get_hosts_list_from_result(groups))
 
 
-def compare_type(type_, check_func, global_params,
+def compare_type(type_, check_func, title, global_params,
                  bench_values, unique_id, systems_groups):
     systems = utils.find_sub_element(bench_values, unique_id, type_)
-    groups = check_func(global_params, systems, unique_id)
+    groups = check_func(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
+    compare_sets.print_groups(global_params, groups, title)
 
 
 def group_systems(global_params, bench_values, unique_id,
                   systems_groups, ignore_list):
-    for name, func in (('hpa', check.hpa),
-                       ('megaraid', check.megaraid),
-                       ('ahci', check.ahci),
-                       ('ipmi', check.ipmi),
-                       ('system', check.systems),
-                       ('firmware', check.firmware),
-                       ('memory', check.memory_timing),
-                       ('network', check.network_interfaces),
-                       ('cpu', check.cpu)):
+    for name, func, title in (
+            ('hpa', check.hpa, "HPA Controller"),
+            ('megaraid', check.megaraid, "Megaraid Controller"),
+            ('ahci', check.ahci, "AHCI Controller"),
+            ('ipmi', check.ipmi, "IPMI SDR"),
+            ('system', check.systems, "System"),
+            ('firmware', check.firmware, "Firmware"),
+            ('memory', check.memory_timing, "DDR Timing"),
+            ('network', check.network_interfaces,
+                "Network Interfaces"),
+            ('cpu', check.cpu, "Processors")):
         if name not in ignore_list:
-            compare_type(name, func, global_params, bench_values,
+            compare_type(name, func, title, global_params, bench_values,
                          unique_id, systems_groups)
 
 
