@@ -36,10 +36,9 @@ class TestDetect(unittest.TestCase):
     def test_cpu(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(check.search_item(
-            utils.find_sub_element(l, 'serial', 'cpu'), 'serial',
-            "cpu", "(.*)", ['bogomips', 'loops_per_sec', 'bandwidth',
-                            'cache_size']))
+        result = check.cpu(utils.find_sub_element(l, 'serial', 'cpu'),
+                           'serial')
+
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -74,10 +73,8 @@ class TestDetect(unittest.TestCase):
     def test_network_interfaces(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(
-            check.search_item(
-                utils.find_sub_element(l, 'serial', 'network'),
-                'serial', "network", "(.*)", ['serial', 'ipv4']))
+        result = check.network_interfaces(
+            utils.find_sub_element(l, 'serial', 'network'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -104,9 +101,9 @@ class TestDetect(unittest.TestCase):
     def test_memory_timing(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(
-            check.search_item(utils.find_sub_element(l, 'serial', 'memory'),
-                              'serial', "memory", "DDR(.*)"))
+        result = check.memory_timing(utils.find_sub_element(l, 'serial',
+                                                            'memory'),
+                                     'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -155,9 +152,8 @@ class TestDetect(unittest.TestCase):
     def test_firmware(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(
-            check.search_item(utils.find_sub_element(l, 'serial', 'firmware'),
-                              'serial', "firmware", "(.*)"))
+        result = check.firmware(
+            utils.find_sub_element(l, 'serial', 'firmware'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -175,9 +171,8 @@ class TestDetect(unittest.TestCase):
     def test_systems(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(check.search_item(
-            utils.find_sub_element(l, 'serial', 'system'),
-            'serial', "system", "(.*)", ['serial']))
+        result = check.systems(
+            utils.find_sub_element(l, 'serial', 'system'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -196,10 +191,8 @@ class TestDetect(unittest.TestCase):
     def test_logical_disks(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(
-            check.search_item(utils.find_sub_element(l, 'serial', 'disk'),
-                              'serial', "disk", "sd(\S+)",
-                              ['simultaneous', 'standalone']))
+        result = check.logical_disks(
+            utils.find_sub_element(l, 'serial', 'disk'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -226,9 +219,9 @@ class TestDetect(unittest.TestCase):
     def test_hp_physical_disks(self):
         l = []
         load_samples(l)
-        result = compare_sets.compare(check.search_item(
-            utils.find_sub_element(l, 'serial', 'disk'),
-            'serial', "disk", "(\d+)I:(\d+):(\d+)"))
+        result = check.physical_hpa_disks(utils.find_sub_element(l, 'serial',
+                                                                 'disk'),
+                                          'serial')
         self.maxDiff = None
         item = 0
         for element in result:

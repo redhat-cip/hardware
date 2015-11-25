@@ -27,10 +27,10 @@ from hardware.cardiff import perf_cpu_tables
 from hardware.cardiff import utils
 
 
-def search_item(systems, unique_id, item, regexp, exclude_list=[],
+def search_item(system_list, unique_id, item, regexp, exclude_list=[],
                 include_list=[], override_list=[]):
     sets = {}
-    for system in systems:
+    for system in system_list:
         sets[system[unique_id]] = set()
         current_set = sets[system[unique_id]]
         for stuff in system[item]:
@@ -64,35 +64,35 @@ def search_item(systems, unique_id, item, regexp, exclude_list=[],
     return sets
 
 
-def physical_hpa_disks(systems, unique_id):
-    sets = search_item(systems, unique_id, "disk", r"(\d+)I:(\d+):(\d+)",
+def physical_hpa_disks(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "disk", r"(\d+)I:(\d+):(\d+)",
                        ['current_temperature_(c)',
                         'maximum_temperature_(c)',
                         'serial_number'])
     return compare_sets.compare(sets)
 
 
-def physical_megaraid_disks(systems, unique_id):
-    sets = search_item(systems, unique_id, "pdisk", r"disk(\d+)",
+def physical_megaraid_disks(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "pdisk", r"disk(\d+)",
                        ['Wwn', 'SasAddress', 'DriveTemperature'])
     return compare_sets.compare(sets)
 
 
-def logical_disks(systems, unique_id):
-    sets = search_item(systems, unique_id, "disk", r"[a-z]d(\S+)",
+def logical_disks(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "disk", r"[a-z]d(\S+)",
                        ['simultaneous', 'standalone', 'id', 'serial_number',
                         'SMART/'], [],
                        ['when_failed', 'vendor', 'product', 'health'])
     return compare_sets.compare(sets)
 
 
-def ahci(systems, unique_id):
-    sets = search_item(systems, unique_id, "ahci", r".*")
+def ahci(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "ahci", r".*")
     return compare_sets.compare(sets)
 
 
-def ipmi(systems, unique_id):
-    sets = search_item(systems, unique_id, "ipmi",
+def ipmi(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "ipmi",
                        "(?!(.*Temp$|.*RPM$)).*",
                        ['mac-address', 'ip-address'])
     return compare_sets.compare(sets)
@@ -152,10 +152,10 @@ def prepare_detail(detail_options, group_number, category, item, details,
     return ""
 
 
-def network_perf(systems, unique_id, group_number, detail_options,
+def network_perf(system_list, unique_id, group_number, detail_options,
                  rampup_value=0, current_dir=""):
     have_net_data = False
-    sets = search_item(systems, unique_id, "network", r"(.*)", [], [])
+    sets = search_item(system_list, unique_id, "network", r"(.*)", [], [])
     modes = ['bandwidth', 'requests_per_sec']
     for mode in sorted(modes):
         results = {}
@@ -206,10 +206,10 @@ def network_perf(systems, unique_id, group_number, detail_options,
         print_detail(detail_options, details, df, matched_category)
 
 
-def logical_disks_perf(systems, unique_id, group_number, detail_options,
+def logical_disks_perf(system_list, unique_id, group_number, detail_options,
                        perf_unit, rampup_value=0, current_dir=""):
     have_disk_data = False
-    sets = search_item(systems, unique_id, "disk", r"[a-z]d(\S+)", [],
+    sets = search_item(system_list, unique_id, "disk", r"[a-z]d(\S+)", [],
                        ['simultaneous', 'standalone'])
     modes = []
 
@@ -270,48 +270,48 @@ def logical_disks_perf(systems, unique_id, group_number, detail_options,
         print_detail(detail_options, details, df, matched_category)
 
 
-def hpa(systems, unique_id):
-    sets = search_item(systems, unique_id, "hpa", "(.*)",
+def hpa(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "hpa", "(.*)",
                        ['cache_serial_number', 'serial_number'])
     return compare_sets.compare(sets)
 
 
-def megaraid(systems, unique_id):
-    sets = search_item(systems, unique_id, "megaraid", "(.*)",
+def megaraid(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "megaraid", "(.*)",
                        ['SerialNo', 'SasAddress', 'ControllerTemperature',
                         'VendorSpecific', 'RocTemperature'])
     return compare_sets.compare(sets)
 
 
-def systems(systems, unique_id):
-    sets = search_item(systems, unique_id, "system", "(.*)",
+def systems(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "system", "(.*)",
                        ['serial', 'uuid'])
     return compare_sets.compare(sets)
 
 
-def firmware(systems, unique_id):
-    sets = search_item(systems, unique_id, "firmware", "(.*)")
+def firmware(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "firmware", "(.*)")
     return compare_sets.compare(sets)
 
 
-def memory_timing(systems, unique_id):
-    sets = search_item(systems, unique_id, "memory", "DDR(.*)")
+def memory_timing(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "memory", "DDR(.*)")
     return compare_sets.compare(sets)
 
 
-def memory_banks(systems, unique_id):
-    sets = search_item(systems, unique_id, "memory", "bank(.*)", ['serial'])
+def memory_banks(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "memory", "bank(.*)", ['serial'])
     return compare_sets.compare(sets)
 
 
-def network_interfaces(systems, unique_id):
-    sets = search_item(systems, unique_id, "network", "(.*)",
+def network_interfaces(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "network", "(.*)",
                        ['serial', 'ipv4'])
     return compare_sets.compare(sets)
 
 
-def cpu(systems, unique_id):
-    sets = search_item(systems, unique_id, "cpu", "(.*)",
+def cpu(system_list, unique_id):
+    sets = search_item(system_list, unique_id, "cpu", "(.*)",
                        ['bogomips', 'loops_per_sec', 'bandwidth',
                         'cache_size', '/temperature'])
     return compare_sets.compare(sets)
@@ -454,12 +454,12 @@ def print_summary(mode, array, array_name, unit, df, item_value=None):
             mean, unit, numpy.std(result), perf_status)
 
 
-def cpu_perf(systems, unique_id, group_number, detail_options,
+def cpu_perf(system_list, unique_id, group_number, detail_options,
              rampup_value=0, current_dir=""):
     have_cpu_data = False
-    host_cpu_list = search_item(systems, unique_id, "cpu", "(.*)", [],
+    host_cpu_list = search_item(system_list, unique_id, "cpu", "(.*)", [],
                                 ['product'])
-    host_cpu_number = search_item(systems, unique_id, "cpu",
+    host_cpu_number = search_item(system_list, unique_id, "cpu",
                                   "(.*logical.*)", [], ['number'])
     core_counts = 1
     for host in host_cpu_number:
@@ -474,7 +474,7 @@ def cpu_perf(systems, unique_id, group_number, detail_options,
             break
 
     modes = ['bogomips', 'loops_per_sec']
-    sets = search_item(systems, unique_id, "cpu", "(.*)", [], modes)
+    sets = search_item(system_list, unique_id, "cpu", "(.*)", [], modes)
     global_perf = dict()
     for mode in sorted(modes):
         results = {}
@@ -563,11 +563,11 @@ def cpu_perf(systems, unique_id, group_number, detail_options,
             print_summary("CPU Efficiency", unstable, "unstable", '%', cpu_eff)
 
 
-def memory_perf(systems, unique_id, group_number, detail_options,
+def memory_perf(system_list, unique_id, group_number, detail_options,
                 rampup_value=0, current_dir=""):
     have_memory_data = False
     modes = ['1K', '4K', '1M', '16M', '128M', '256M', '1G', '2G']
-    sets = search_item(systems, unique_id, "cpu", "(.*)", [], modes)
+    sets = search_item(system_list, unique_id, "cpu", "(.*)", [], modes)
     for mode in sorted(modes):
         real_mode = "Memory benchmark %s" % mode
         results = {}

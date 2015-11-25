@@ -71,18 +71,18 @@ $ cardiff.py -r '/var/lib/edeploy/health/dahc/cpu_load/2014_09_15-12h17'
 ''')
 
 
-def compare_disks(global_params, bench_values, unique_id, systems_groups):
+def compare_disks(bench_values, unique_id, systems_groups):
     systems = utils.find_sub_element(bench_values, unique_id, 'pdisk')
-    groups = check.physical_megaraid_disks(global_params, systems, unique_id)
+    groups = check.physical_megaraid_disks(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
     systems = utils.find_sub_element(bench_values, unique_id, 'disk')
-    groups = check.physical_hpa_disks(global_params, systems, unique_id)
+    groups = check.physical_hpa_disks(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
-    groups = check.logical_disks(global_params, systems, unique_id)
+    groups = check.logical_disks(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
@@ -109,7 +109,7 @@ def group_systems(global_params, bench_values, unique_id,
             ('firmware', check.firmware, "Firmware"),
             ('memory', check.memory_timing, "DDR Timing"),
             ('network', check.network_interfaces,
-                "Network Interfaces"),
+             "Network Interfaces"),
             ('cpu', check.cpu, "Processors")):
         if name not in ignore_list:
             compare_type(name, func, title, global_params, bench_values,
