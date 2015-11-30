@@ -249,7 +249,7 @@ def do_plot(current_dir, gpm_dir, main_title, subtitle, name, unit, titles,
         gnuplot_arg = lambda x: "ARG" + str(x + 1)
     else:
         gnuplot_arg = lambda x: "'$" + str(x) + "'"
-    with open(filename, "a") as f:
+    with open(filename, "a") as ofile:
         shutil.copyfile("%s/graph2D.gpm" % gpm_dir,
                         "%s/graph2D.gpm" % current_dir)
         with open("%s/graph2D.gpm" % current_dir, "a") as myfile:
@@ -308,20 +308,20 @@ def do_plot(current_dir, gpm_dir, main_title, subtitle, name, unit, titles,
                              (expected_value, expected_value))
             myfile.write("\n")
 
-        f.write("call \'%s/graph2D.gpm\' \"%s\" \"%s\" \'%s\' \'%s\' \'%s\' "
-                "\'%s\'\n" % (current_dir, main_title, subtitle,
-                              current_dir + "/" + name + ".plot",
-                              name, current_dir + name, unit))
+        ofile.write("call \'%s/graph2D.gpm\' \"%s\" \"%s\" \'%s\' \'%s\' "
+                    "\'%s\' \'%s\'\n" % (current_dir, main_title, subtitle,
+                                         current_dir + "/" + name + ".plot",
+                                         name, current_dir + name, unit))
     try:
         os.system("gnuplot %s" % filename)
     except Exception:
         pass
 
 
-def extract_hw_info(hw, level1, level2, level3):
+def extract_hw_info(hardware, level1, level2, level3):
     result = []
     temp_level2 = level2
-    for entry in hw:
+    for entry in hardware:
         if level2 == '*':
             temp_level2 = entry[1]
         if (level1 == entry[0] and temp_level2 == entry[1] and

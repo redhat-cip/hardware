@@ -69,11 +69,11 @@ def do_print(mode, level, string, *args):
 def find_file(path, pattern):
     health_data_file = []
     # For all the local files
-    for file in os.listdir(path):
+    for my_file in os.listdir(path):
         # If the file math the regexp
-        if fnmatch.fnmatch(file, pattern):
+        if fnmatch.fnmatch(my_file, pattern):
             # Let's consider this file
-            health_data_file.append(path + "/" + file)
+            health_data_file.append(path + "/" + my_file)
 
     return health_data_file
 

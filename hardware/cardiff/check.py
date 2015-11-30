@@ -127,10 +127,10 @@ def prepare_detail(detail_options, group_number, category, item, details,
     matched_item = ''
 
     if detail_options['group'] == str(group_number):
-            matched_group = str(group_number)
+        matched_group = str(group_number)
     elif re.search(detail_options['group'], str(group_number)) is not None:
-            matched_group = re.search(detail_options['group'],
-                                      str(group_number)).group()
+        matched_group = re.search(detail_options['group'],
+                                  str(group_number)).group()
 
     if detail_options['category'] in category:
         matched_category = category
@@ -300,7 +300,8 @@ def memory_timing(system_list, unique_id):
 
 
 def memory_banks(system_list, unique_id):
-    sets = search_item(system_list, unique_id, "memory", "bank(.*)", ['serial'])
+    sets = search_item(system_list, unique_id, "memory", "bank(.*)",
+                       ['serial'])
     return compare_sets.compare(sets)
 
 
