@@ -102,7 +102,9 @@ def group_systems(global_params, bench_values, unique_id,
                   systems_groups, ignore_list):
     for name, func, title in (
             ('hpa', check.hpa, "HPA Controller"),
+            ('disk', check.physical_hpa_disks, "HPA Disks"),
             ('megaraid', check.megaraid, "Megaraid Controller"),
+            ('disk', check.physical_hpa_disks, "Megaraid Disks"),
             ('ahci', check.ahci, "AHCI Controller"),
             ('ipmi', check.ipmi, "IPMI SDR"),
             ('system', check.systems, "System"),

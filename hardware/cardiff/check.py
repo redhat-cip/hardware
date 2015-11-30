@@ -74,7 +74,8 @@ def physical_hpa_disks(system_list, unique_id):
 
 def physical_megaraid_disks(system_list, unique_id):
     sets = search_item(system_list, unique_id, "pdisk", r"disk(\d+)",
-                       ['Wwn', 'SasAddress', 'DriveTemperature'])
+                       ['Wwn', 'SasAddress', 'DriveTemperature',
+                        'InquiryData[2]', 'DeviceId'])
     return compare_sets.compare(sets)
 
 
