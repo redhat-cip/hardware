@@ -71,45 +71,48 @@ $ cardiff.py -r '/var/lib/edeploy/health/dahc/cpu_load/2014_09_15-12h17'
 ''')
 
 
-def compare_disks(global_params, bench_values, unique_id, systems_groups):
+def compare_disks(bench_values, unique_id, systems_groups):
     systems = utils.find_sub_element(bench_values, unique_id, 'pdisk')
-    groups = check.physical_megaraid_disks(global_params, systems, unique_id)
+    groups = check.physical_megaraid_disks(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
     systems = utils.find_sub_element(bench_values, unique_id, 'disk')
-    groups = check.physical_hpa_disks(global_params, systems, unique_id)
+    groups = check.physical_hpa_disks(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
-    groups = check.logical_disks(global_params, systems, unique_id)
+    groups = check.logical_disks(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
 
 
-def compare_type(type_, check_func, global_params,
+def compare_type(type_, check_func, title, global_params,
                  bench_values, unique_id, systems_groups):
     systems = utils.find_sub_element(bench_values, unique_id, type_)
-    groups = check_func(global_params, systems, unique_id)
+    groups = check_func(systems, unique_id)
     compare_sets.compute_similar_hosts_list(
         systems_groups,
         compare_sets.get_hosts_list_from_result(groups))
+    compare_sets.print_groups(global_params, groups, title)
 
 
 def group_systems(global_params, bench_values, unique_id,
                   systems_groups, ignore_list):
-    for name, func in (('hpa', check.hpa),
-                       ('megaraid', check.megaraid),
-                       ('ahci', check.ahci),
-                       ('ipmi', check.ipmi),
-                       ('system', check.systems),
-                       ('firmware', check.firmware),
-                       ('memory', check.memory_timing),
-                       ('network', check.network_interfaces),
-                       ('cpu', check.cpu)):
+    for name, func, title in (
+            ('hpa', check.hpa, "HPA Controller"),
+            ('megaraid', check.megaraid, "Megaraid Controller"),
+            ('ahci', check.ahci, "AHCI Controller"),
+            ('ipmi', check.ipmi, "IPMI SDR"),
+            ('system', check.systems, "System"),
+            ('firmware', check.firmware, "Firmware"),
+            ('memory', check.memory_timing, "DDR Timing"),
+            ('network', check.network_interfaces,
+             "Network Interfaces"),
+            ('cpu', check.cpu, "Processors")):
         if name not in ignore_list:
-            compare_type(name, func, global_params, bench_values,
+            compare_type(name, func, title, global_params, bench_values,
                          unique_id, systems_groups)
 
 
@@ -246,7 +249,7 @@ def do_plot(current_dir, gpm_dir, main_title, subtitle, name, unit, titles,
         gnuplot_arg = lambda x: "ARG" + str(x + 1)
     else:
         gnuplot_arg = lambda x: "'$" + str(x) + "'"
-    with open(filename, "a") as f:
+    with open(filename, "a") as ofile:
         shutil.copyfile("%s/graph2D.gpm" % gpm_dir,
                         "%s/graph2D.gpm" % current_dir)
         with open("%s/graph2D.gpm" % current_dir, "a") as myfile:
@@ -305,20 +308,20 @@ def do_plot(current_dir, gpm_dir, main_title, subtitle, name, unit, titles,
                              (expected_value, expected_value))
             myfile.write("\n")
 
-        f.write("call \'%s/graph2D.gpm\' \"%s\" \"%s\" \'%s\' \'%s\' \'%s\' "
-                "\'%s\'\n" % (current_dir, main_title, subtitle,
-                              current_dir + "/" + name + ".plot",
-                              name, current_dir + name, unit))
+        ofile.write("call \'%s/graph2D.gpm\' \"%s\" \"%s\" \'%s\' \'%s\' "
+                    "\'%s\' \'%s\'\n" % (current_dir, main_title, subtitle,
+                                         current_dir + "/" + name + ".plot",
+                                         name, current_dir + name, unit))
     try:
         os.system("gnuplot %s" % filename)
     except Exception:
         pass
 
 
-def extract_hw_info(hw, level1, level2, level3):
+def extract_hw_info(hardware, level1, level2, level3):
     result = []
     temp_level2 = level2
-    for entry in hw:
+    for entry in hardware:
         if level2 == '*':
             temp_level2 = entry[1]
         if (level1 == entry[0] and temp_level2 == entry[1] and
