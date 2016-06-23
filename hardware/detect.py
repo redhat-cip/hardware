@@ -233,8 +233,7 @@ def detect_disks(hw_lst):
     disks = [name for name, size in sizes.items() if size > 0]
     hw_lst.append(('disk', 'logical', 'count', str(len(disks))))
     for name in disks:
-        hw_lst.append(('disk', name, 'size', str(sizes[name])))
-        item_list = ['device/vendor', 'device/model', 'device/rev',
+        item_list = ['device/model', 'device/vendor', 'device/rev',
                      'queue/optimal_io_size', 'queue/physical_block_size',
                      'queue/rotational']
         for my_item in item_list:
@@ -248,6 +247,8 @@ def detect_disks(hw_lst):
                     'at /sys/block/%s/device/%s: %s\n' % (name,
                                                           my_item,
                                                           str(excpt)))
+
+        hw_lst.append(('disk', name, 'size', str(sizes[name])))
 
         item_list = ['WCE', 'RCD']
         item_def = {'WCE': 'Write Cache Enable', 'RCD': 'Read Cache Disable'}
