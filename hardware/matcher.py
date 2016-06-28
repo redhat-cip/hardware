@@ -44,22 +44,22 @@ def _appender(array, index, value):
 
 def _gt(left, right):
     'Helper for match_spec.'
-    return int(left) > int(right)
+    return float(left) > float(right)
 
 
 def _ge(left, right):
     'Helper for match_spec.'
-    return int(left) >= int(right)
+    return float(left) >= float(right)
 
 
 def _lt(left, right):
     'Helper for match_spec.'
-    return int(left) < int(right)
+    return float(left) < float(right)
 
 
 def _le(left, right):
     'Helper for match_spec.'
-    return int(left) <= int(right)
+    return float(left) <= float(right)
 
 
 def _not(_, right):

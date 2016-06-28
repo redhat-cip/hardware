@@ -198,9 +198,9 @@ class TestMatcher(unittest.TestCase):
         self.assertEqual(arr['disk'], 'vda')
 
     def test_ge(self):
-        specs = [('disk', '$disk', 'size', 'ge(10)')]
+        specs = [('disk', '$disk', 'size', 'ge(10.1)')]
         lines = [
-            ('disk', 'vda', 'size', '10'),
+            ('disk', 'vda', 'size', '10.5'),
             ]
         arr = {}
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
