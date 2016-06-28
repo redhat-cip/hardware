@@ -206,15 +206,22 @@ Store variables starting with a $ in <arr>. Variables starting with
         copy_specs = list(specs)
         spec = specs.pop(0)
         line = match_spec(spec, lines, arr)
+        if debug:
+            sys.stderr.write('match_spec: %s %s\n' % (line, spec))
         # No match
         if not line:
             # Backtrack on the backtracking points
             while len(points) > 0:
                 lines, specs, new_arr = points.pop()
+                if debug:
+                    sys.stderr.write('retrying with: %s\n' %
+                                     (new_arr,))
                 if match_all(lines, specs, new_arr, arr2, debug, level + 1):
                     # Copy arr back
                     for k in new_arr:
                         arr[k] = new_arr[k]
+                    if debug:
+                        sys.stderr.write('success: %d\n' % level)
                     return True
             if level == 0 and debug:
                 sys.stderr.write('spec: %s not matched\n' % str(spec))
@@ -226,7 +233,10 @@ Store variables starting with a $ in <arr>. Variables starting with
                 # Put the matching line at the end of the lines
                 copy_lines.append(line)
                 points.append((copy_lines, copy_specs, copy_arr))
-                copy_arr = arr
+                copy_arr = dict(arr)
+                if debug:
+                    sys.stderr.write('new var: %s %s\n' % (arr, line))
+
     # Manage $$ variables
     for key in arr:
         if key[0] == '$':
