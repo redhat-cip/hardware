@@ -44,6 +44,7 @@ from hardware import hpacucli
 from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
+from hardware import areca
 
 SIOCGIFNETMASK = 0x891b
 
@@ -113,6 +114,51 @@ def detect_hpa(hw_lst):
 
     hw_lst.append(('disk', 'hpa', 'count', str(disk_count)))
     return True
+
+
+def detect_areca(hw_lst):
+    'Detect Areca controller configuration'
+    device = areca.sys_info()
+    if len(device) < 1:
+        sys.stderr.write('Info: detect_areca: No controller found\n')
+        return
+    if "ControllerName" not in device.keys():
+        sys.stderr.write('Info: detect_areca: Cannot found controller name\n')
+        return
+
+    sys.stderr.write('Info: detect_areca: Found %s version %s\n' %
+                     (device['ControllerName'], device['FirmwareVersion']))
+
+    areca.disable_password()
+
+    for info in device.keys():
+        hw_lst.append(('areca', 'system', info, device[info]))
+
+    adsys = areca.adsys_info()
+    for info in adsys.keys():
+        hw_lst.append(('areca', 'system', info, adsys[info]))
+
+    cfg = areca.sys_showcfg()
+    for info in cfg.keys():
+        hw_lst.append(('areca', 'config', info, cfg[info]))
+
+    hw_info = areca.hw_info()
+    for info in hw_info.keys():
+        hw_lst.append(('areca', 'hardware', info, hw_info[info]))
+
+    pwr_info = areca.hdd_pwr_info()
+    for info in pwr_info.keys():
+        hw_lst.append(('areca', 'power', info, pwr_info[info]))
+
+    for disk_number in range(1, 255):
+        disk_info = areca.disk_info(disk_number)
+        # If we don't have info about that disk, let's stop here
+        if len(disk_info) < 2:
+            break
+        # Extracting disk information
+        for info in disk_info:
+            hw_lst.append(('areca', "disk%d" % disk_number, info,
+                           disk_info[info]))
 
 
 def detect_megacli(hw_lst):
@@ -746,6 +792,7 @@ def clean_tuples(lst):
 def _main(options):
     'Command line entry point.'
     hrdw = []
+    detect_areca(hrdw)
     detect_hpa(hrdw)
     detect_megacli(hrdw)
     detect_disks(hrdw)

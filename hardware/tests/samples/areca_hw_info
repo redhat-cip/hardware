@@ -1,0 +1,19 @@
+The Hardware Monitor Information
+=====================================================
+[Controller H/W Monitor]
+  CPU Temperature  : 39 C
+  Controller Temp. : 37 C
+  CPU Fan          : 2596 RPM
+  12V              : 12.220 V
+  5V               : 5.134 V
+  3.3V             : 3.328 V
+  DDR-II +1.8V     : 1.856 V
+  PCI-E  +1.8V     : 1.856 V
+  CPU    +1.8V     : 1.856 V
+  CPU    +1.2V     : 1.216 V
+  DDR-II +0.9V     : 0.912 V
+  Battery Status   : 100%
+[Enclosure#1 : ARECA   SAS RAID AdapterV1.0]
+=====================================================
+GuiErrMsg<0x00>: Success.
+

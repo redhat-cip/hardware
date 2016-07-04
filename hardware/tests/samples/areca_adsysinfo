@@ -1,0 +1,18 @@
+The Advanced Feature Information
+================================================
+TLER Setting                 : 7 Seconds
+Timeout Setting              : 8 Seconds
+Retry Count Setting          : 2 Times
+Buffer Threshold             : 25%
+Amount Of Read Ahead         : Auto
+Number Of AV Streams         : 6
+Optimize AV Recoding         : Disabled
+PHY Status                   : Default
+Read Performance Margin      : 0%
+Write Performance Margin     : 0%
+Read And Discard Parity Data : Disabled
+Hitachi SATA HDD Speed       : Default
+WDC SATA HDD Speed           : Default
+Seagate SATA HDD Speed       : Default
+================================================
+GuiErrMsg<0x00>: Success.
