@@ -276,6 +276,19 @@ class TestMatcher(unittest.TestCase):
         self.assertTrue(matcher.match_all(lines, specs, arr, {}))
         self.assertEqual(arr['disk'], 'vda')
 
+    def test_rangeint(self):
+        specs = [('disk', '$disk', 'size', 'range(20, 25)')]
+        lines = [('disk', 'vda', 'size', '20')]
+        arr = {}
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
+        self.assertEqual(arr['disk'], 'vda')
+
+    def test_rangefloat(self):
+        specs = [('ipmi', '+12V', 'value', 'range(11.9, 12.2)')]
+        lines = [('ipmi', '+12V', 'value', '12.14')]
+        arr = {}
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
+
     def test_regexp(self):
         specs = [('network', '$eth', 'serial', 'regexp(^28:d2:)')]
         lines = [('network', 'eth0', 'serial', '28:d2:44:1b:0a:8b')]
