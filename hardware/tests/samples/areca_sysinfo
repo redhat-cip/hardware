@@ -1,0 +1,15 @@
+The System Information
+===========================================
+Main Processor     : 800MHz
+CPU ICache Size    : 32KB
+CPU DCache Size    : 32KB
+CPU SCache Size    : 512KB
+System Memory      : 256MB/533MHz/ECC
+Firmware Version   : V1.49 2011-08-10
+BOOT ROM Version   : V1.49 2010-12-02
+Serial Number      : Y106CABRAR200408
+Controller Name    : ARC-1222
+Current IP Address : 192.168.1.100
+===========================================
+GuiErrMsg<0x00>: Success.
+

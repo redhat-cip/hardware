@@ -1,0 +1,23 @@
+The System Configuration
+===============================================================================
+System Beeper Setting           : Enabled
+Background Task Priority        : High(80%)
+JBOD/RAID Configuration         : JBOD
+SATA NCQ Support                : Enabled
+HDD Read Ahead Cache            : Enabled
+Volume Data Read Ahead          : Normal
+HDD Queue Depth                 : 8
+Empty HDD Slot LED              : ON
+CPU Fan Detection               : Disabled
+SAS Mux Setting                 : Auto
+SES2 Support                    : Enabled
+Max Command Length              : 148K
+Auto Activate Incomplete Raid   : Disabled
+Disk Write Cache Mode           : Disabled
+Write Same For Initialization   : SAS And SATA
+Hot Plugged Disk For Rebuilding : Blank Disk Only
+Disk Capacity Truncation Mode   : Multiples Of 10G
+Smart Option For HDD            : Failed The Drive 
+Smart Polling Interval          : On Demand
+===============================================================================
+GuiErrMsg<0x00>: Success.

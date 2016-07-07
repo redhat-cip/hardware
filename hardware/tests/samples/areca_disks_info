@@ -1,0 +1,20 @@
+Drive Information 
+===============================================================
+Device Type                        : SATA(5001B4D4188DF017)
+Device Location                    : Enclosure#1 Slot#8
+Model Name                         : Hitachi HDS721010CLA330                 
+Serial Number                      : JPS930N121H4YV 
+Firmware Rev.                      : JP4OA3MA
+Disk Capacity                      : 1000.2GB
+Device State                       : NORMAL
+Timeout Count                      : 0
+Media Error Count                  : 0
+Device Temperature                 : 27 C
+SMART Read Error Rate              : 100(16)
+SMART Spinup Time                  : 122(24)
+SMART Reallocation Count           : 100(5)
+SMART Seek Error Rate              : 100(67)
+SMART Spinup Retries               : 100(60)
+SMART Calibration Retries          : N.A.(N.A.)
+===============================================================
+GuiErrMsg<0x00>: Success.

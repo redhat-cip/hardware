@@ -1,0 +1,8 @@
+The HDD Power Management Information
+=====================================================
+Stagger Power On Control      : 0.7
+Time To Hdd Low Power Idle    : Disabled
+Time To Hdd Low RPM Mode      : Disabled
+Time To Spin Down Idle HDD    : Disabled
+=====================================================
+GuiErrMsg<0x00>: Success.
