@@ -18,11 +18,72 @@
 '''Wrapper functions around the megacli command.'''
 
 from __future__ import print_function
+import os
 import re
+import sys
 from subprocess import PIPE
 from subprocess import Popen
 
 SEP_REGEXP = re.compile(r'\s*:\s*')
+
+
+def which(cmd, mode=os.F_OK | os.X_OK, path=None):
+    """Given a command, mode, and a PATH string, return the path which
+    conforms to the given mode on the PATH, or None if there is no such
+    file.
+    `mode` defaults to os.F_OK | os.X_OK. `path` defaults to the result
+    of os.environ.get("PATH"), or can be overridden with a custom search
+    path.
+    """
+
+    # Check that a given file can be accessed with the correct mode.
+    # Additionally check that `file` is not a directory, as on Windows
+    # directories pass the os.access check.
+    def _access_check(fn, mode):
+        return (os.path.exists(fn) and os.access(fn, mode)
+                and not os.path.isdir(fn))
+
+    # If we're given a path with a directory part, look it up directly rather
+    # than referring to PATH directories. This includes checking relative to the
+    # current directory, e.g. ./script
+    if os.path.dirname(cmd):
+        if _access_check(cmd, mode):
+            return cmd
+        return None
+
+    if path is None:
+        path = os.environ.get("PATH", os.defpath)
+
+    if not path:
+        return None
+
+    path = path.split(os.pathsep)
+
+    # On other platforms you don't have things like PATHEXT to tell you
+    # what file suffixes are executable, so just pass on cmd as-is.
+
+    files = [cmd]
+
+    seen = set()
+    for dir in path:
+        normdir = os.path.normcase(dir)
+        if not normdir in seen:
+            seen.add(normdir)
+            for thefile in files:
+                name = os.path.join(dir, thefile)
+                if _access_check(name, mode):
+                    return name
+    return None
+
+
+def search_exec(possible_names):
+    prog_path = None
+    for prog_name in possible_names:
+        prog_path = which(prog_name)
+        if prog_path is not None:
+            break
+
+    return prog_path
 
 
 def parse_output(output):
@@ -61,8 +122,13 @@ def split_parts(sep, output):
 
 def run_megacli(*args):
     'Run the megacli command in a subprocess and return the output.'
-    cmd = 'megacli -' + ' '.join(args)
-    return Popen(cmd, shell=True, stdout=PIPE).stdout.read(-1)
+    prog_exec = search_exec(["megacli", "MegaCli", "MegaCli64"])
+    if prog_exec:
+        cmd = prog_exec + ' - ' + ' '.join(args)
+        return Popen(cmd, shell=True, stdout=PIPE).stdout.read(-1)
+    else:
+        sys.stderr.write('Cannot find megacli on the system\n')
+        return ""
 
 
 def run_and_parse(*args):
