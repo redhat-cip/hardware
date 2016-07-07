@@ -42,6 +42,11 @@ def _appender(array, index, value):
         array[index] = [value, ]
 
 
+def _range(elt, minval, maxval):
+    'Helper for match_spec.'
+    return float(elt) >= float(minval) and float(elt) <= float(maxval)
+
+
 def _gt(left, right):
     'Helper for match_spec.'
     return float(left) > float(right)
