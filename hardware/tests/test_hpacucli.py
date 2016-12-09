@@ -83,10 +83,10 @@ class TestParsing(unittest.TestCase):
             hpacucli.parse_ctrl_pd_all_show(
                 CTRL_PD_ALL_SHOW_UNASSIGNED_OUTPUT_HPSSACLI),
             [('unassigned',
-             [('1I:1:1', 'SATA', '2 TB', 'OK'),
-              ('1I:1:2', 'SATA', '2 TB', 'OK'),
-              ('1I:1:3', 'SATA', '2 TB', 'OK'),
-              ('1I:1:4', 'Solid State SATA', '100 GB', 'OK')])])
+              [('1I:1:1', 'SATA', '2 TB', 'OK'),
+               ('1I:1:2', 'SATA', '2 TB', 'OK'),
+               ('1I:1:3', 'SATA', '2 TB', 'OK'),
+               ('1I:1:4', 'Solid State SATA', '100 GB', 'OK')])])
 
     def test_parse_ctrl_ld_all_show(self):
         # => ctrl slot=2 ld all show
@@ -115,24 +115,25 @@ Error: Syntax error at "force"
         return self.assertEqual(
             hpacucli.parse_ctrl_ld_show(CTRL_LD_SHOW_OUTPUT),
             CTRL_LD_SHOW_RESULT
-            )
+        )
 
     def test_parse_ctrl_ld_show_hpssacli(self):
         # => ctrl slot=0 ld 1 show
         return self.assertEqual(
             hpacucli.parse_ctrl_ld_show(CTRL_LD_SHOW_OUTPUT_HPSSACLI),
             CTRL_LD_SHOW_RESULT_HPSSACLI
-            )
+        )
 
     def test_parse_ctrl_ld_show2(self):
         # => ctrl slot=2 ld 2 show
         return self.assertEqual(
             hpacucli.parse_ctrl_ld_show(CTRL_LD_SHOW_OUTPUT2),
             CTRL_LD_SHOW_RESULT2
-            )
+        )
 
 
 class TestController(unittest.TestCase):
+
     def setUp(self):
         self.cli = hpacucli.Cli()
         self.cli.process = mock.MagicMock()
@@ -162,7 +163,7 @@ class TestController(unittest.TestCase):
         return self.assertEqual(
             self.cli.ctrl_ld_show('slot=2', '2'),
             CTRL_LD_SHOW_RESULT
-            )
+        )
 
     @unittest.skip("WIP")
     def test_ctrl_create_ld(self):
@@ -172,7 +173,7 @@ class TestController(unittest.TestCase):
         return self.assertEqual(
             self.cli.ctrl_create_ld('slot=2', ('2I:1:7', '2I:1:8'), '1'),
             '/dev/sda'
-            )
+        )
 
     def test_timeout_expect(self):
         self.cli.process.expect = (
@@ -240,7 +241,7 @@ CTRL_PD_ALL_SHOW_RESULT = [
     ('array E', [('1I:1:4', 'SATA', '1 TB', 'OK')]),
     ('array F', [('2I:1:5', 'SATA', '1 TB', 'OK')]),
     ('array G', [('2I:1:6', 'SATA', '1 TB', 'OK')]),
-    ]
+]
 
 CTRL_PD_ALL_SHOW_OUTPUT_HPSSACLI = '''
 Smart Array P420i in Slot 0 (Embedded)
@@ -268,7 +269,7 @@ CTRL_PD_ALL_SHOW_RESULT_HPSSACLI = [
     ('array B', [('1I:1:1', 'SATA', '2 TB', 'OK')]),
     ('array C', [('1I:1:2', 'SATA', '2 TB', 'OK')]),
     ('array D', [('1I:1:3', 'SATA', '2 TB', 'OK')]),
-    ]
+]
 
 CTRL_PD_SHOW_RESULT_HPSSACLI = {'carrier_application_version': '11',
                                 'carrier_bootloader_version': '6',
@@ -383,7 +384,7 @@ CTRL_LD_ALL_SHOW_RESULT = [
     ('array E', [('5', '931.5 GB', 'RAID 0', 'OK')]),
     ('array F', [('6', '931.5 GB', 'RAID 0', 'OK')]),
     ('array G', [('7', '931.5 GB', 'RAID 0', 'OK')]),
-    ]
+]
 
 CTRL_LD_ALL_SHOW_OUTPUT_HPSSACLI = '''
 

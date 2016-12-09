@@ -131,32 +131,31 @@ class TestMegacliTest(unittest.TestCase):
         self.output = sample('areca_hddpwr_info')
         self.assertEqual(areca.hdd_pwr_info(),
                          {'StaggerPowerOnControl': '0.7',
-			  'TimeToHddLowPowerIdle': 'Disabled',
-			  'TimeToHddLowRpmMode': 'Disabled',
-			  'TimeToSpinDownIdleHdd': 'Disabled'})
-
+                          'TimeToHddLowPowerIdle': 'Disabled',
+                          'TimeToHddLowRpmMode': 'Disabled',
+                          'TimeToSpinDownIdleHdd': 'Disabled'})
 
     def test_diskinfo(self):
         self.output = sample('areca_disks_info')
         self.assertEqual(areca.disk_info(1),
                          {'DeviceLocation': 'Enclosure#1 Slot#8',
-			  'DeviceState': 'NORMAL',
-			  'DeviceTemperature': 27,
-			  'DeviceTemperature/unit': 'C',
-			  'DeviceType': 'SATA(5001B4D4188DF017)',
-			  'DiskCapacity': '1000.2',
-			  'DiskCapacity/unit': 'GB',
-			  'FirmwareRev.': 'JP4OA3MA',
-			  'MediaErrorCount': 0,
-			  'ModelName': 'Hitachi HDS721010CLA330',
-			  'SerialNumber': 'JPS930N121H4YV',
-			  'SmartCalibrationRetries': 'N.A.(N.A.)',
-			  'SmartReadErrorRate': '100(16)',
-			  'SmartReallocationCount': '100(5)',
-			  'SmartSeekErrorRate': '100(67)',
-			  'SmartSpinupRetries': '100(60)',
-			  'SmartSpinupTime': '122(24)',
-			  'TimeoutCount': 0})
+                          'DeviceState': 'NORMAL',
+                          'DeviceTemperature': 27,
+                          'DeviceTemperature/unit': 'C',
+                          'DeviceType': 'SATA(5001B4D4188DF017)',
+                          'DiskCapacity': '1000.2',
+                          'DiskCapacity/unit': 'GB',
+                          'FirmwareRev.': 'JP4OA3MA',
+                          'MediaErrorCount': 0,
+                          'ModelName': 'Hitachi HDS721010CLA330',
+                          'SerialNumber': 'JPS930N121H4YV',
+                          'SmartCalibrationRetries': 'N.A.(N.A.)',
+                          'SmartReadErrorRate': '100(16)',
+                          'SmartReallocationCount': '100(5)',
+                          'SmartSeekErrorRate': '100(67)',
+                          'SmartSpinupRetries': '100(60)',
+                          'SmartSpinupTime': '122(24)',
+                          'TimeoutCount': 0})
 
 if __name__ == "__main__":
     unittest.main()

@@ -28,7 +28,7 @@ SEP_REGEXP = re.compile(r'\s*:\s*')
 def split_units(lis):
     'If the value have unit, remove it from the value and return the unit name'
     for unit in ['RPM', '%', ' V', ' C', 'Seconds', 'Times', 'MHz', 'KB', 'MB',
-            'GB']:
+                 'GB']:
         m = re.search("(.*)%s$" % unit, lis[1])
         if m:
             lis[1] = m.group(1).replace(' ', '')
@@ -51,7 +51,7 @@ def parse_output(output, rev=False):
                 continue
             m = re.search('\[(Enclosure#.*)', lis[0])
             if m:
-                append = m.group(1).replace('#','') + "/"
+                append = m.group(1).replace('#', '') + "/"
                 continue
             if append:
                 lis[0] = "%s%s" % (append, lis[0])
