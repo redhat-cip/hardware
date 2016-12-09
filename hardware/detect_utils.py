@@ -28,15 +28,16 @@ import sys
 def cmd(cmdline):
     'Equivalent of commands.getstatusoutput'
     try:
-        return 0, check_output(cmdline, shell=True)
+        return 0, check_output(cmdline, shell=True, universal_newlines=True)
     except CalledProcessError as excpt:
         return excpt.returncode, excpt.output
 
 
 def output_lines(cmdline):
     "Run a shell command and returns the output as lines."
-    res = Popen(cmdline, shell=True, stdout=PIPE)
-    return res.stdout
+    proc = Popen(cmdline, shell=True, stdout=PIPE, universal_newlines=True)
+    stdout = proc.communicate()[0]
+    return stdout.splitlines()
 
 
 def parse_lldtool(hw_lst, interface_name, lines):
@@ -191,12 +192,12 @@ def read_SMART_SCSI(hw, device, optional_flag="", mode=""):
             # we can bypass it
             if optional_flag == "":
                 if (vendor == "DELL") and ("PERC" in product):
-                    for pdisk_number in xrange(0, 24):
+                    for pdisk_number in range(0, 24):
                         read_SMART_SCSI(hw, device,
                                         "-d megaraid,%d" % pdisk_number,
                                         "megaraid")
                 if (vendor == "HP") and ("LOGICAL VOLUME" in product):
-                    for pdisk_number in xrange(0, 24):
+                    for pdisk_number in range(0, 24):
                         read_SMART_SCSI(hw, device,
                                         "-d cciss,%d" % pdisk_number, "cciss")
             return hw
@@ -437,5 +438,6 @@ def parse_ipmi_sdr(hrdw, output):
 def ipmi_sdr(hrdw):
     ipmi_cmd = Popen("ipmitool -I open sdr",
                      shell=True,
-                     stdout=PIPE)
+                     stdout=PIPE,
+                     universal_newlines=True)
     parse_ipmi_sdr(hrdw, ipmi_cmd.stdout)

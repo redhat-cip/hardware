@@ -27,7 +27,7 @@ def sizeingb(size):
 
 def disksize(name):
     size = open('/sys/block/' + name + '/size').read(-1)
-    return sizeingb(long(size))
+    return sizeingb(int(size))
 
 
 def disknames():

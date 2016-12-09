@@ -91,7 +91,11 @@ def split_parts(sep, output):
 def run_areca(*args):
     'Run the areca command in a subprocess and return the output.'
     cmd = 'cli64 ' + ' '.join(args)
-    return Popen(cmd, shell=True, stdout=PIPE).stdout.read(-1)
+    proc = Popen(cmd,
+                 shell=True,
+                 stdout=PIPE,
+                 universal_newlines=True)
+    return proc.communicate()[0]
 
 
 def run_and_parse(*args):

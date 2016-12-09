@@ -125,7 +125,8 @@ def run_megacli(*args):
     prog_exec = search_exec(["megacli", "MegaCli", "MegaCli64"])
     if prog_exec:
         cmd = prog_exec + ' - ' + ' '.join(args)
-        return Popen(cmd, shell=True, stdout=PIPE).stdout.read(-1)
+        proc = Popen(cmd, shell=True, stdout=PIPE, universal_newlines=True)
+        return proc.communicate()[0]
     else:
         sys.stderr.write('Cannot find megacli on the system\n')
         return ""
