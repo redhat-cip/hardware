@@ -301,7 +301,8 @@ def detect_disks(hw_lst):
             sdparm_cmd = Popen("sdparm -q --get=%s /dev/%s | "
                                "awk '{print $2}'" % (my_item, name),
                                shell=True,
-                               stdout=PIPE)
+                               stdout=PIPE,
+                               universal_newlines=True)
             for line in sdparm_cmd.stdout:
                 hw_lst.append(('disk', name, item_def.get(my_item),
                                line.rstrip('\n').strip()))
@@ -421,8 +422,10 @@ def get_uuid():
     uuid_cmd = Popen("dmidecode -t 1 | grep UUID | "
                      "awk '{print $2}'",
                      shell=True,
-                     stdout=PIPE)
-    return uuid_cmd.stdout.read().rstrip()
+                     stdout=PIPE,
+                     universal_newlines=True)
+    stdout = uuid_cmd.communicate()[0]
+    return stdout.rstrip()
 
 
 def _get_value(hw_lst, *vect):

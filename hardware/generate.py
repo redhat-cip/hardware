@@ -22,6 +22,9 @@ import re
 import sys
 import types
 
+from six.moves import range
+
+
 _PREFIX = None
 
 
@@ -100,10 +103,10 @@ Ranges are defined like 10-12:15-18 or from a list of entries.
                 for num in _generate_range(res.group(2)):
                     yield head + num + foot
             else:
-                for _ in xrange(16387064):
+                for _ in range(16387064):
                     yield pattern
     else:
-        for _ in xrange(16387064):
+        for _ in range(16387064):
             yield pattern
 
 

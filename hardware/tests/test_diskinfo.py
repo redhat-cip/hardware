@@ -27,7 +27,7 @@ if sys.version > '3':
 class TestDiskinfo(unittest.TestCase):
 
     def test_sizeingb(self):
-        return self.assertEqual(diskinfo.sizeingb(977105060), long(500))
+        return self.assertEqual(diskinfo.sizeingb(977105060), 500)
 
     def test_parse_hdparm_output(self):
         return self.assertEqual(
