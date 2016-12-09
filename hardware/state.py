@@ -46,6 +46,7 @@ class StateError(Exception):
 
 
 class State(object):
+
     def __init__(self, data=None, cfg_dir=None, filename=None, lockname=None):
         self._data = data
         self._state_filename = filename

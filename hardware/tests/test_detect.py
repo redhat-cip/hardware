@@ -27,6 +27,7 @@ from hardware.tests.utils import sample
 
 
 class Keeper:
+
     def __init__(self, fname, rets):
         self.rets = rets
         self.fname = fname
@@ -283,7 +284,7 @@ class TestDetect(unittest.TestCase):
              ('system', 'kernel', 'arch', 'x86_64'),
              ('system', 'kernel', 'cmdline', 'BOOT_IMAGE=/boot/vmlinuz'),
              ]
-            )
+        )
 
     def test_detect_system_2(self):
         l = []
@@ -379,7 +380,7 @@ class TestDetect(unittest.TestCase):
              ('system', 'kernel', 'arch', 'x86_64'),
              ('system', 'kernel', 'cmdline', 'BOOT_IMAGE=/boot/vmlinuz'),
              ]
-            )
+        )
 
     def test_detect_system(self):
         self.maxDiff = None
@@ -494,7 +495,7 @@ class TestDetect(unittest.TestCase):
              ('system', 'kernel', 'arch', 'x86_64'),
              ('system', 'kernel', 'cmdline', 'BOOT_IMAGE=/boot/vmlinuz'),
              ]
-            )
+        )
 
     def test_get_value(self):
         self.assertEqual(detect._get_value([('a', 'b', 'c', 'd')],

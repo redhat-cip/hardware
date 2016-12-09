@@ -28,6 +28,7 @@ import pexpect
 
 class Error(Exception):
     'Exception class to capture errors while calling hpacucli sub-commands.'
+
     def __init__(self, value):
         super(Error, self).__init__()
         self.value = value
@@ -183,6 +184,7 @@ class Cli:
 Class to launch an hpacucli command in the background and to
 interact with it to configure or gather information.
 '''
+
     def __init__(self, debug=False):
         self.process = None
         self.debug = debug

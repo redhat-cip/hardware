@@ -80,7 +80,7 @@ class TestGenerate(unittest.TestCase):
         self.assertEqual(
             generate.generate(model),
             [{'gw': '192.168.1.1'}]
-            )
+        )
 
     def test_generate(self):
         model = {'gw': '192.168.1.1',
@@ -91,7 +91,7 @@ class TestGenerate(unittest.TestCase):
             [{'gw': '192.168.1.1', 'ip': '192.168.1.10', 'hostname': 'host10'},
              {'gw': '192.168.1.1', 'ip': '192.168.1.11', 'hostname': 'host11'},
              {'gw': '192.168.1.1', 'ip': '192.168.1.12', 'hostname': 'host12'}]
-            )
+        )
 
     def test_generate_with_zeros(self):
         model = {'gw': '192.168.1.1',
@@ -106,7 +106,7 @@ class TestGenerate(unittest.TestCase):
              {'gw': '192.168.1.1', 'ip': '192.168.1.5', 'hostname': 'ceph005'},
              {'gw': '192.168.1.1', 'ip': '192.168.1.6', 'hostname': 'ceph006'},
              ]
-            )
+        )
 
     def test_generate_253(self):
         result = generate.generate({'hostname': '10.0.1-2.2-254'})
@@ -130,7 +130,7 @@ class TestGenerate(unittest.TestCase):
             [{'hostname': 'hosta'},
              {'hostname': 'hostb'},
              {'hostname': 'hostc'}]
-            )
+        )
 
     def test_generate_none(self):
         model = {'gateway': '10.66.6.1',
@@ -163,7 +163,7 @@ class TestGenerate(unittest.TestCase):
               {'gw': False,
                'ip': '192.168.1.12',
                'hostname': 'host12'}}]
-            )
+        )
 
     def test_generate_hosts(self):
         model = OrderedDict([('host10', {'foo': 'bar'}),
@@ -186,7 +186,7 @@ class TestGenerate(unittest.TestCase):
              {'cmdb':
               {'gw': ['192.168.1.1', '192.168.1.2'],
                'ip': '192.168.1.12'}}}
-            )
+        )
 
     def test_generate_tuple(self):
         disk_struct = (

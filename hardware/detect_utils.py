@@ -186,7 +186,7 @@ def read_SMART_SCSI(hw, device, optional_flag="", mode=""):
             continue
 
         if (line.startswith("Device does not support SMART") or
-           "Unavailable - device lacks SMART capability." in line):
+                "Unavailable - device lacks SMART capability." in line):
             # Device is said no to support smart but on some RAID arrays
             # we can bypass it
             if optional_flag == "":
@@ -350,8 +350,8 @@ def read_SMART(hw, device, optional_flag=""):
         for line in sdparm_cmd.stdout:
             line = line.strip()
             if (line.startswith("Device does not support SMART") or
-               ("Unavailable - device lacks SMART capability" in line) or
-               line.startswith("Device supports SMART and is Enabled")):
+                ("Unavailable - device lacks SMART capability" in line) or
+                    line.startswith("Device supports SMART and is Enabled")):
                 return read_SMART_SCSI(hw, device, optional_flag)
 
             if line.startswith("ID#"):

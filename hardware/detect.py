@@ -34,6 +34,7 @@ import xml.etree.ElementTree as ET
 
 from netaddr import IPNetwork
 
+from hardware import areca
 from hardware.benchmark import cpu as bm_cpu
 from hardware.benchmark import disk as bm_disk
 from hardware.benchmark import mem as bm_mem
@@ -44,7 +45,6 @@ from hardware import hpacucli
 from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
-from hardware import areca
 
 SIOCGIFNETMASK = 0x891b
 
@@ -334,7 +334,7 @@ def detect_ipmi(hw_lst):
     modprobe("ipmi_si")
     modprobe("ipmi_devintf")
     if (os.path.exists('/dev/ipmi0') or os.path.exists('/dev/ipmi/0') or
-       os.path.exists('/dev/ipmidev/0')):
+            os.path.exists('/dev/ipmidev/0')):
         for channel in range(0, 16):
             status, _ = cmd('ipmitool channel info %d 2>&1 | grep -sq Volatile'
                             % channel)
@@ -694,7 +694,7 @@ def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
                 if new_serial:
                     hw_lst.remove(i)
                     hw_lst.append(('system', 'product', 'serial',
-                                  new_serial))
+                                   new_serial))
 
                 break
 

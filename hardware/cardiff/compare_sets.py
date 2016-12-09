@@ -21,6 +21,7 @@ import pprint
 
 
 class Machine:
+
     def __init__(self, name, value):
         self.name = name
         self.value = value
