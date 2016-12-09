@@ -34,6 +34,7 @@ import xml.etree.ElementTree as ET
 
 from netaddr import IPNetwork
 
+from hardware import areca
 from hardware.benchmark import cpu as bm_cpu
 from hardware.benchmark import disk as bm_disk
 from hardware.benchmark import mem as bm_mem
@@ -44,7 +45,6 @@ from hardware import hpacucli
 from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
-from hardware import areca
 
 SIOCGIFNETMASK = 0x891b
 
