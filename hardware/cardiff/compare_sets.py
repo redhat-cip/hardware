@@ -62,7 +62,7 @@ def print_systems_groups(systems_groups):
         print("Group %d (%d Systems)" % (
             systems_groups.index(system), len(system)))
         print("-> " + ', '.join(system))
-        print()
+        print("")
 
 
 def print_groups(global_params, result, title):
@@ -89,7 +89,7 @@ def print_groups(global_params, result, title):
         if "output_dir" in global_params.keys():
             with open("%s.def" % group_name, "w") as fout:
                 pprint.pprint(sorted(eval(element)), fout)
-        print()
+        print("")
 
     if "output_dir" in global_params.keys():
         if len(result) > 1:
