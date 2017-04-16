@@ -231,6 +231,14 @@ Need to call unlock to release the lock.
             disks_size = "%sGi" % size
             disks.append({"size": disks_size})
             info = {}
+
+        info = {}
+        matcher.match_spec(('disk', 'logical', 'count', '$nb_disks'),
+                           specs, info)
+        if 'nb_disks' in info:
+            for _ in xrange(int(info["nb_disks"])):
+                disks.append({"size": None})
+
         return disks
 
     @staticmethod
