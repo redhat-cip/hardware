@@ -26,7 +26,8 @@ def ib_card_drv():
     '''Return an array of IB device (ex: ['mlx4_0']).'''
     ret, output = cmd('ibstat -l')
     if ret == 0:
-        return output.split('\n')
+        # Use filter to omit empty item due to trailing newline.
+        return filter(None, output.split('\n'))
     else:
         return []
 

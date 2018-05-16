@@ -375,9 +375,8 @@ Class 280 stands for a Network Controller while ethernet device are 0200.
 '''
     status, _ = cmd("lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
     if status == 0:
-        ib_card = 0
-        for devices in range(ib_card, len(ib.ib_card_drv())):
-            card_type = ib.ib_card_drv()[devices]
+        for ib_card in range(len(ib.ib_card_drv())):
+            card_type = ib.ib_card_drv()[ib_card]
             ib_infos = ib.ib_global_info(card_type)
             nb_ports = ib_infos['nb_ports']
             hw_lst.append(('infiniband', 'card%i' % ib_card,
