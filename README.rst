@@ -29,6 +29,13 @@ Features
 
 * filter hardware according to hardware profiles
 
+Install
+-------
+
+Installing from pypi::
+
+    pip install -U hardware
+
 Usage
 -----
 
