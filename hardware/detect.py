@@ -30,6 +30,7 @@ import struct
 from subprocess import PIPE
 from subprocess import Popen
 import sys
+import uuid
 import xml.etree.ElementTree as ET
 
 from netaddr import IPNetwork
@@ -416,7 +417,7 @@ Class 280 stands for a Network Controller while ethernet device are 0200.
         return False
 
 
-def get_uuid():
+def _get_uuid_x86_64():
     'Get uuid from dmidecode'
     uuid_cmd = Popen("dmidecode -t 1 | grep UUID | "
                      "awk '{print $2}'",
@@ -425,6 +426,34 @@ def get_uuid():
                      universal_newlines=True)
     stdout = uuid_cmd.communicate()[0]
     return stdout.rstrip()
+
+
+def _get_uuid_ppc64le(hw_lst):
+    vendor = None
+    serial = None
+    for (sys_cls, sys_type, sys_subtype, value) in hw_lst:
+        if sys_subtype == 'vendor':
+            vendor = value
+        if sys_subtype == 'serial':
+            serial = value
+
+    system_uuid = None
+    system_uuid_fname = '/sys/firmware/devicetree/base/system-uuid'
+    if os.access(system_uuid_fname, os.R_OK):
+        with open(system_uuid_fname) as fh:
+            system_uuid = fh.read().rstrip(' \t\r\n\0')
+    elif vendor and serial:
+        root = uuid.UUID(bytes=b'\x00' * 16)
+        vendor_uuid = uuid.uuid5(root, vendor)
+        system_uuid = str(uuid.uuid5(vendor_uuid, serial))
+
+    return system_uuid
+
+
+def get_uuid(hw_lst):
+    if os.uname()[4] == 'ppc64le':
+        return _get_uuid_ppc64le(hw_lst)
+    return _get_uuid_x86_64()
 
 
 def _get_value(hw_lst, *vect):
@@ -468,7 +497,7 @@ def detect_system(hw_lst, output=None):
         find_element(xml, "./node/product", 'name')
         find_element(xml, "./node/vendor", 'vendor')
         find_element(xml, "./node/version", 'version')
-        uuid = get_uuid()
+        uuid = get_uuid(hw_lst)
 
         if uuid:
             # If we have an uuid, we shall check if it's part of a
