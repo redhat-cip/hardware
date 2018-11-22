@@ -27,7 +27,7 @@ def ib_card_drv():
     ret, output = cmd('ibstat -l')
     if ret == 0:
         # Use filter to omit empty item due to trailing newline.
-        return filter(None, output.split('\n'))
+        return list(filter(None, output.split('\n')))
     else:
         return []
 
