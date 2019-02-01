@@ -296,17 +296,31 @@ def detect_disks(hw_lst):
                                                           my_item,
                                                           str(excpt)))
 
-        item_list = ['WCE', 'RCD']
-        item_def = {'WCE': 'Write Cache Enable', 'RCD': 'Read Cache Disable'}
-        for my_item in item_list:
-            sdparm_cmd = Popen("sdparm -q --get=%s /dev/%s | "
-                               "awk '{print $2}'" % (my_item, name),
-                               shell=True,
-                               stdout=PIPE,
-                               universal_newlines=True)
-            for line in sdparm_cmd.stdout:
-                hw_lst.append(('disk', name, item_def.get(my_item),
-                               line.rstrip('\n').strip()))
+        # WCE & RCD from sysfs
+        # https://www.kernel.org/doc/Documentation/scsi/sd-parameters.txt
+        my_item = '/sys/block/{0}/device'.format(name)
+        try:
+            _link_info = os.readlink(my_item)
+            _scsi_addr = _link_info.rsplit('/', 1)[1]
+            my_item = ('/sys/block/{0}/device' +
+                       '/scsi_disk/{1}/cache_type').format(name, _scsi_addr)
+            with open(my_item, 'r') as cache_info:
+                my_text = cache_info.readline().rstrip('\n').strip()
+                _wce = '1'
+                _rcd = '0'
+                if my_text == 'write through':
+                    _wce = '0'
+                elif my_text == 'none':
+                    _wce = '0'
+                    _rcd = '1'
+                elif 'daft' in my_text:
+                    _rcd = '1'
+                hw_lst.append(('disk', name, 'Write Cache Enable', _wce))
+                hw_lst.append(('disk', name, 'Read Cache Disable', _rcd))
+        except Exception as excpt:
+            sys.stderr.write(
+                'Failed at getting disk information '
+                'at %s: %s\n' % (my_item, str(excpt)))
 
         # In some VMs, the disk-by id doesn't exists
         if os.path.exists('/dev/disk/by-id/'):
