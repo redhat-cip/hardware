@@ -62,7 +62,6 @@ Areca
 Logical disks
 =============
 * hdparm
-* sdparm
 * smartmontools
 
 Networking
