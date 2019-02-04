@@ -46,6 +46,7 @@ from hardware import hpacucli
 from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
+from hardware import rtc
 
 SIOCGIFNETMASK = 0x891b
 
@@ -798,6 +799,10 @@ def detect_temperatures(hwlst):
                                processor_num, "critical_alarm")
 
 
+def detect_rtc_clock(hw_lst):
+    hw_lst.append(('system', 'rtc', 'utc', rtc.get_rtc()))
+
+
 def parse_ahci(hrdw, words):
     if len(words) < 4:
         return
@@ -848,6 +853,7 @@ def _main(options):
     detect_temperatures(hrdw)
     detect_utils.get_ddr_timing(hrdw)
     detect_utils.ipmi_sdr(hrdw)
+    detect_rtc_clock(hrdw)
     _, output = cmd("dmesg")
     parse_dmesg(hrdw, output)
 
