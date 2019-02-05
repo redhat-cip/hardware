@@ -99,7 +99,7 @@ The regexp arg must extract the 4 informations from description lines.
     idx = None
     for line in output.split('\n'):
         line = line.strip()
-        if line[:5] == 'array' or line == 'unassigned':
+        if line[:5].lower() == 'array' or line.lower() == 'unassigned':
             if idx:
                 arr.append((idx, cur))
                 cur = []
