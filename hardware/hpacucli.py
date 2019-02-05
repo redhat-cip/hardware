@@ -199,7 +199,7 @@ Must be called before any other method.
         # it.
         os.system('modprobe sg')
         path = None
-        for path2 in ('/usr/sbin/hpssacli', '/usr/sbin/hpacucli'):
+        for path2 in ('/usr/sbin/ssacli', '/usr/sbin/hpssacli', '/usr/sbin/hpacucli'):
             if os.path.exists(path2):
                 path = path2
                 break
