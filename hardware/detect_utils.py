@@ -165,7 +165,7 @@ def read_SMART_SCSI(hw, device, optional_flag="", mode=""):
     vendor = ""
     product = ""
     for line in sdparm_cmd.stdout:
-        line = line.strip()
+        line = line.strip().decode()
         # This disk doesn't exists or doesn't support SMART
         if "INQUIRY failed" in line:
             return
@@ -256,7 +256,7 @@ def read_SMART_ata(hw, device, optional_flag="", mode=""):
                                                          optional_flag),
                                   shell=True, stdout=subprocess.PIPE)
     for line in sdparm_cmd.stdout:
-        line = line.strip()
+        line = line.strip().decode()
 
         if read_smart_field(hw, line, device_name, "Device Model:",
                             "device_model"):
@@ -349,7 +349,7 @@ def read_SMART(hw, device, optional_flag=""):
                                       shell=True,
                                       stdout=subprocess.PIPE)
         for line in sdparm_cmd.stdout:
-            line = line.strip()
+            line = line.strip().decode()
             if (line.startswith("Device does not support SMART") or
                 ("Unavailable - device lacks SMART capability" in line) or
                     line.startswith("Device supports SMART and is Enabled")):
