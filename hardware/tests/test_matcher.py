@@ -247,12 +247,11 @@ class TestMatcher(unittest.TestCase):
         self.assertEqual(arr['disk'], 'vda')
 
     def test_network(self):
-        specs = [('network', '$eth', 'ipv4', 'network(192.168.2.0/24)')]
-        lines = [('network', 'eth0', 'ipv4', '192.168.2.2')]
+        specs = [('network', '$eth', 'ipv4', u'network(192.168.2.0/24)')]
+        lines = [('network', 'eth0', 'ipv4', u'192.168.2.2')]
         arr = {}
-        if matcher._HAS_IPADDR:
-            self.assertTrue(matcher.match_all(lines, specs, arr, {}))
-            self.assertEqual(arr['eth'], 'eth0')
+        self.assertTrue(matcher.match_all(lines, specs, arr, {}))
+        self.assertEqual(arr['eth'], 'eth0')
 
     def test_le_var(self):
         specs = [('disk', '$disk', 'size', '$size=le(20)')]
