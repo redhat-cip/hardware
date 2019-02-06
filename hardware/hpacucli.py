@@ -54,8 +54,8 @@ LOGICAL_REGEXP = re.compile(r'\s*logicaldrive (.*) \((.*), (.*), (.*)\)')
 
 
 def _generic_parsing(line, status, ignore_list):
-    items = line.split(':')
-    if len(items) > 1:
+    items = line.split(': ')
+    if len(items) == 2:
         item = items[0].strip().lower().replace(' ', '_')
         value = items[1].strip()
         if item not in ignore_list:
@@ -244,7 +244,7 @@ Returns its output parsed in a structured data.
             self._sendline('ctrl all show'))
 
     def ctrl_show(self, ctrl):
-        '''Send the "ctrl all show" sub-command.
+        '''Send the "ctrl <ctrl> show" sub-command.
 
 Returns its output parsed in a structured data.
 '''
@@ -321,6 +321,8 @@ def _main():
 
     for controller in controllers:
         slot = 'slot=%d' % controller[0]
+        # ctrl slot="0" show
+        cli.ctrl_show(slot)
         for _, disks in cli.ctrl_pd_all_show(slot):
             for disk in disks:
                 print(disk)

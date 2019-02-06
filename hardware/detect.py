@@ -284,7 +284,7 @@ def detect_disks(hw_lst):
         hw_lst.append(('disk', name, 'size', str(sizes[name])))
         item_list = ['device/vendor', 'device/model', 'device/rev',
                      'queue/optimal_io_size', 'queue/physical_block_size',
-                     'queue/rotational']
+                     'queue/rotational', 'queue/nr_requests']
         for my_item in item_list:
             try:
                 with open('/sys/block/%s/%s' % (name, my_item), 'r') as dev:
@@ -296,6 +296,15 @@ def detect_disks(hw_lst):
                     'at /sys/block/%s/device/%s: %s\n' % (name,
                                                           my_item,
                                                           str(excpt)))
+
+        try:
+            with open('/sys/block/%s/queue/scheduler' % (name), 'r') as dev:
+                s = re.findall('\[(.*?)\]', dev.readline().rstrip('\n').strip())
+                if s:
+                    hw_lst.append(('disk', name, 'scheduler', s[0]))
+
+        except Exception:
+            sys.stderr.write('Cannot extract scheduler for disk %s' % name)
 
         # WCE & RCD from sysfs
         # https://www.kernel.org/doc/Documentation/scsi/sd-parameters.txt

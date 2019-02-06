@@ -138,6 +138,13 @@ class TestController(unittest.TestCase):
         self.cli = hpacucli.Cli()
         self.cli.process = mock.MagicMock()
 
+    def test_ctrl_show(self):
+        self.assertEqual.__self__.maxDiff = None
+        self.cli.process.before = 'ctrl slot=0 show' + CTRL_SHOW_OUTPUT
+        return self.assertEqual(self.cli.ctrl_show("slot=0"),
+                                CTRL_SHOW_RESULT
+                                )
+
     def test_ctrl_all_show(self):
         self.cli.process.before = 'ctrl all show' + CTRL_ALL_SHOW_OUTPUT
         return self.assertEqual(self.cli.ctrl_all_show(),
@@ -183,6 +190,111 @@ class TestController(unittest.TestCase):
 ##############################################################################
 # Output from real commands and expected results below
 ##############################################################################
+
+
+CTRL_SHOW_OUTPUT = '''
+HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)
+   Bus Interface: PCI
+   Slot: 0
+   Serial Number: PEYHD0DRHBH2C9
+   RAID 6 (ADG) Status: Enabled
+   Controller Status: OK
+   Hardware Revision: A
+   Firmware Version: 1.65-0
+   Wait for Cache Room: Disabled
+   Surface Analysis Inconsistency Notification: Disabled
+   Post Prompt Timeout: 15 secs
+   Cache Board Present: True
+   Cache Status: OK
+   Drive Write Cache: Disabled
+   Total Cache Size: 4.0
+   Total Cache Memory Available: 3.8
+   No-Battery Write Cache: Disabled
+   SSD Caching RAID5 WriteBack Enabled: True
+   SSD Caching Version: 2
+   Cache Backup Power Source: Batteries
+   Battery/Capacitor Count: 1
+   Battery/Capacitor Status: OK
+   SATA NCQ Supported: True
+   Spare Activation Mode: Activate on physical drive failure (default)
+   Controller Temperature (C): 49
+   Capacitor Temperature  (C): 39
+   Number of Ports: 4 Internal only
+   Encryption: Not Set
+   Express Local Encryption: False
+   Driver Name: smartpqi
+   Driver Version: Linux 1.1.4-130
+   PCI Address (Domain:Bus:Device.Function): 0000:23:00.0
+   Negotiated PCIe Data Rate: PCIe 3.0 x8 (7880 MB/s)
+   Controller Mode: Mixed
+   Port Max Phy Rate Limiting Supported: False
+   Latency Scheduler Setting: Disabled
+   Current Power Mode: MaxPerformance
+   Survival Mode: Enabled
+   Host Serial Number: CZ28470BSS
+   Sanitize Erase Supported: True
+   Sanitize Lock: None
+   Sensor ID: 0
+      Location: Capacitor
+      Current Value (C): 39
+      Max Value Since Power On: 40
+   Sensor ID: 1
+      Location: ASIC
+      Current Value (C): 49
+      Max Value Since Power On: 50
+   Sensor ID: 2
+      Location: Unknown
+      Current Value (C): 40
+      Max Value Since Power On: 40
+   Primary Boot Volume: None
+   Secondary Boot Volume: None
+'''
+
+CTRL_SHOW_RESULT = {'sensor_id': '2',
+                    'wait_for_cache_room': 'Disabled',
+                    'express_local_encryption': 'False',
+                    'controller_mode': 'Mixed',
+                    'bus_interface': 'PCI',
+                    'controller_temperature_(c)': '49',
+                    'driver_version': 'Linux 1.1.4-130',
+                    'surface_analysis_inconsistency_notification': 'Disabled',
+                    'firmware_version': '1.65-0',
+                    'number_of_ports': '4 Internal only',
+                    'latency_scheduler_setting': 'Disabled',
+                    'battery/capacitor_count': '1',
+                    'raid_6_(adg)_status': 'Enabled',
+                    'primary_boot_volume': 'None',
+                    'hardware_revision': 'A',
+                    'sanitize_lock': 'None',
+                    'survival_mode': 'Enabled',
+                    'current_power_mode': 'MaxPerformance',
+                    'location': 'Unknown',
+                    'serial_number': 'PEYHD0DRHBH2C9',
+                    'cache_status': 'OK',
+                    'total_cache_memory_available': '3.8',
+                    'cache_backup_power_source': 'Batteries',
+                    'total_cache_size': '4.0',
+                    'negotiated_pcie_data_rate': 'PCIe 3.0 x8 (7880 MB/s)',
+                    'controller_status': 'OK',
+                    'pci_address_(domain:bus:device.function)': '0000:23:00.0',
+                    'post_prompt_timeout': '15 secs',
+                    'sanitize_erase_supported': 'True',
+                    'ssd_caching_raid5_writeback_enabled': 'True',
+                    'battery/capacitor_status': 'OK',
+                    'cache_board_present': 'True',
+                    'port_max_phy_rate_limiting_supported': 'False',
+                    'max_value_since_power_on': '40',
+                    'sata_ncq_supported': 'True',
+                    'no-battery_write_cache': 'Disabled',
+                    'spare_activation_mode': 'Activate on physical drive failure (default)',
+                    'host_serial_number': 'CZ28470BSS',
+                    'capacitor_temperature__(c)': '39',
+                    'drive_write_cache': 'Disabled',
+                    'driver_name': 'smartpqi',
+                    'current_value_(c)': '40',
+                    'ssd_caching_version': '2',
+                    'encryption': 'Not Set',
+                    'secondary_boot_volume': 'None'}
 
 CTRL_ALL_SHOW_OUTPUT = '''
 Smart Array P420 in Slot 2                (sn: PDKRH0ARH4F1R6)
@@ -283,7 +395,6 @@ CTRL_PD_SHOW_RESULT_HPSSACLI = {'carrier_application_version': '11',
                                 'native_block_size': '512',
                                 'phy_count': '1',
                                 'phy_transfer_rate': '6.0Gbps',
-                                'physicaldrive_1i': '1',
                                 'rotational_speed': '7200',
                                 'sata_ncq_capable': 'True',
                                 'sata_ncq_enabled': 'True',
@@ -306,7 +417,6 @@ CTRL_PD_SHOW_RESULT = {'status': 'OK',
                        'phy_transfer_rate': '6.0Gbps',
                        'drive_type': 'Data Drive',
                        'current_temperature_(c)': '11',
-                       'physicaldrive_2i': '1',
                        'serial_number': 'BTTV305001NZ100FGN',
                        'array': 'A',
                        'maximum_temperature_(c)': '22',
