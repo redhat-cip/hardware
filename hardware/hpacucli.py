@@ -54,8 +54,8 @@ LOGICAL_REGEXP = re.compile(r'\s*logicaldrive (.*) \((.*), (.*), (.*)\)')
 
 
 def _generic_parsing(line, status, ignore_list):
-    items = line.split(':')
-    if len(items) > 1:
+    items = line.split(': ')
+    if len(items) == 2:
         item = items[0].strip().lower().replace(' ', '_')
         value = items[1].strip()
         if item not in ignore_list:
