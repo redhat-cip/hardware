@@ -298,8 +298,9 @@ def detect_disks(hw_lst):
                                                           str(excpt)))
 
         try:
-            with open('/sys/block/%s/queue/scheduler' % (name), 'r') as dev:
-                s = re.findall('\[(.*?)\]', dev.readline().rstrip('\n').strip())
+            with open('/sys/block/%s/queue/scheduler' % name, 'r') as dev:
+                s_line = dev.readline().rstrip('\n').strip()
+                s = re.findall(r'\[(.*?)\]', s_line)
                 if s:
                     hw_lst.append(('disk', name, 'scheduler', s[0]))
 
