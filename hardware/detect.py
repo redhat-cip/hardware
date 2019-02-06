@@ -297,6 +297,15 @@ def detect_disks(hw_lst):
                                                           my_item,
                                                           str(excpt)))
 
+        try:
+            with open('/sys/block/%s/queue/scheduler' % (name), 'r') as dev:
+                s = re.findall('\[(.*?)\]', dev.readline().rstrip('\n').strip())
+                if s:
+                    hw_lst.append(('disk', name, 'scheduler', s[0]))
+
+        except Exception:
+            sys.stderr.write('Cannot extract scheduler for disk %s' % name)
+
         # WCE & RCD from sysfs
         # https://www.kernel.org/doc/Documentation/scsi/sd-parameters.txt
         my_item = '/sys/block/{0}/device'.format(name)
