@@ -17,14 +17,11 @@
 
 '''Functions to match according to a requirement specification.'''
 
+import ipaddress
 import logging
 import re
 import sys
-try:
-    import ipaddr
-    _HAS_IPADDR = True
-except ImportError:
-    _HAS_IPADDR = False
+
 
 LOG = logging.getLogger('hardware.matcher')
 
@@ -84,10 +81,7 @@ def _or(_, left, right):
 
 def _network(left, right):
     'Helper for match_spec.'
-    if _HAS_IPADDR:
-        return ipaddr.IPv4Address(left) in ipaddr.IPv4Network(right)
-    else:
-        return False
+    return ipaddress.IPv4Address(left) in ipaddress.IPv4Network(right)
 
 
 def _regexp(left, right):
