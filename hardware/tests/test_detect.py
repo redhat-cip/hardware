@@ -66,6 +66,7 @@ class TestDetect(unittest.TestCase):
         self.saved_ntoa = socket.inet_ntoa
         self.saved_ioctl = fcntl.ioctl
         self.saved_get_uuid = detect.get_uuid
+        self.saved_get_logical_cpus = detect.get_logical_cpus
         self.saved_lld_status = detect_utils.get_lld_status
         self.saved_ethtool_status = detect_utils.get_ethtool_status
 
@@ -87,6 +88,9 @@ class TestDetect(unittest.TestCase):
         def fake_ethtool_status(arg, arg1):
             return []
 
+        def fake_get_logical_cpus(arg):
+            return []
+
         detect_utils.cmd = fake
         keeper = Keeper('detect.output_lines',
                         [('Ubuntu', ),
@@ -98,8 +102,16 @@ class TestDetect(unittest.TestCase):
         socket.inet_ntoa = fake_ntoa
         fcntl.ioctl = fake_ioctl
         detect.get_uuid = fake_get_uuid
+        detect.get_logical_cpus = fake_get_logical_cpus
         detect_utils.get_lld_status = fake_lld_status
         detect_utils.get_ethtool_status = fake_ethtool_status
+
+    def test_logical_cpus(self):
+        hw = []
+        detect.get_logical_cpus(hw, sample('lscpu'), ["powersave"])
+        self.assertEqual(hw, [('cpu', 'logical_0', 'min_Mhz', '400.0000'),
+                              ('cpu', 'logical_0', 'max_Mhz', '4200.0000'),
+                              ('cpu', 'logical_0', 'governor', 'powersave')])
 
     def test_ipmi_sdr(self):
         hw = []
@@ -207,6 +219,7 @@ class TestDetect(unittest.TestCase):
         socket.inet_ntoa = self.saved_ntoa
         fcntl.ioctl = self.saved_ioctl
         detect.get_uuid = self.saved_get_uuid
+        detect.get_logical_cpus = self.saved_get_logical_cpus
         detect_utils.get_lld_status = self.saved_lld_status
         detect_utils.get_ethtool_status = self.saved_ethtool_status
 

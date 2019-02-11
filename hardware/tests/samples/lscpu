@@ -1,0 +1,5 @@
+# La suite est en format analysable, transmissible à d'autres
+# programmes. Les items distincts dans chaque colonne ont
+# un numéro d'identifiant unique à partir de zéro.
+# Socket,CPU,Minmhz,Maxmhz
+0,0,400.0000,4200.0000

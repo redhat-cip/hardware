@@ -701,6 +701,7 @@ def detect_system(hw_lst, output=None):
     status, output = detect_utils.cmd('nproc')
     if status == 0:
         hw_lst.append(('cpu', 'logical', 'number', str(output).strip()))
+        get_logical_cpus(hw_lst)
 
     osvendor_cmd = detect_utils.output_lines("lsb_release -is")
     for line in osvendor_cmd:
@@ -724,6 +725,31 @@ def detect_system(hw_lst, output=None):
         hw_lst.append(('system', 'kernel', 'cmdline',
                        line.rstrip('\n').strip()))
     return True
+
+
+def get_logical_cpus(hw_lst, lscpu_output=None, scaling_governor_output=None):
+    if lscpu_output is None:
+        output = detect_utils.output_lines(
+            'lscpu -byp=SOCKET,CPU,MINMHZ,MAXMHZ')
+    else:
+        output = lscpu_output.splitlines()
+    for line in output:
+        if "," not in line or "#" in line:
+            continue
+        cpu_socket, logical_cpu, minhz, maxhz = line.rstrip(
+            '\n').split(',')
+        hw_lst.append(('cpu', "logical_{}".format(
+            logical_cpu), "min_Mhz", minhz))
+        hw_lst.append(('cpu', "logical_{}".format(
+            logical_cpu), "max_Mhz", maxhz))
+        if lscpu_output is None:
+            scaling_governor = detect_utils.output_lines(
+                "cat /sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(logical_cpu))
+        else:
+            scaling_governor = scaling_governor_output
+        for line in scaling_governor:
+            hw_lst.append(('cpu', "logical_{}".format(
+                logical_cpu), "governor", line.rstrip('\n')))
 
 
 def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
