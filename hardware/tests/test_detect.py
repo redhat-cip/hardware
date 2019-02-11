@@ -47,8 +47,158 @@ class TestDetect(unittest.TestCase):
     def test_get_cidr(self):
         self.assertEqual(detect.get_cidr('255.255.0.0'), '16')
 
+    @mock.patch('hardware.detect_utils.output_lines',
+                side_effect=[
+                    sample('lscpu').split('\n'),
+                    sample('lscpux').split('\n'),
+                    ('powersave',),
+                ]
+                )
+    def test_get_cpus(self, mock_output_lines):
+        hw = []
+
+        detect.get_cpus(hw)
+
+        self.assertEqual(hw, [('cpu', 'physical', 'number', 2),
+                              ('cpu', 'physical_0', 'vendor', 'AuthenticAMD'),
+                              ('cpu', 'physical_0', 'product',
+                               'AMD EPYC 7451 24-Core Processor'),
+                              ('cpu', 'physical_0', 'cores', 24),
+                              ('cpu', 'physical_0', 'threads', 48),
+                              ('cpu', 'physical_0', 'family', 23),
+                              ('cpu', 'physical_0', 'model', 1),
+                              ('cpu', 'physical_0', 'stepping', 2),
+                              ('cpu', 'physical_0', 'l1d cache', '32K'),
+                              ('cpu', 'physical_0', 'l1i cache', '64K'),
+                              ('cpu', 'physical_0', 'l2 cache', '512K'),
+                              ('cpu', 'physical_0', 'l3 cache', '8192K'),
+                              ('cpu', 'physical_0', 'min_Mhz', 1200.0),
+                              ('cpu', 'physical_0', 'max_Mhz', 2300.0),
+                              ('cpu', 'physical_0', 'current_Mhz', 1197.549),
+                              ('cpu', 'physical_0', 'flags',
+                               'fpu vme de pse tsc msr pae mce cx8 apic sep mtrr '
+                               'pge mca cmov pat pse36 clflush mmx fxsr sse sse2 '
+                               'ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp '
+                               'lm constant_tsc rep_good nopl nonstop_tsc '
+                               'cpuid extd_apicid amd_dcm aperfmperf pni pclmulqdq monitor '
+                               'ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes '
+                               'xsave avx f16c rdrand lahf_lm cmp_legacy svm '
+                               'extapic cr8_legacy abm sse4a misalignsse '
+                               '3dnowprefetch osvw skinit wdt tce topoext '
+                               'perfctr_core perfctr_nb bpext perfctr_llc '
+                               'mwaitx cpb hw_pstate ssbd ibpb vmmcall '
+                               'fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap '
+                               'clflushopt sha_ni xsaveopt xsavec xgetbv1 '
+                               'xsaves clzero irperf xsaveerptr arat npt lbrv '
+                               'svm_lock nrip_save tsc_scale vmcb_clean '
+                               'flushbyasid decodeassists pausefilter '
+                               'pfthreshold avic v_vmsave_vmload vgif '
+                               'overflow_recov succor smca'),
+                              ('cpu', 'physical_1', 'vendor', 'AuthenticAMD'),
+                              ('cpu', 'physical_1', 'product',
+                               'AMD EPYC 7451 24-Core Processor'),
+                              ('cpu', 'physical_1', 'cores', 24),
+                              ('cpu', 'physical_1', 'threads', 48),
+                              ('cpu', 'physical_1', 'family', 23),
+                              ('cpu', 'physical_1', 'model', 1),
+                              ('cpu', 'physical_1', 'stepping', 2),
+                              ('cpu', 'physical_1', 'l1d cache', '32K'),
+                              ('cpu', 'physical_1', 'l1i cache', '64K'),
+                              ('cpu', 'physical_1', 'l2 cache', '512K'),
+                              ('cpu', 'physical_1', 'l3 cache', '8192K'),
+                              ('cpu', 'physical_1', 'min_Mhz', 1200.0),
+                              ('cpu', 'physical_1', 'max_Mhz', 2300.0),
+                              ('cpu', 'physical_1', 'current_Mhz', 1197.549),
+                              ('cpu', 'physical_1', 'flags',
+                               'fpu vme de pse tsc msr pae mce cx8 apic sep mtrr '
+                               'pge mca cmov pat pse36 clflush mmx fxsr sse sse2 '
+                               'ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp '
+                               'lm constant_tsc rep_good nopl nonstop_tsc '
+                               'cpuid extd_apicid amd_dcm aperfmperf pni pclmulqdq monitor '
+                               'ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes '
+                               'xsave avx f16c rdrand lahf_lm cmp_legacy svm '
+                               'extapic cr8_legacy abm sse4a misalignsse '
+                               '3dnowprefetch osvw skinit wdt tce topoext '
+                               'perfctr_core perfctr_nb bpext perfctr_llc '
+                               'mwaitx cpb hw_pstate ssbd ibpb vmmcall '
+                               'fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap '
+                               'clflushopt sha_ni xsaveopt xsavec xgetbv1 '
+                               'xsaves clzero irperf xsaveerptr arat npt lbrv '
+                               'svm_lock nrip_save tsc_scale vmcb_clean '
+                               'flushbyasid decodeassists pausefilter '
+                               'pfthreshold avic v_vmsave_vmload vgif '
+                               'overflow_recov succor smca'),
+                              ('cpu', 'logical', 'number', 1),
+                              ('cpu', 'logical_0', 'governor', 'powersave'),
+                              ('numa', 'nodes', 'count', 8),
+                              ('numa', 'node_0', 'cpu_count', 12),
+                              ('numa', 'node_0', 'cpu_mask', '0x3f00000000003f'),
+                              ('numa', 'node_1', 'cpu_count', 12),
+                              ('numa', 'node_1', 'cpu_mask', '0xfc0000000000fc0'),
+                              ('numa', 'node_2', 'cpu_count', 12),
+                              ('numa', 'node_2', 'cpu_mask', '0x3f00000000003f000'),
+                              ('numa', 'node_3', 'cpu_count', 12),
+                              ('numa', 'node_3', 'cpu_mask',
+                               '0xfc0000000000fc0000'),
+                              ('numa', 'node_4', 'cpu_count', 12),
+                              ('numa', 'node_4', 'cpu_mask',
+                               '0x3f00000000003f000000'),
+                              ('numa', 'node_5', 'cpu_count', 12),
+                              ('numa', 'node_5', 'cpu_mask',
+                               '0xfc0000000000fc0000000'),
+                              ('numa', 'node_6', 'cpu_count', 12),
+                              ('numa', 'node_6', 'cpu_mask',
+                               '0x3f00000000003f000000000'),
+                              ('numa', 'node_7', 'cpu_count', 12),
+                              ('numa', 'node_7', 'cpu_mask',
+                               '0xfc0000000000fc0000000000'),
+                              ])
+
+    @mock.patch('hardware.detect_utils.output_lines',
+                side_effect=[
+                    sample('lscpu-vm').split('\n'),
+                    sample('lscpu-vmx').split('\n'),
+                    ('powersave',),
+                    ('powersave',),
+                ]
+                )
+    def test_get_cpus_vm(self, mock_output_lines):
+        hw = []
+        detect.get_cpus(hw)
+        self.assertEqual(hw, [('cpu', 'physical', 'number', 1),
+                              ('cpu', 'physical_0', 'vendor', 'GenuineIntel'),
+                              ('cpu', 'physical_0', 'product',
+                               'Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz'),
+                              ('cpu', 'physical_0', 'cores', 2),
+                              ('cpu', 'physical_0', 'threads', 2),
+                              ('cpu', 'physical_0', 'family', 6),
+                              ('cpu', 'physical_0', 'model', 142),
+                              ('cpu', 'physical_0', 'stepping', 10),
+                              ('cpu', 'physical_0', 'l1d cache', '32K'),
+                              ('cpu', 'physical_0', 'l1i cache', '32K'),
+                              ('cpu', 'physical_0', 'l2 cache', '256K'),
+                              ('cpu', 'physical_0', 'l3 cache', '8192K'),
+                              ('cpu', 'physical_0', 'current_Mhz', 2112.002),
+                              ('cpu', 'physical_0', 'flags',
+                               'fpu vme de pse tsc msr pae mce cx8 apic sep '
+                               'mtrr pge mca cmov pat pse36 clflush mmx fxsr '
+                               'sse sse2 ht syscall nx rdtscp lm constant_tsc '
+                               'rep_good nopl xtopology nonstop_tsc pni '
+                               'pclmulqdq ssse3 cx16 pcid sse4_1 sse4_2 x2apic '
+                               'movbe popcnt aes xsave avx rdrand hypervisor '
+                               'lahf_lm abm 3dnowprefetch fsgsbase avx2 '
+                               'invpcid rdseed clflushopt'),
+                              ('cpu', 'logical', 'number', 2),
+                              ('cpu', 'logical_0', 'governor', 'powersave'),
+                              ('cpu', 'logical_1', 'governor', 'powersave'),
+                              ('numa', 'nodes', 'count', 1),
+                              ('numa', 'node_0', 'cpu_count', 2),
+                              ('numa', 'node_0', 'cpu_mask', '0x3')
+                              ])
+
     # (rpittau): this should not be here, it needs to be
     # moved to its own test module
+
     def test_ipmi_sdr(self):
         hw = []
         detect_utils.parse_ipmi_sdr(hw, IPMI_SDR.split("\n"))
@@ -152,6 +302,7 @@ class TestDetect(unittest.TestCase):
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
     @mock.patch('hardware.detect.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
+    @mock.patch('hardware.detect.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     ('Ubuntu',),
@@ -160,7 +311,7 @@ class TestDetect(unittest.TestCase):
                     ('x86_64',),
                     ('BOOT_IMAGE=/boot/vmlinuz',)
                 ])
-    def test_detect_system_3(self, mock_cmd, mock_get_uuid, mock_output_lines):
+    def test_detect_system_3(self, mock_cmd, mock_get_uuid, mock_get_cpus, mock_output_lines):
         result = []
         detect.detect_system(result, sample('lshw3'))
         self.assertEqual(
@@ -198,34 +349,6 @@ class TestDetect(unittest.TestCase):
              ('memory', 'bank:0:7', 'description', 'DIMM Synchronous'),
              ('memory', 'bank:0:7', 'slot', 'C1_DIMM3'),
              ('memory', 'banks', 'count', '8'),
-             ('cpu', 'physical_0', 'physid', '3'),
-             ('cpu', 'physical_0', 'product',
-              'Dual-Core AMD Opteron(tm) Processor 8218'),
-             ('cpu', 'physical_0', 'vendor', 'Advanced Micro Devices [AMD]'),
-             ('cpu', 'physical_0', 'version', 'AMD'),
-             ('cpu', 'physical_0', 'frequency', '1000000000'),
-             ('cpu', 'physical_0', 'clock', '200000000'),
-             ('cpu', 'physical_0', 'flags',
-              'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic '
-              'sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht '
-              'syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow '
-              'rep_good nopl extd_apicid pni cx16 lahf_lm cmp_legacy svm '
-              'extapic cr8_legacy cpufreq'),
-             ('cpu', 'physical_1', 'physid', '4'),
-             ('cpu', 'physical_1', 'product',
-              'Dual-Core AMD Opteron(tm) Processor 8218'),
-             ('cpu', 'physical_1', 'vendor', 'Advanced Micro Devices [AMD]'),
-             ('cpu', 'physical_1', 'version', 'AMD'),
-             ('cpu', 'physical_1', 'frequency', '1000000000'),
-             ('cpu', 'physical_1', 'clock', '200000000'),
-             ('cpu', 'physical_1', 'flags',
-              'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep '
-              'mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht '
-              'syscall nx mmxext fxsr_opt rdtscp x86-64 3dnowext 3dnow '
-              'rep_good nopl extd_apicid pni cx16 lahf_lm cmp_legacy svm '
-              'extapic cr8_legacy cpufreq'),
-             ('cpu', 'physical', 'number', '2'),
-             ('cpu', 'logical', 'number', '4'),
              ('system', 'os', 'vendor', 'Ubuntu'),
              ('system', 'os', 'version', 'Ubuntu 14.04 LTS'),
              ('system', 'kernel', 'version', '3.13.0-24-generic'),
@@ -237,6 +360,7 @@ class TestDetect(unittest.TestCase):
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
     @mock.patch('hardware.detect.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
+    @mock.patch('hardware.detect.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     ('Ubuntu',),
@@ -245,7 +369,7 @@ class TestDetect(unittest.TestCase):
                     ('x86_64',),
                     ('BOOT_IMAGE=/boot/vmlinuz',)
                 ])
-    def test_detect_system_2(self, mock_cmd, mock_get_uuid, mock_output_lines):
+    def test_detect_system_2(self, mock_cmd, mock_get_uuid, mock_get_cpus, mock_output_lines):
         result = []
         detect.detect_system(result, sample('lshw2'))
         self.assertEqual(
@@ -308,29 +432,6 @@ class TestDetect(unittest.TestCase):
              ('network', 'wwan0', 'link', 'no'),
              ('network', 'wwan0', 'driver', 'cdc_ncm'),
              ('network', 'wwan0', 'serial', '02:15:e0:ec:01:00'),
-             ('cpu', 'physical_0', 'physid', '1'),
-             ('cpu', 'physical_0', 'product',
-              'Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz'),
-             ('cpu', 'physical_0', 'vendor', 'Intel Corp.'),
-             ('cpu', 'physical_0', 'version',
-              'Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz'),
-             ('cpu', 'physical_0', 'frequency', '2601000000'),
-             ('cpu', 'physical_0', 'clock', '100000000'),
-             ('cpu', 'physical_0', 'cores', '2'),
-             ('cpu', 'physical_0', 'enabled_cores', '2'),
-             ('cpu', 'physical_0', 'threads', '4'),
-             ('cpu', 'physical_0', 'flags',
-              'x86-64 fpu fpu_exception wp vme de pse tsc msr pae mce cx8 '
-              'apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr '
-              'sse sse2 ss ht tm pbe syscall nx rdtscp constant_tsc '
-              'arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc '
-              'aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx '
-              'smx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic '
-              'popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm '
-              'ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi '
-              'flexpriority ept vpid fsgsbase smep erms cpufreq'),
-             ('cpu', 'physical', 'number', '1'),
-             ('cpu', 'logical', 'number', '4'),
              ('system', 'os', 'vendor', 'Ubuntu'),
              ('system', 'os', 'version', 'Ubuntu 14.04 LTS'),
              ('system', 'kernel', 'version', '3.13.0-24-generic'),
@@ -342,6 +443,7 @@ class TestDetect(unittest.TestCase):
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 7))
     @mock.patch('hardware.detect.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
+    @mock.patch('hardware.detect.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     ('Ubuntu',),
@@ -350,7 +452,7 @@ class TestDetect(unittest.TestCase):
                     ('x86_64',),
                     ('BOOT_IMAGE=/boot/vmlinuz',)
                 ])
-    def test_detect_system(self, mock_cmd, mock_get_uuid, mock_output_lines):
+    def test_detect_system(self, mock_cmd, mock_get_uuid, mock_get_cpus, mock_output_lines):
         result = []
         detect.detect_system(result, sample('lshw'))
         self.assertEqual(
@@ -413,47 +515,6 @@ class TestDetect(unittest.TestCase):
              ('network', 'wlan0', 'link', 'yes'),
              ('network', 'wlan0', 'driver', 'brcmsmac'),
              ('network', 'wlan0', 'serial', '00:88:65:35:2b:50'),
-             ('cpu', 'physical_0', 'physid', '0'),
-             ('cpu', 'physical_0', 'product',
-              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
-             ('cpu', 'physical_0', 'vendor', 'Intel Corp.'),
-             ('cpu', 'physical_0', 'version',
-              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
-             ('cpu', 'physical_0', 'frequency', '800000000'),
-             ('cpu', 'physical_0', 'clock', '25000000'),
-             ('cpu', 'physical_0', 'flags',
-              'fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep '
-              'mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 '
-              'ss ht tm pbe syscall nx rdtscp x86-64 constant_tsc '
-              'arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc '
-              'aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx '
-              'smx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic '
-              'popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm '
-              'ida arat xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority '
-              'ept vpid fsgsbase smep erms cpufreq'),
-             ('cpu', 'physical_1', 'physid', '5'),
-             ('cpu', 'physical_1', 'vendor', 'Intel(R) Corporation'),
-             ('cpu', 'physical_1', 'version',
-              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
-             ('cpu', 'physical_1', 'frequency', '800000000'),
-             ('cpu', 'physical_1', 'clock', '25000000'),
-             ('cpu', 'physical_1', 'flags', 'cpufreq'),
-             ('cpu', 'physical_2', 'physid', 'a'),
-             ('cpu', 'physical_2', 'vendor', 'Intel(R) Corporation'),
-             ('cpu', 'physical_2', 'version',
-              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
-             ('cpu', 'physical_2', 'frequency', '800000000'),
-             ('cpu', 'physical_2', 'clock', '25000000'),
-             ('cpu', 'physical_2', 'flags', 'cpufreq'),
-             ('cpu', 'physical_3', 'physid', 'f'),
-             ('cpu', 'physical_3', 'vendor', 'Intel(R) Corporation'),
-             ('cpu', 'physical_3', 'version',
-              'Intel(R) Core(TM) i7-3667U CPU @ 2.00GHz'),
-             ('cpu', 'physical_3', 'frequency', '800000000'),
-             ('cpu', 'physical_3', 'clock', '25000000'),
-             ('cpu', 'physical_3', 'flags', 'cpufreq'),
-             ('cpu', 'physical', 'number', '4'),
-             ('cpu', 'logical', 'number', '7'),
              ('system', 'os', 'vendor', 'Ubuntu'),
              ('system', 'os', 'version', 'Ubuntu 14.04 LTS'),
              ('system', 'kernel', 'version', '3.13.0-24-generic'),
