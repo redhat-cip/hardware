@@ -15,8 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import fcntl
-import socket
 import unittest
 
 import mock
@@ -26,22 +24,12 @@ from hardware import detect_utils
 from hardware.tests.utils import sample
 
 
-class Keeper:
-
-    def __init__(self, fname, rets):
-        self.rets = rets
-        self.fname = fname
-
-    def fake(self, arg):
-        if len(self.rets) == 0:
-            raise Exception('Invalid call to %s(%s)' % (self.fname, arg))
-#         else:
-#             print('Call to %s(%s)' % (self.fname, arg))
-        ret = self.rets[0]
-        self.rets = self.rets[1:]
-        return ret
-
-
+@mock.patch('hardware.detect_utils.get_ethtool_status',
+            lambda *args, **kwargs: [])
+@mock.patch('socket.inet_ntoa', lambda *args, **kwargs: '255.255.255.0')
+@mock.patch('fcntl.ioctl', lambda *args, **kwargs: [])
+@mock.patch('hardware.detect_utils.get_lld_status',
+            lambda *args, **kwargs: [])
 class TestDetect(unittest.TestCase):
 
     def test_size_in_gb(self):
@@ -59,48 +47,8 @@ class TestDetect(unittest.TestCase):
     def test_get_cidr(self):
         self.assertEqual(detect.get_cidr('255.255.0.0'), '16')
 
-    def _save_functions(self, nbproc, nbphys):
-        # replace the call to nproc by a fake result
-        self.save = detect_utils.cmd
-        self.output_lines = detect_utils.output_lines
-        self.saved_ntoa = socket.inet_ntoa
-        self.saved_ioctl = fcntl.ioctl
-        self.saved_get_uuid = detect.get_uuid
-        self.saved_lld_status = detect_utils.get_lld_status
-        self.saved_ethtool_status = detect_utils.get_ethtool_status
-
-        def fake(x):
-            return (0, nbproc)
-
-        def fake_ntoa(arg):
-            return '255.255.255.0'
-
-        def fake_ioctl(arg, arg2, arg3):
-            return []
-
-        def fake_get_uuid(arg):
-            return '83462C81-52BA-11CB-870F'
-
-        def fake_lld_status(arg, arg1):
-            return []
-
-        def fake_ethtool_status(arg, arg1):
-            return []
-
-        detect_utils.cmd = fake
-        keeper = Keeper('detect.output_lines',
-                        [('Ubuntu', ),
-                         ('Ubuntu 14.04 LTS', ),
-                         ('3.13.0-24-generic', ),
-                         ('x86_64', ),
-                         ('BOOT_IMAGE=/boot/vmlinuz', )])
-        detect_utils.output_lines = mock.MagicMock(side_effect=keeper.fake)
-        socket.inet_ntoa = fake_ntoa
-        fcntl.ioctl = fake_ioctl
-        detect.get_uuid = fake_get_uuid
-        detect_utils.get_lld_status = fake_lld_status
-        detect_utils.get_ethtool_status = fake_ethtool_status
-
+    # (rpittau): this should not be here, it needs to be
+    # moved to its own test module
     def test_ipmi_sdr(self):
         hw = []
         detect_utils.parse_ipmi_sdr(hw, IPMI_SDR.split("\n"))
@@ -201,22 +149,22 @@ class TestDetect(unittest.TestCase):
                                '64bit apst clo ems led '
                                'ncq part pio slum sntf')])
 
-    def _restore_functions(self):
-        detect.cmd = self.save
-        detect.output_lines = self.output_lines
-        socket.inet_ntoa = self.saved_ntoa
-        fcntl.ioctl = self.saved_ioctl
-        detect.get_uuid = self.saved_get_uuid
-        detect_utils.get_lld_status = self.saved_lld_status
-        detect_utils.get_ethtool_status = self.saved_ethtool_status
-
-    def test_detect_system_3(self):
-        l = []
-        self._save_functions("4", 2)
-        detect.detect_system(l, sample('lshw3'))
-        self._restore_functions()
+    @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
+    @mock.patch('hardware.detect.get_uuid',
+                return_value='83462C81-52BA-11CB-870F')
+    @mock.patch('hardware.detect_utils.output_lines',
+                side_effect=[
+                    ('Ubuntu',),
+                    ('Ubuntu 14.04 LTS',),
+                    ('3.13.0-24-generic',),
+                    ('x86_64',),
+                    ('BOOT_IMAGE=/boot/vmlinuz',)
+                ])
+    def test_detect_system_3(self, mock_cmd, mock_get_uuid, mock_output_lines):
+        result = []
+        detect.detect_system(result, sample('lshw3'))
         self.assertEqual(
-            l,
+            result,
             [('system', 'product', 'serial', 'Empty'),
              ('system', 'product', 'name', 'S2915'),
              ('system', 'product', 'vendor', 'Tyan Computer Corporation'),
@@ -286,13 +234,22 @@ class TestDetect(unittest.TestCase):
              ]
         )
 
-    def test_detect_system_2(self):
-        l = []
-        self._save_functions("4", 1)
-        detect.detect_system(l, sample('lshw2'))
-        self._restore_functions()
+    @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
+    @mock.patch('hardware.detect.get_uuid',
+                return_value='83462C81-52BA-11CB-870F')
+    @mock.patch('hardware.detect_utils.output_lines',
+                side_effect=[
+                    ('Ubuntu',),
+                    ('Ubuntu 14.04 LTS',),
+                    ('3.13.0-24-generic',),
+                    ('x86_64',),
+                    ('BOOT_IMAGE=/boot/vmlinuz',)
+                ])
+    def test_detect_system_2(self, mock_cmd, mock_get_uuid, mock_output_lines):
+        result = []
+        detect.detect_system(result, sample('lshw2'))
         self.assertEqual(
-            l,
+            result,
             [('system', 'product', 'serial', 'PB4F20N'),
              ('system', 'product', 'name', '2347GF8 (LENOVO_MT_2347)'),
              ('system', 'product', 'vendor', 'LENOVO'),
@@ -382,14 +339,22 @@ class TestDetect(unittest.TestCase):
              ]
         )
 
-    def test_detect_system(self):
-        self.maxDiff = None
-        l = []
-        self._save_functions("7", 4)
-        detect.detect_system(l, sample('lshw'))
-        self._restore_functions()
+    @mock.patch('hardware.detect_utils.cmd', return_value=(0, 7))
+    @mock.patch('hardware.detect.get_uuid',
+                return_value='83462C81-52BA-11CB-870F')
+    @mock.patch('hardware.detect_utils.output_lines',
+                side_effect=[
+                    ('Ubuntu',),
+                    ('Ubuntu 14.04 LTS',),
+                    ('3.13.0-24-generic',),
+                    ('x86_64',),
+                    ('BOOT_IMAGE=/boot/vmlinuz',)
+                ])
+    def test_detect_system(self, mock_cmd, mock_get_uuid, mock_output_lines):
+        result = []
+        detect.detect_system(result, sample('lshw'))
         self.assertEqual(
-            l,
+            result,
             [('system', 'product', 'serial', 'C02JR02WF57J'),
              ('system', 'product', 'name', 'MacBookAir5,2 (System SKU#)'),
              ('system', 'product', 'vendor', 'Apple Inc.'),
@@ -499,8 +464,7 @@ class TestDetect(unittest.TestCase):
 
     def test_get_value(self):
         self.assertEqual(detect._get_value([('a', 'b', 'c', 'd')],
-                                           'a', 'b', 'c'),
-                         'd')
+                                           'a', 'b', 'c'), 'd')
 
     def test_fix_bad_serial_zero(self):
         hwl = [('system', 'product', 'serial', '0000000000')]
@@ -515,8 +479,7 @@ class TestDetect(unittest.TestCase):
                          'mobo')
 
     def test_clean_str(self):
-        self.assertEqual(detect.clean_str(b'\x8f' * 4),
-                         u'\ufffd' * 4)
+        self.assertEqual(detect.clean_str(b'\x8f' * 4), u'\ufffd' * 4)
 
     def test_clean_tuples(self):
         self.assertEqual(
@@ -578,6 +541,7 @@ class TestDetect(unittest.TestCase):
         self.assertIsNone(detect.get_uuid(hw_list))
 
 
+# (rpittau) this can't stay here
 IPMI_SDR = '''UID Light        | 0x00              | ok
 Sys. Health LED  | 0x00              | ok
 Power Supply 1   | 90 Watts          | ok
