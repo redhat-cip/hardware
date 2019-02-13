@@ -47,6 +47,7 @@ from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
 from hardware import rtc
+from hardware import bios_hp
 
 SIOCGIFNETMASK = 0x891b
 
@@ -866,6 +867,7 @@ def _main(options):
     detect_rtc_clock(hrdw)
     _, output = cmd("dmesg")
     parse_dmesg(hrdw, output)
+    bios_hp.dump_hp_bios(hrdw)
 
     if "benchmark_cpu" in options:
         bm_cpu.cpu_perf(hrdw)
