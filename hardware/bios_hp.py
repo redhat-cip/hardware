@@ -15,16 +15,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''API to the hp-conrep utility to list the bios settings
-'''
+"""API to the hp-conrep utility to list the bios settings"""
 
 from __future__ import print_function
-import tempfile
 import os
-import xml.etree.ElementTree as ET
-from hardware.detect_utils import cmd
 import pprint
 import sys
+import tempfile
+import xml.etree.ElementTree as ET
+
+from hardware.detect_utils import cmd
 
 
 def dump_hp_bios(hw_lst, output=None):

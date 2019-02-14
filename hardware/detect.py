@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Main entry point for hardware and system detection routines in eDeploy.'''
+"""Main entry point for hardware and system detection routines in eDeploy."""
 
 
 from __future__ import print_function
@@ -39,6 +39,7 @@ from hardware import areca
 from hardware.benchmark import cpu as bm_cpu
 from hardware.benchmark import disk as bm_disk
 from hardware.benchmark import mem as bm_mem
+from hardware import bios_hp
 from hardware import detect_utils
 from hardware.detect_utils import cmd
 from hardware import diskinfo
@@ -47,7 +48,6 @@ from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
 from hardware import rtc
-from hardware import bios_hp
 
 SIOCGIFNETMASK = 0x891b
 
