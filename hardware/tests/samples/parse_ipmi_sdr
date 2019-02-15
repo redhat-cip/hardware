@@ -1,0 +1,52 @@
+UID Light        | 0x00              | ok
+Sys. Health LED  | 0x00              | ok
+Power Supply 1   | 90 Watts          | ok
+Power Supply 2   | 65 Watts          | ok
+Power Supplies   | 0x00              | ok
+Fan 1            | 33.32 percent     | ok
+Fan 2            | 39.20 percent     | ok
+Fan 3            | 39.20 percent     | ok
+Fan 4            | 29.40 percent     | ok
+Fan 5            | 24.70 percent     | ok
+Fan 6            | 13.72 percent     | ok
+Fans             | 0x00              | ok
+Temp 1           | 20 degrees C      | ok
+Temp 2           | 40 degrees C      | ok
+Temp 3           | 40 degrees C      | ok
+Temp 4           | 28 degrees C      | ok
+Temp 5           | 28 degrees C      | ok
+Temp 6           | 34 degrees C      | ok
+Temp 7           | 33 degrees C      | ok
+Temp 8           | 39 degrees C      | ok
+Temp 9           | 33 degrees C      | ok
+Temp 10          | 39 degrees C      | ok
+Temp 11          | 29 degrees C      | ok
+Temp 12          | 40 degrees C      | ok
+Temp 13          | 28 degrees C      | ok
+Temp 14          | 31 degrees C      | ok
+Temp 15          | 29 degrees C      | ok
+Temp 16          | 25 degrees C      | ok
+Temp 17          | 27 degrees C      | ok
+Temp 18          | disabled          | ns
+Temp 19          | 22 degrees C      | ok
+Temp 20          | 28 degrees C      | ok
+Temp 21          | 28 degrees C      | ok
+Temp 22          | 28 degrees C      | ok
+Temp 23          | 33 degrees C      | ok
+Temp 24          | 30 degrees C      | ok
+Temp 25          | 30 degrees C      | ok
+Temp 26          | 31 degrees C      | ok
+Temp 27          | disabled          | ns
+Temp 28          | 26 degrees C      | ok
+Temp 29          | 35 degrees C      | ok
+Temp 30          | 58 degrees C      | ok
+Memory           | 0x00              | ok
+Power Meter      | 170 Watts         | ok
+Cntlr 1 Bay 1    | 0x01              | ok
+Cntlr 1 Bay 2    | 0x01              | ok
+Cntlr 1 Bay 3    | 0x00              | ok
+Cntlr 1 Bay 4    | 0x01              | ok
+Cntlr 2 Bay 5    | 0x00              | ok
+Cntlr 2 Bay 6    | 0x00              | ok
+Cntlr 2 Bay 7    | 0x01              | ok
+Cntlr 2 Bay 8    | 0x01              | ok
