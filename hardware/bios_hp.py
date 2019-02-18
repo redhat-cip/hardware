@@ -27,40 +27,30 @@ import xml.etree.ElementTree as ET
 from hardware.detect_utils import cmd
 
 
-def dump_hp_bios(hw_lst, output=None):
-    def find_element(xml, xml_spec, sys_subtype,
-                     sys_type='product', sys_cls='system',
-                     attrib=None, transform=None):
-        'Lookup an xml element and populate hw_lst when found.'
-        elt = xml.findall(xml_spec)
-        if len(elt) >= 1:
-            if attrib:
-                txt = elt[0].attrib[attrib]
-            else:
-                txt = elt[0].text
-            if transform:
-                txt = transform(txt)
-            hw_lst.append((sys_cls, sys_type, sys_subtype, txt))
-            return txt
-        return None
+def get_hp_conrep():
+    output_file = next(tempfile._get_candidate_names())
+    status, output = cmd("hp-conrep --save -f {}".format(output_file))
+    if status != 0:
+        sys.stderr.write("Unable to run hp-conrep: %s\n" % output)
+        return ""
+    return_value = open(output_file).read()
+    os.remove(output_file)
+    return return_value
 
+
+def dump_hp_bios(hw_lst):
     # handle output injection for testing purpose
-    if output:
-        root = ET.fromstring(output)
-    else:
-        output_file = next(tempfile._get_candidate_names())
-        status, output = cmd("hp-conrep --save -f {}".format(output_file))
-        if status != 0:
-            sys.stderr.write("Unable to run hp-conrep: %s\n" % output)
-            return False
-        xml = ET.parse(output_file)
-        os.remove(output_file)
-        root = xml.getroot().iter("Section")
+    hp_config = get_hp_conrep()
+    if len(hp_config) > 0:
+        xml = ET.fromstring(hp_config)
+        root = xml.iter("Section")
 
-    for child in root:
-        hw_lst.append(('hp', 'bios', child.attrib['name'], child.text))
+        for child in root:
+            hw_lst.append(('hp', 'bios', child.attrib['name'], child.text))
 
-    return True
+        return True
+
+    return False
 
 
 if __name__ == "__main__":

@@ -19,13 +19,16 @@ import unittest
 
 from hardware import bios_hp
 from hardware.tests.utils import sample
+import mock
 
 
 class TestBiosHP(unittest.TestCase):
 
-    def test_bios_hp(self):
+    @mock.patch('hardware.bios_hp.get_hp_conrep', return_value=sample('conrep.dat'))
+    def test_bios_hp(self, mocked_cmd):
+        self.maxDiff = None
         hardware_lst = []
-        bios_hp.dump_hp_bios(hardware_lst, sample('conrep.dat'))
+        bios_hp.dump_hp_bios(hardware_lst)
         self.assertEqual(
             hardware_lst,
             [(u'hp', u'bios', u'Language', u'English'),
