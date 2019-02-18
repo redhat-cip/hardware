@@ -16,15 +16,15 @@
 # under the License.
 
 import unittest
+import mock
 
 from hardware import bios_hp
 from hardware.tests.utils import sample
-import mock
 
 
 class TestBiosHP(unittest.TestCase):
 
-    @mock.patch('hardware.bios_hp.get_hp_conrep', return_value=sample('conrep.dat'))
+    @mock.patch('hardware.bios_hp.get_hp_conrep', return_value=(True, sample('conrep.dat')))
     def test_bios_hp(self, mocked_cmd):
         self.maxDiff = None
         hardware_lst = []

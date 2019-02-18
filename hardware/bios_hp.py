@@ -27,30 +27,35 @@ import xml.etree.ElementTree as ET
 from hardware.detect_utils import cmd
 
 
-def get_hp_conrep():
+def get_hp_conrep(hw_lst):
+    for i in hw_lst:
+        if i[0:3] == ('system', 'product', 'vendor'):
+            if i[3] not in ['HPE', 'HP']:
+                return True, ""
     output_file = next(tempfile._get_candidate_names())
     status, output = cmd("hp-conrep --save -f {}".format(output_file))
     if status != 0:
         sys.stderr.write("Unable to run hp-conrep: %s\n" % output)
-        return ""
+        return False, ""
     return_value = open(output_file).read()
     os.remove(output_file)
-    return return_value
+    return True, return_value
 
 
 def dump_hp_bios(hw_lst):
     # handle output injection for testing purpose
-    hp_config = get_hp_conrep()
-    if len(hp_config) > 0:
+    valid, hp_config = get_hp_conrep(hw_lst)
+    if not valid:
+        return False
+
+    if hp_config:
         xml = ET.fromstring(hp_config)
         root = xml.iter("Section")
 
         for child in root:
             hw_lst.append(('hp', 'bios', child.attrib['name'], child.text))
 
-        return True
-
-    return False
+    return True
 
 
 if __name__ == "__main__":
