@@ -656,52 +656,13 @@ def detect_system(hw_lst, output=None):
                 detect_utils.get_ethtool_status(hw_lst, name.text)
                 detect_utils.get_lld_status(hw_lst, name.text)
 
-        for elt in xml.findall(".//node[@class='processor']"):
-            name = elt.find('physid')
-            if name is not None:
-                hw_lst.append(('cpu', 'physical_%s' % (socket_count),
-                               'physid', name.text))
-                find_element(elt, 'product', 'product',
-                             'physical_%s' % socket_count, 'cpu')
-                find_element(elt, 'vendor', 'vendor',
-                             'physical_%s' % socket_count, 'cpu')
-                find_element(elt, 'version', 'version',
-                             'physical_%s' % socket_count, 'cpu')
-                find_element(elt, 'size', 'frequency',
-                             'physical_%s' % socket_count, 'cpu')
-                find_element(elt, 'clock', 'clock',
-                             'physical_%s' % socket_count, 'cpu')
-                find_element(elt, "configuration/setting[@id='cores']",
-                             'cores', 'physical_%s' % socket_count,
-                             'cpu', 'value')
-                find_element(elt, "configuration/setting[@id='enabledcores']",
-                             'enabled_cores', 'physical_%s' % socket_count,
-                             'cpu', 'value')
-                find_element(elt, "configuration/setting[@id='threads']",
-                             'threads', 'physical_%s' % socket_count, 'cpu',
-                             'value')
-
-                elt_cap = elt.findall("capabilities/capability")
-                cpu_flags = ""
-                for cap in elt_cap:
-                    for element in cap.items():
-                        cpu_flags = "%s %s" % (cpu_flags, element[1].strip())
-
-                hw_lst.append(('cpu', 'physical_%s' % (socket_count),
-                               'flags', cpu_flags.strip()))
-
-                socket_count = socket_count + 1
-
         fix_bad_serial(hw_lst, uuid, mobo_id, nic_id)
 
     else:
         sys.stderr.write("Unable to run lshw: %s\n" % output)
         return False
 
-    hw_lst.append(('cpu', 'physical', 'number', str(socket_count)))
-    status, output = detect_utils.cmd('nproc')
-    if status == 0:
-        hw_lst.append(('cpu', 'logical', 'number', str(output).strip()))
+    get_cpus(hw_lst)
 
     osvendor_cmd = detect_utils.output_lines("lsb_release -is")
     for line in osvendor_cmd:
@@ -725,6 +686,96 @@ def detect_system(hw_lst, output=None):
         hw_lst.append(('system', 'kernel', 'cmdline',
                        line.rstrip('\n').strip()))
     return True
+
+
+def get_cpus(hw_lst):
+    # Extracting lspcu information
+    lscpu = {}
+    output = detect_utils.output_lines('LANG=en_US.UTF-8 lscpu')
+
+    for line in output:
+        if ':' in line:
+            item, value = line.split(':')
+            lscpu[item.strip(':')] = value.strip()
+
+    # Extracting lspcu -x information
+    lscpux = {}
+    output = detect_utils.output_lines('LANG=en_US.UTF-8 lscpu -x')
+
+    for line in output:
+        if ':' in line:
+            item, value = line.split(':')
+            lscpux[item.strip(':')] = value.strip()
+
+    hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
+    for processor in range(int(lscpu["Socket(s)"])):
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'vendor', lscpu['Vendor ID']))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'product', lscpu['Model name']))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'cores', int(lscpu['Core(s) per socket'])))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'threads', int(lscpu['Thread(s) per core']) * int(lscpu['Core(s) per socket'])))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'family', int(lscpu['CPU family'])))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'model', int(lscpu['Model'])))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'stepping', int(lscpu['Stepping'])))
+        for item in ['L1d cache', 'L1i cache', 'L2 cache', 'L3 cache']:
+            hw_lst.append(('cpu', "physical_{}".format(
+                processor), item.lower(), lscpu[item]))
+        if 'CPU min MHz' in lscpu:
+            hw_lst.append(('cpu', "physical_{}".format(
+                processor), 'min_Mhz', float(lscpu['CPU min MHz'])))
+        if 'CPU max MHz' in lscpu:
+            hw_lst.append(('cpu', "physical_{}".format(
+                processor), 'max_Mhz', float(lscpu['CPU max MHz'])))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'current_Mhz', float(lscpu['CPU MHz'])))
+        hw_lst.append(('cpu', "physical_{}".format(
+            processor), 'flags', lscpu['Flags']))
+
+    hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
+    # Govenors could be differents on logical cpus
+    for cpu in range(int(lscpu['CPU(s)'])):
+        scaling_governor = detect_utils.output_lines(
+            "cat /sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(cpu))
+
+        for line in scaling_governor:
+            hw_lst.append(('cpu', "logical_{}".format(
+                cpu), "governor", line.rstrip('\n')))
+
+    # Extracting numa nodes
+    hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
+    for numa in range(int(lscpu['NUMA node(s)'])):
+        cpus = lscpu['NUMA node{} CPU(s)'.format(numa)]
+        # lscpu -x provides the cpu mask
+        cpu_mask = lscpux['NUMA node{} CPU(s)'.format(numa)]
+        total_cpus = 0
+        min_cpu = None
+        max_cpu = None
+
+        for item in cpus.split(','):
+            # lscpu report numa nodes like 0-5,48-53
+            if "-" in item:
+                max_cpu = int(item.split("-")[1])
+                min_cpu = int(item.split("-")[0])
+                total_cpus = total_cpus + max_cpu - min_cpu + 1
+            else:
+                # or like 0,1
+                if min_cpu is None:
+                    min_cpu = int(item)
+                else:
+                    max_cpu = int(item)
+                    total_cpus = total_cpus + max_cpu - min_cpu + 1
+
+        # total_cpus = 12 for "0-5,48-53"
+        hw_lst.append(('numa', 'node_{}'.format(
+            numa), 'cpu_count', total_cpus))
+        hw_lst.append(('numa', 'node_{}'.format(
+            numa), 'cpu_mask', cpu_mask))
 
 
 def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
