@@ -939,6 +939,7 @@ def _main(options):
 
 
 def main():
+    os.environ["LANG"] = "en_US.UTF-8"
     parser = argparse.ArgumentParser()
     parser.add_argument('-H', '--human',
                         help='Print output in human readable format',
