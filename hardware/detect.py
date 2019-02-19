@@ -740,12 +740,12 @@ def get_cpus(hw_lst):
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
     # Govenors could be differents on logical cpus
     for cpu in range(int(lscpu['CPU(s)'])):
-        scaling_governor = detect_utils.output_lines(
-            "cat /sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(cpu))
-
-        for line in scaling_governor:
-            hw_lst.append(('cpu', "logical_{}".format(
-                cpu), "governor", line.rstrip('\n')))
+        scaling_governor = "/sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(
+            cpu)
+        if os.path.exists(scaling_governor):
+            with open(scaling_governor) as f:
+                hw_lst.append(('cpu', "logical_{}".format(cpu),
+                               "governor", f.readline().rstrip('\n')))
 
     # Extracting numa nodes
     hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
