@@ -709,6 +709,17 @@ def get_cpus(hw_lst):
 
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
     for processor in range(int(lscpu["Socket(s)"])):
+        boost = "/sys/devices/system/cpu/cpufreq/boost"
+        if os.path.exists(boost):
+            with open(boost) as f:
+                value = f.readline().rstrip('\n')
+                if value == "1":
+                    value = "enabled"
+                else:
+                    value = "disabled"
+                hw_lst.append(
+                    ('cpu', "physical_{}".format(processor), 'boost', value))
+
         hw_lst.append(('cpu', "physical_{}".format(
             processor), 'vendor', lscpu['Vendor ID']))
         hw_lst.append(('cpu', "physical_{}".format(
