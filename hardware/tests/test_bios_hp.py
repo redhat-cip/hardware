@@ -16,6 +16,7 @@
 # under the License.
 
 import unittest
+import mock
 
 from hardware import bios_hp
 from hardware.tests.utils import sample
@@ -23,9 +24,11 @@ from hardware.tests.utils import sample
 
 class TestBiosHP(unittest.TestCase):
 
-    def test_bios_hp(self):
+    @mock.patch('hardware.bios_hp.get_hp_conrep', return_value=(True, sample('conrep.dat')))
+    def test_bios_hp(self, mocked_cmd):
+        self.maxDiff = None
         hardware_lst = []
-        bios_hp.dump_hp_bios(hardware_lst, sample('conrep.dat'))
+        bios_hp.dump_hp_bios(hardware_lst)
         self.assertEqual(
             hardware_lst,
             [(u'hp', u'bios', u'Language', u'English'),

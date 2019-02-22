@@ -51,7 +51,6 @@ class TestDetect(unittest.TestCase):
                 side_effect=[
                     sample('lscpu').split('\n'),
                     sample('lscpux').split('\n'),
-                    ('powersave',),
                 ]
                 )
     def test_get_cpus(self, mock_output_lines):
