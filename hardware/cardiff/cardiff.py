@@ -164,16 +164,16 @@ def analyze_data(global_params, pattern, ignore_list, detail, rampup_value=0,
         sys.exit(2)
 
     health_data_file = utils.find_file(path, pattern)
-    if len(health_data_file) == 0:
+    if not health_data_file:
         print("No log file found with pattern %s!" % pattern)
         sys.exit(1)
+
+    if rampup_value == 0:
+        print("### %d files Selected with pattern '%s' ###" %
+              (len(health_data_file), pattern))
     else:
-        if rampup_value == 0:
-            print("### %d files Selected with pattern '%s' ###" %
-                  (len(health_data_file), pattern))
-        else:
-            print("########## Rampup: %d / %d hosts #########" %
-                  (rampup_value, max_rampup_value))
+        print("########## Rampup: %d / %d hosts #########" %
+              (rampup_value, max_rampup_value))
 
     # Extract data from the hw files
     bench_values = []
@@ -245,12 +245,14 @@ def do_plot(current_dir, gpm_dir, main_title, subtitle, name, unit, titles,
             titles_order, expected_value=""):
     filename = current_dir + "/" + name + ".gnuplot"
     process = subprocess.Popen(["gnuplot", "-V"], stdout=subprocess.PIPE)
-    out, err = process.communicate()
+    out, _ = process.communicate()
     version = int(out.split()[1].split('.')[0])
     if version >= 5:
-        gnuplot_arg = lambda x: "ARG" + str(x + 1)
+        def gnuplot_arg(argument):
+            return "ARG" + str(argument + 1)
     else:
-        gnuplot_arg = lambda x: "'$" + str(x) + "'"
+        def gnuplot_arg(argument):
+            return "'$" + str(argument) + "'"
     with open(filename, "a") as ofile:
         shutil.copyfile("%s/graph2D.gpm" % gpm_dir,
                         "%s/graph2D.gpm" % current_dir)
@@ -326,8 +328,8 @@ def extract_hw_info(hardware, level1, level2, level3):
     for entry in hardware:
         if level2 == '*':
             temp_level2 = entry[1]
-        if (level1 == entry[0] and temp_level2 == entry[1] and
-                level3 == entry[2]):
+        if (level1 == entry[0] and temp_level2 == entry[1]
+                and level3 == entry[2]):
             result.append(entry[3])
     return result
 
@@ -465,10 +467,9 @@ def main():
     detail = {'category': '', 'group': '', 'item': ''}
     global_params = {}
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:l:g:c:i:I:r:o:",
-                                   ['pattern', 'log-level', 'group',
-                                    'category', 'item', "ignore",
-                                    "rampup", "output_dir"])
+        opts, _ = getopt.getopt(sys.argv[1:], "hp:l:g:c:i:I:r:o:",
+                                ['pattern', 'log-level', 'group', 'category',
+                                 'item', "ignore", "rampup", "output_dir"])
     except getopt.GetoptError:
         print("Error: One of the options passed "
               "to the cmdline was not supported")
@@ -526,8 +527,7 @@ def main():
             global_params["output_dir"] = arg
 
     if (utils.print_level & utils.Levels.DETAIL) == utils.Levels.DETAIL:
-        if (len(detail['group']) == 0 or len(detail['category']) == 0 or
-                len(detail['item']) == 0):
+        if not detail['group'] or not detail['category'] or not detail['item']:
             print("Error: The DETAIL output requires group, category & item "
                   "options to be set")
             sys.exit(2)
@@ -557,9 +557,9 @@ def main():
             try:
                 if os.path.exists(current_dir):
                     shutil.rmtree(current_dir)
-            except IOError as e:
+            except IOError as myexception:
                 print("Unable to delete directory %s" % current_dir)
-                print(e)
+                print(myexception)
                 sys.exit(2)
 
             temp_rampup_values = [int(name) for name in os.listdir(rampup_dir)
@@ -603,8 +603,8 @@ def main():
 
                 for rampup_value in sorted(rampup_values):
                     metrics = {}
-                    metrics_file = (rampup_dir +
-                                    "/%d/%s/metrics" % (rampup_value, job))
+                    metrics_file = (rampup_dir
+                                    + "/%d/%s/metrics" % (rampup_value, job))
                     if not os.path.isfile(metrics_file):
                         print("Missing metric file for rampup=%d (%s)" %
                               (rampup_value, metrics_file))

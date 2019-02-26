@@ -120,10 +120,8 @@ def _extract_result(implicit, expr):
         func_name = '_' + res.group(1)
         if func_name in globals():
             return _call_func(globals()[func_name], implicit, res)
-        else:
-            return expr
-    else:
-        return expr
+
+    return expr
 
 
 def match_spec(spec, lines, arr, adder=_adder):
@@ -201,7 +199,7 @@ Store variables starting with a $ in <arr>. Variables starting with
     if level == 50:
         return False
     # Match lines using specs
-    while len(specs) > 0:
+    while specs:
         copy_specs = list(specs)
         spec = specs.pop(0)
         line = match_spec(spec, lines, arr)
@@ -210,7 +208,7 @@ Store variables starting with a $ in <arr>. Variables starting with
         # No match
         if not line:
             # Backtrack on the backtracking points
-            while len(points) > 0:
+            while points:
                 lines, specs, new_arr = points.pop()
                 if debug:
                     sys.stderr.write('retrying with: %s\n' %

@@ -83,9 +83,7 @@ Ranges are defined like 10-12:15-18 or from a list of entries.
             yield pattern
     elif isinstance(pattern, str):
         parts = pattern.split('.')
-        if (_IPV4_RANGE_REGEXP.search(pattern) and
-            len(parts) == 4 and (pattern.find(':') != -1 or
-                                 pattern.find('-') != -1)):
+        if (_IPV4_RANGE_REGEXP.search(pattern) and len(parts) == 4 and (pattern.find(':') != -1 or pattern.find('-') != -1)):
             gens = [_generate_range(part) for part in parts]
             for part0 in gens[0]:
                 for part1 in gens[1]:
@@ -129,8 +127,8 @@ def _call_nexts(model):
     # We can have nested generators so call again
     if generated:
         return _call_nexts(entry)
-    else:
-        return entry
+
+    return entry
 
 
 def generate(model, prefix=_PREFIX):

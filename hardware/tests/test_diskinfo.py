@@ -43,5 +43,6 @@ class TestDiskinfo(unittest.TestCase):
                 'in  3.01 seconds =   9.97 MB/sec\n'),
             9.97)
 
+
 if __name__ == "__main__":
     unittest.main()

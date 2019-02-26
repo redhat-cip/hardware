@@ -155,6 +155,7 @@ PD Type: SAS'''
                           'State': 'Optimal',
                           'StripSize': '64 KB'})
 
+
 ENC_OUTPUT = sample('megacli_enc')
 
 if __name__ == "__main__":

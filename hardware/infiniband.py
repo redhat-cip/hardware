@@ -28,8 +28,8 @@ def ib_card_drv():
     if ret == 0:
         # Use filter to omit empty item due to trailing newline.
         return list(filter(None, output.split('\n')))
-    else:
-        return []
+
+    return []
 
 
 # {'node_guid': '0x0002c90300ea6840', 'sys_guid': '0x0002c90300ea6843',

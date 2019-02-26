@@ -15,11 +15,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import unittest
-import mock
-
 from hardware import bios_hp
 from hardware.tests.utils import sample
+
+import mock
+
+import unittest
 
 
 class TestBiosHP(unittest.TestCase):

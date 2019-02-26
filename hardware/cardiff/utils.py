@@ -31,7 +31,7 @@ class Levels:
 
 
 # Default level is to print everything
-print_level = Levels.INFO | Levels.WARNING | Levels.ERROR
+PRINTLEVEL = Levels.INFO | Levels.WARNING | Levels.ERROR
 
 
 def write_gnuplot_file(filename, index, value):
@@ -41,8 +41,8 @@ def write_gnuplot_file(filename, index, value):
                 myfile.write("%d %.2f\n" % (index, value))
     else:
         new_lines = []
-        with open(filename, "r") as f:
-            lines = (line.rstrip() for line in f)
+        with open(filename, "r") as gnuplotfile:
+            lines = (line.rstrip() for line in gnuplotfile)
             found = False
             for line in lines:
                 if int(line.split()[0].strip()) == index:
@@ -52,13 +52,13 @@ def write_gnuplot_file(filename, index, value):
                     new_lines.append("%s" % (line.strip()))
             if found is False:
                 new_lines.append("%d %.2f" % (index, value))
-        with open(filename, "w") as f:
-            f.write('\n'.join(new_lines) + '\n')
+        with open(filename, "w") as gnuplotfile:
+            gnuplotfile.write('\n'.join(new_lines) + '\n')
 
 
 def do_print(mode, level, string, *args):
-    global print_level
-    if level & int(print_level) != level:
+    global PRINTLEVEL
+    if level & int(PRINTLEVEL) != level:
         return
     final_string = "%-34s: %-8s: " + string
     final_args = (mode, Levels.message[int(level)])
@@ -112,7 +112,7 @@ def find_sub_element(bench_values, unique_id, element, hosts=set()):
             if element in line[0]:
                 stuff.append(line)
 
-        if (len(hosts) == 0) or system[unique_id] in hosts:
+        if not hosts or system[unique_id] in hosts:
             system[element] = stuff
             systems.append(system)
 

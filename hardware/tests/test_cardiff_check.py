@@ -34,9 +34,9 @@ def load_samples(bench_values):
 class TestDetect(unittest.TestCase):
 
     def test_cpu(self):
-        l = []
-        load_samples(l)
-        result = check.cpu(utils.find_sub_element(l, 'serial', 'cpu'),
+        hw = []
+        load_samples(hw)
+        result = check.cpu(utils.find_sub_element(hw, 'serial', 'cpu'),
                            'serial')
 
         self.maxDiff = None
@@ -71,10 +71,10 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(sorted(res), sorted(eval(element)))
 
     def test_network_interfaces(self):
-        l = []
-        load_samples(l)
+        hw = []
+        load_samples(hw)
         result = check.network_interfaces(
-            utils.find_sub_element(l, 'serial', 'network'), 'serial')
+            utils.find_sub_element(hw, 'serial', 'network'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -99,9 +99,9 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(sorted(res), sorted(eval(element)))
 
     def test_memory_timing(self):
-        l = []
-        load_samples(l)
-        result = check.memory_timing(utils.find_sub_element(l, 'serial',
+        hw = []
+        load_samples(hw)
+        result = check.memory_timing(utils.find_sub_element(hw, 'serial',
                                                             'memory'),
                                      'serial')
         self.maxDiff = None
@@ -150,10 +150,10 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(sorted(res), sorted(eval(element)))
 
     def test_firmware(self):
-        l = []
-        load_samples(l)
+        hw = []
+        load_samples(hw)
         result = check.firmware(
-            utils.find_sub_element(l, 'serial', 'firmware'), 'serial')
+            utils.find_sub_element(hw, 'serial', 'firmware'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -169,10 +169,10 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(sorted(res), sorted(eval(element)))
 
     def test_systems(self):
-        l = []
-        load_samples(l)
+        hw = []
+        load_samples(hw)
         result = check.systems(
-            utils.find_sub_element(l, 'serial', 'system'), 'serial')
+            utils.find_sub_element(hw, 'serial', 'system'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -189,10 +189,10 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(sorted(res), sorted(eval(element)))
 
     def test_logical_disks(self):
-        l = []
-        load_samples(l)
+        hw = []
+        load_samples(hw)
         result = check.logical_disks(
-            utils.find_sub_element(l, 'serial', 'disk'), 'serial')
+            utils.find_sub_element(hw, 'serial', 'disk'), 'serial')
         self.maxDiff = None
         for element in result:
             group = result[element]
@@ -217,9 +217,9 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(sorted(res), sorted(eval(element)))
 
     def test_hp_physical_disks(self):
-        l = []
-        load_samples(l)
-        result = check.physical_hpa_disks(utils.find_sub_element(l, 'serial',
+        hw = []
+        load_samples(hw)
+        result = check.physical_hpa_disks(utils.find_sub_element(hw, 'serial',
                                                                  'disk'),
                                           'serial')
         self.maxDiff = None

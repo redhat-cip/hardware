@@ -50,6 +50,7 @@ class TestInfiniband(unittest.TestCase):
                           'sm_lid': '0',
                           'state': 'Down'})
 
+
 if __name__ == "__main__":
     unittest.main()
 

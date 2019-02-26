@@ -34,13 +34,13 @@ def search_item(system_list, unique_id, item, regexp, exclude_list=[],
         sets[system[unique_id]] = set()
         current_set = sets[system[unique_id]]
         for stuff in system[item]:
-            m = re.match(regexp, stuff[1])
-            if m:
+            match = re.match(regexp, stuff[1])
+            if match:
                 shall_be_added = False
 
                 # If we have an include_list, only those shall be used
                 # So everything is exclude by default
-                if len(include_list) > 0:
+                if include_list:
                     shall_be_excluded = True
                 else:
                     shall_be_excluded = False
@@ -108,19 +108,19 @@ def compute_deviance_percentage(item, df):
 
 
 def print_detail(detail_options, details, df, matched_category):
-    if (utils.print_level & utils.Levels.DETAIL) != utils.Levels.DETAIL:
+    if (utils.PRINTLEVEL & utils.Levels.DETAIL) != utils.Levels.DETAIL:
         return
-    if len(df.loc[details]) > 0:
+    if df.loc[details]:
         print()
         print("%-34s: %-8s: %s" % (matched_category[0],
-                                   utils.Levels.message[utils.print_level],
+                                   utils.Levels.message[utils.PRINTLEVEL],
                                    detail_options['item']))
         print(df.loc[details])
 
 
 def prepare_detail(detail_options, group_number, category, item, details,
                    matched_category_to_save):
-    if (utils.print_level & utils.Levels.DETAIL) != utils.Levels.DETAIL:
+    if (utils.PRINTLEVEL & utils.Levels.DETAIL) != utils.Levels.DETAIL:
         return
 
     matched_group = ''
@@ -144,12 +144,12 @@ def prepare_detail(detail_options, group_number, category, item, details,
     elif re.search(detail_options['item'], item) is not None:
         matched_item = re.search(detail_options['item'], item).group()
 
-    if (len(matched_group) > 0 and len(matched_category) > 0 and
-            len(matched_item) > 0):
+    if matched_group and matched_category and matched_item:
         details.append(matched_item)
         if matched_category not in matched_category_to_save:
             matched_category_to_save.append(matched_category)
         return matched_category
+
     return ""
 
 
@@ -220,7 +220,7 @@ def logical_disks_perf(system_list, unique_id, group_number, detail_options,
             if perf[2] not in modes and perf_unit in perf[2]:
                 modes.append(perf[2])
 
-    if len(modes) == 0:
+    if modes:
         return
 
     for mode in sorted(modes):
@@ -415,7 +415,7 @@ def print_perf(tolerance_min, tolerance_max, item, df, mode, title,
 
 
 def print_summary(mode, array, array_name, unit, df, item_value=None):
-    if (utils.print_level & utils.Levels.SUMMARY) and (len(array) > 0):
+    if (utils.PRINTLEVEL & utils.Levels.SUMMARY) and array:
         result = []
         before = ""
         after = ""
@@ -437,7 +437,7 @@ def print_summary(mode, array, array_name, unit, df, item_value=None):
         perf_status = ""
         if array_name == "consistent":
             if item_value is not None:
-                if mode == "loops_per_sec" or mode == "bogomips":
+                if mode in ("loops_per_sec", "bogomips"):
                     min_cpu_perf = perf_cpu_tables.get_cpu_min_perf(mode,
                                                                     item_value)
                     if min_cpu_perf == 0:
@@ -447,8 +447,7 @@ def print_summary(mode, array, array_name, unit, df, item_value=None):
                         perf_status = ": " + GREEN + "PERF OK" + WHITE
                     else:
                         perf_status = (": " + RED + "PERF FAIL" + WHITE +
-                                       " as min perf should have been : " +
-                                       str(min_cpu_perf))
+                                       " as min perf should have been : " + str(min_cpu_perf))
         utils.do_print(
             mode, utils.Levels.SUMMARY,
             "%3d %s%-10s%s hosts with %8.2f %-4s as average value and %8.2f "

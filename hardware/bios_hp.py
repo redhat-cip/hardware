@@ -27,8 +27,8 @@ import xml.etree.ElementTree as ET
 from hardware.detect_utils import cmd
 
 
-def get_hp_conrep(hw_lst):
-    for i in hw_lst:
+def get_hp_conrep(hwlst):
+    for i in hwlst:
         if i[0:3] == ('system', 'product', 'vendor'):
             if i[3] not in ['HPE', 'HP']:
                 return True, ""
@@ -42,23 +42,23 @@ def get_hp_conrep(hw_lst):
     return True, return_value
 
 
-def dump_hp_bios(hw_lst):
+def dump_hp_bios(hwlst):
     # handle output injection for testing purpose
-    valid, hp_config = get_hp_conrep(hw_lst)
+    valid, hpconfig = get_hp_conrep(hwlst)
     if not valid:
         return False
 
-    if hp_config:
-        xml = ET.fromstring(hp_config)
+    if hpconfig:
+        xml = ET.fromstring(hpconfig)
         root = xml.iter("Section")
 
         for child in root:
-            hw_lst.append(('hp', 'bios', child.attrib['name'], child.text))
+            hwlst.append(('hp', 'bios', child.attrib['name'], child.text))
 
     return True
 
 
 if __name__ == "__main__":
-    hw_lst = []
-    dump_hp_bios(hw_lst)
-    pprint.pprint(hw_lst)
+    hwlst = []
+    dump_hp_bios(hwlst)
+    pprint.pprint(hwlst)
