@@ -42,9 +42,8 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     # Check that a given file can be accessed with the correct mode.
     # Additionally check that `file` is not a directory, as on Windows
     # directories pass the os.access check.
-    def _access_check(fn, mode):
-        return (os.path.exists(fn) and os.access(fn, mode)
-                and not os.path.isdir(fn))
+    def _access_check(myfile, mode):
+        return os.path.exists(myfile and os.access(myfile, mode) and not os.path.isdir(myfile))
 
     # If we're given a path with a directory part, look it up directly rather
     # than referring to PATH directories. This includes checking relative to
@@ -68,12 +67,12 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     files = [cmd]
 
     seen = set()
-    for dir in path:
-        normdir = os.path.normcase(dir)
+    for directory in path:
+        normdir = os.path.normcase(directory)
         if normdir not in seen:
             seen.add(normdir)
             for thefile in files:
-                name = os.path.join(dir, thefile)
+                name = os.path.join(directory, thefile)
                 if _access_check(name, mode):
                     return name
     return None
@@ -130,9 +129,9 @@ def run_megacli(*args):
         cmd = prog_exec + ' - ' + ' '.join(args)
         proc = Popen(cmd, shell=True, stdout=PIPE, universal_newlines=True)
         return proc.communicate()[0]
-    else:
-        sys.stderr.write('Cannot find megacli on the system\n')
-        return ""
+
+    sys.stderr.write('Cannot find megacli on the system\n')
+    return ""
 
 
 def run_and_parse(*args):
@@ -149,8 +148,7 @@ def adp_count():
     arr = run_and_parse('adpCount')
     if 'ControllerCount' in arr:
         return int(arr['ControllerCount'])
-    else:
-        return 0
+    return 0
 
 
 def adp_all_info(ctrl):

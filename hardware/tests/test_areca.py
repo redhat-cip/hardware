@@ -157,6 +157,7 @@ class TestMegacliTest(unittest.TestCase):
                           'SmartSpinupTime': '122(24)',
                           'TimeoutCount': 0})
 
+
 if __name__ == "__main__":
     unittest.main()
 

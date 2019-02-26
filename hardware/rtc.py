@@ -32,8 +32,9 @@ def get_rtc():
         if match:
             LOG.info('Is RTC set to UTC: %s' % match.group(1))
             return match.group(1)
-        else:
-            LOG.warning('Unable to determine RTC timezone (no match)')
+
+        LOG.warning('Unable to determine RTC timezone (no match)')
     else:
-            LOG.warning('Unable to determine RTC timezone (no output)')
+        LOG.warning('Unable to determine RTC timezone (no output)')
+
     return 'unknown'

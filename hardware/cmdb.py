@@ -25,7 +25,7 @@ import pprint
 import shutil
 
 # generate must be exposed for eval to work correctly in load_cmdb
-from hardware.generate import is_included, generate  # noqa
+from hardware.generate import is_included  # noqa
 
 LOG = logging.getLogger('hardware.cmdb')
 

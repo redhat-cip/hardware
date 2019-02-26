@@ -100,11 +100,10 @@ Returns True if the state is modified and needs to be saved.
             fname = os.path.join(self._cfg_dir, name + '.specs')
             if os.path.exists(fname):
                 return eval(open(fname, 'r').read(-1))
-            else:
-                LOG.info('Specs file %s not found' % fname)
-                return _INVALID_SPECS
-        else:
-            return _INVALID_SPECS
+
+            LOG.info('Specs file %s not found' % fname)
+
+        return _INVALID_SPECS
 
     def _validate_lockname(self):
         if not self._lockname:
@@ -141,10 +140,10 @@ Returns the name of the matching profile.
                         LOG.info('Decrementing %s to %d' %
                                  (name, int(times) - 1))
 
-                    db = cmdb.load_cmdb(self._cfg_dir, name)
-                    if db:
-                        if cmdb.update_cmdb(db, var, var2, forced):
-                            cmdb.save_cmdb(self._cfg_dir, name, db)
+                    dbase = cmdb.load_cmdb(self._cfg_dir, name)
+                    if dbase:
+                        if cmdb.update_cmdb(dbase, var, var2, forced):
+                            cmdb.save_cmdb(self._cfg_dir, name, dbase)
                         else:
                             idx += 1
                             continue
@@ -152,7 +151,7 @@ Returns the name of the matching profile.
                     return name, var
             idx += 1
         else:
-            if len(valid_roles) == 0:
+            if not valid_roles:
                 raise StateError('No more role available in %s' %
                                  (self._state_filename,))
             else:
@@ -192,11 +191,9 @@ Need to call unlock to release the lock.
     @staticmethod
     def _get_value(lines, spec, key):
         info = {}
-        if (matcher.match_spec(spec, lines, info) and
-                key in info and info[key][0] != '$'):
+        if (matcher.match_spec(spec, lines, info) and key in info and info[key][0] != '$'):
             return int(info[key])
-        else:
-            return None
+        return None
 
     @staticmethod
     def _get_memory(specs):
@@ -204,8 +201,7 @@ Need to call unlock to release the lock.
                                'size')
         if mem:
             return mem / 1024
-        else:
-            return None
+        return None
 
     @staticmethod
     def _get_ncpus(specs):
@@ -234,7 +230,7 @@ Need to call unlock to release the lock.
         return disks
 
     @staticmethod
-    def _get_nics(specs, db):
+    def _get_nics(specs, dbase):
         nics = []
         info = {}
         eth_names = []
@@ -253,8 +249,8 @@ Need to call unlock to release the lock.
                 if 'mac' in info:
                     if info['mac'][0:2] == '$$':
                         var = info['mac'][2:]
-                        if var in db:
-                            nics.append({"mac": db[var]})
+                        if var in dbase:
+                            nics.append({"mac": dbase[var]})
                         else:
                             print('cmdb setting %s not found' % var)
                     else:

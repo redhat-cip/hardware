@@ -49,6 +49,7 @@ def parse_ctrl_all_show(output):
             lst.append((int(res.group(2)), res.group(1), res.group(3)))
     return lst
 
+
 PHYSICAL_REGEXP = re.compile(r'\s*physicaldrive (.*) \(.*, (.*), (.*), (.*)\)')
 LOGICAL_REGEXP = re.compile(r'\s*logicaldrive (.*) \((.*), (.*), (.*)\)')
 
@@ -134,6 +135,7 @@ def parse_ctrl_pd_disk_show(output):
     'Parse the output of the "ctrl <sel> pd <disk> show" hpacucli sub-command.'
     return _parse_ctrl_d_disk_show(output)
 
+
 ERROR_REGEXP = re.compile('Error: (.*)', re.M)
 
 
@@ -145,7 +147,6 @@ Raises an Error exception if one is found.
     res = ERROR_REGEXP.search(output)
     if res:
         raise Error(res.group(1))
-    return None
 
 
 def parse_ctrl_ld_show(output):
@@ -175,6 +176,7 @@ def parse_ctrl_ld_show(output):
             arr[res[0].strip()] = middle[0]
             arr[middle[1]] = res[2].strip()
     return arr
+
 
 PROMPT_REGEXP = re.compile('=> ')
 
@@ -215,8 +217,8 @@ Must be called before any other method.
             except (OSError, pexpect.EOF, pexpect.TIMEOUT):
                 return False
             return True
-        else:
-            return False
+
+        return False
 
     def _sendline(self, line):
         '''Internal method to interact with hpacucli.
@@ -316,7 +318,7 @@ def _main():
     if not cli.launch():
         return False
     controllers = cli.ctrl_all_show()
-    if len(controllers) == 0:
+    if not controllers:
         sys.stderr.write("Info: No hpa controller found\n")
         return False
 
@@ -327,8 +329,11 @@ def _main():
         for _, disks in cli.ctrl_pd_all_show(slot):
             for disk in disks:
                 print(disk)
-        for ld in cli.ctrl_ld_all_show(slot):
-            print(cli.ctrl_ld_show(slot, ld[1][0][0]))
+        for logicaldrive in cli.ctrl_ld_all_show(slot):
+            print(cli.ctrl_ld_show(slot, logicaldrive[1][0][0]))
+
+    return True
+
 
 if __name__ == "__main__":
     _main()

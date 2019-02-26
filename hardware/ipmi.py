@@ -35,9 +35,9 @@ def setup_user(channel, username, password):
     state, _ = cmd('ipmitool user test 1 16 %s' % password)
     if state == 0:
         sys.stderr.write('Info: ipmi_setup_user: Setting user successful !\n')
-    else:
-        sys.stderr.write('Err: ipmi_setup_user: Setting user failed !\n')
-        return False
+
+    sys.stderr.write('Err: ipmi_setup_user: Setting user failed !\n')
+    return False
 
 
 def restart_bmc():
@@ -72,6 +72,7 @@ def setup_network(channel, ipv4, netmask, gateway, vlan_id=-1):
 
     # We need to restart the bmc to insure the setup is properly done
     restart_bmc()
+
 
 LINE_REGEXP = re.compile(r'^([^:]+[^ ])\s*:\s*(.*[^ ])\s*$')
 

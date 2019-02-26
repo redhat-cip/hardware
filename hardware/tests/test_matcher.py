@@ -441,6 +441,7 @@ class TestMatcher(unittest.TestCase):
         self.assertEqual(result['serial'], ['08:00:27:6f:77:22'])
         self.assertEqual(result['eth'], ['eth0'])
 
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -28,6 +28,7 @@ class TestIpmi(unittest.TestCase):
         ipmi.parse_lan_info(sample('ipmi_lan_info'), res)
         self.assertEqual(len(res), 19)
 
+
 if __name__ == "__main__":
     unittest.main()
 

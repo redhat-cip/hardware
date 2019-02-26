@@ -57,14 +57,15 @@ def size_in_gb(size):
     ret = size.replace(' ', '')
     if ret[-2:] == 'GB':
         return ret[:-2]
-    elif ret[-2:] == 'TB':
+
+    if ret[-2:] == 'TB':
         # some size are provided in x.yGB
         # we need to compute the size in TB by
         # considering the input as a float to be
         # multiplied by 1000
         return str(int(float(ret[:-2]) * 1000))
-    else:
-        return ret
+
+    return ret
 
 
 def detect_hpa(hw_lst):
@@ -75,7 +76,7 @@ def detect_hpa(hw_lst):
         if not cli.launch():
             return False
         controllers = cli.ctrl_all_show()
-        if len(controllers) == 0:
+        if not controllers:
             sys.stderr.write("Info: No hpa controller found\n")
             return False
 
@@ -104,8 +105,8 @@ def detect_hpa(hw_lst):
                         value = disk_infos[disk_info]
                         if disk_info == "size":
                             value = size_in_gb(disk_infos[disk_info])
-                            global_pdisk_size = (global_pdisk_size +
-                                                 float(value))
+                            global_pdisk_size = (
+                                global_pdisk_size + float(value))
                         hw_lst.append(('disk', disk[0], disk_info,
                                        value))
         except hpacucli.Error as expt:
@@ -122,7 +123,7 @@ def detect_hpa(hw_lst):
 def detect_areca(hw_lst):
     'Detect Areca controller configuration'
     device = areca.sys_info()
-    if len(device) < 1:
+    if not device:
         sys.stderr.write('Info: detect_areca: No controller found\n')
         return
     if "ControllerName" not in device.keys():
@@ -301,9 +302,9 @@ def detect_disks(hw_lst):
         try:
             with open('/sys/block/%s/queue/scheduler' % name, 'r') as dev:
                 s_line = dev.readline().rstrip('\n').strip()
-                s = re.findall(r'\[(.*?)\]', s_line)
-                if s:
-                    hw_lst.append(('disk', name, 'scheduler', s[0]))
+                sched = re.findall(r'\[(.*?)\]', s_line)
+                if sched:
+                    hw_lst.append(('disk', name, 'scheduler', sched[0]))
 
         except Exception:
             sys.stderr.write('Cannot extract scheduler for disk %s' % name)
@@ -372,17 +373,19 @@ def detect_ipmi(hw_lst):
         status, output = cmd('ipmitool lan print')
         if status == 0:
             ipmi.parse_lan_info(output, hw_lst)
-    else:
-        # do we need a fake ipmi device for testing purpose ?
-        status, _ = cmd('grep -qi FAKEIPMI /proc/cmdline')
-        if status == 0:
-            # Yes ! So let's create a fake entry
-            hw_lst.append(('system', 'ipmi-fake', 'channel', '0'))
-            sys.stderr.write('Info: Added fake IPMI device\n')
-            return True
-        else:
-            sys.stderr.write('Info: No IPMI device found\n')
-            return False
+
+        return True
+
+    # do we need a fake ipmi device for testing purpose ?
+    status, _ = cmd('grep -qi FAKEIPMI /proc/cmdline')
+    if status == 0:
+        # Yes ! So let's create a fake entry
+        hw_lst.append(('system', 'ipmi-fake', 'channel', '0'))
+        sys.stderr.write('Info: Added fake IPMI device\n')
+        return True
+
+    sys.stderr.write('Info: No IPMI device found\n')
+    return False
 
 
 def get_cidr(netmask):
@@ -401,46 +404,46 @@ This pci device shall be from vendor Mellanox (15b3) form class 0280
 Class 280 stands for a Network Controller while ethernet device are 0200.
 '''
     status, _ = cmd("lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
-    if status == 0:
-        for ib_card in range(len(ib.ib_card_drv())):
-            card_type = ib.ib_card_drv()[ib_card]
-            ib_infos = ib.ib_global_info(card_type)
-            nb_ports = ib_infos['nb_ports']
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'card_type', card_type))
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'device_type', ib_infos['device_type']))
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'fw_version', ib_infos['fw_ver']))
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'hw_version', ib_infos['hw_ver']))
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'nb_ports', nb_ports))
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'sys_guid', ib_infos['sys_guid']))
-            hw_lst.append(('infiniband', 'card%i' % ib_card,
-                           'node_guid', ib_infos['node_guid']))
-            for port in range(1, int(nb_ports) + 1):
-                ib_port_infos = ib.ib_port_info(card_type, port)
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'state', ib_port_infos['state']))
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'physical_state',
-                               ib_port_infos['physical_state']))
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'rate', ib_port_infos['rate']))
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'base_lid', ib_port_infos['base_lid']))
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'lmc', ib_port_infos['lmc']))
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'sm_lid', ib_port_infos['sm_lid']))
-                hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                               'port_guid', ib_port_infos['port_guid']))
-        return True
-    else:
+    if status != 0:
         sys.stderr.write('Info: No Infiniband device found\n')
         return False
+
+    for ib_card in range(len(ib.ib_card_drv())):
+        card_type = ib.ib_card_drv()[ib_card]
+        ib_infos = ib.ib_global_info(card_type)
+        nb_ports = ib_infos['nb_ports']
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'card_type', card_type))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'device_type', ib_infos['device_type']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'fw_version', ib_infos['fw_ver']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'hw_version', ib_infos['hw_ver']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'nb_ports', nb_ports))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'sys_guid', ib_infos['sys_guid']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'node_guid', ib_infos['node_guid']))
+        for port in range(1, int(nb_ports) + 1):
+            ib_port_infos = ib.ib_port_info(card_type, port)
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'state', ib_port_infos['state']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'physical_state',
+                           ib_port_infos['physical_state']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'rate', ib_port_infos['rate']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'base_lid', ib_port_infos['base_lid']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'lmc', ib_port_infos['lmc']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'sm_lid', ib_port_infos['sm_lid']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'port_guid', ib_port_infos['port_guid']))
+    return True
 
 
 def _get_uuid_x86_64():
@@ -457,7 +460,7 @@ def _get_uuid_x86_64():
 def _get_uuid_ppc64le(hw_lst):
     vendor = None
     serial = None
-    for (sys_cls, sys_type, sys_subtype, value) in hw_lst:
+    for (_, _, sys_subtype, value) in hw_lst:
         if sys_subtype == 'vendor':
             vendor = value
         if sys_subtype == 'serial':
@@ -466,8 +469,8 @@ def _get_uuid_ppc64le(hw_lst):
     system_uuid = None
     system_uuid_fname = '/sys/firmware/devicetree/base/system-uuid'
     if os.access(system_uuid_fname, os.R_OK):
-        with open(system_uuid_fname) as fh:
-            system_uuid = fh.read().rstrip(' \t\r\n\0')
+        with open(system_uuid_fname) as uuidfile:
+            system_uuid = uuidfile.read().rstrip(' \t\r\n\0')
     elif vendor and serial:
         root = uuid.UUID(bytes=b'\x00' * 16)
         vendor_uuid = uuid.uuid5(root, vendor)
@@ -491,8 +494,6 @@ def _get_value(hw_lst, *vect):
 
 def detect_system(hw_lst, output=None):
     'Detect system characteristics from the output of lshw.'
-
-    socket_count = 0
 
     def find_element(xml, xml_spec, sys_subtype,
                      sys_type='product', sys_cls='system',
@@ -711,8 +712,8 @@ def get_cpus(hw_lst):
     for processor in range(int(lscpu["Socket(s)"])):
         boost = "/sys/devices/system/cpu/cpufreq/boost"
         if os.path.exists(boost):
-            with open(boost) as f:
-                value = f.readline().rstrip('\n')
+            with open(boost) as boostfile:
+                value = boostfile.readline().rstrip('\n')
                 if value == "1":
                     value = "enabled"
                 else:
@@ -754,9 +755,9 @@ def get_cpus(hw_lst):
         scaling_governor = "/sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(
             cpu)
         if os.path.exists(scaling_governor):
-            with open(scaling_governor) as f:
+            with open(scaling_governor) as governorfile:
                 hw_lst.append(('cpu', "logical_{}".format(cpu),
-                               "governor", f.readline().rstrip('\n')))
+                               "governor", governorfile.readline().rstrip('\n')))
 
     # Extracting numa nodes
     hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))

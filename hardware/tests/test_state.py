@@ -95,6 +95,7 @@ class TestState(unittest.TestCase):
         data = obj.hardware_info('node1')
         self.assertEqual(data, {})
 
+
 if __name__ == "__main__":
     unittest.main()
 

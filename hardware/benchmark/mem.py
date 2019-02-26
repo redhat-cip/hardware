@@ -27,10 +27,11 @@ from hardware.benchmark import utils
 
 def get_available_memory():
     """Return the total amount of available memory, in bytes."""
-    with open('/proc/meminfo', 'r') as f:
-        for line in f:
+    with open('/proc/meminfo', 'r') as meminfo:
+        for line in meminfo:
             if line.startswith('MemFree:'):
                 return int(line.split()[1]) * 1024
+    return -1
 
 
 def check_mem_size(block_size, cpu_count):

@@ -29,9 +29,9 @@ def split_units(lis):
     'If the value have unit, remove it from the value and return the unit name'
     for unit in ['RPM', '%', ' V', ' C', 'Seconds', 'Times', 'MHz', 'KB', 'MB',
                  'GB']:
-        m = re.search("(.*)%s$" % unit, lis[1])
-        if m:
-            lis[1] = m.group(1).replace(' ', '')
+        match = re.search("(.*)%s$" % unit, lis[1])
+        if match:
+            lis[1] = match.group(1).replace(' ', '')
             return unit.replace(' ', '')
     return None
 
@@ -49,9 +49,9 @@ def parse_output(output, rev=False):
         if len(lis) == 2:
             if "GuiErrMsg" in lis[0]:
                 continue
-            m = re.search('\[(Enclosure#.*)', lis[0])
-            if m:
-                append = m.group(1).replace('#', '') + "/"
+            match = re.search('\[(Enclosure#.*)', lis[0])
+            if match:
+                append = match.group(1).replace('#', '') + "/"
                 continue
             if append:
                 lis[0] = "%s%s" % (append, lis[0])
