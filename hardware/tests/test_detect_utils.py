@@ -1,8 +1,3 @@
-#
-# Copyright (C) 2014 eNovance SAS <licensing@enovance.com>
-#
-# Author: Frederic Lepied <frederic.lepied@enovance.com>
-#
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
@@ -15,10 +10,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import os
+import unittest
 
-_BASEDIR = os.path.dirname(os.path.abspath(__file__))
+from hardware import detect_utils
+from hardware.tests.results import parse_ipmi_sdr
+from hardware.tests.utils import sample
 
 
-def sample(name):
-    return open(os.path.join(_BASEDIR, 'samples', name)).read()
+class TestDetectUtils(unittest.TestCase):
+
+    def test_parse_ipmi_sdr(self):
+        hw = []
+        detect_utils.parse_ipmi_sdr(hw, sample('parse_ipmi_sdr').split('\n'))
+        self.assertEqual(hw, parse_ipmi_sdr.get_ipmi_sdr_result())
