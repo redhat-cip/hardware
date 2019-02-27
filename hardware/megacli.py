@@ -43,7 +43,7 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     # Additionally check that `file` is not a directory, as on Windows
     # directories pass the os.access check.
     def _access_check(myfile, mode):
-        return os.path.exists(myfile and os.access(myfile, mode) and not os.path.isdir(myfile))
+        return os.path.exists(myfile) and os.access(myfile, mode) and not os.path.isdir(myfile)
 
     # If we're given a path with a directory part, look it up directly rather
     # than referring to PATH directories. This includes checking relative to
