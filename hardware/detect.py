@@ -736,8 +736,9 @@ def get_cpus(hw_lst):
         hw_lst.append(('cpu', "physical_{}".format(
             processor), 'stepping', int(lscpu['Stepping'])))
         for item in ['L1d cache', 'L1i cache', 'L2 cache', 'L3 cache']:
-            hw_lst.append(('cpu', "physical_{}".format(
-                processor), item.lower(), lscpu[item]))
+            if item in lscpu:
+                hw_lst.append(('cpu', "physical_{}".format(
+                    processor), item.lower(), lscpu[item]))
         if 'CPU min MHz' in lscpu:
             hw_lst.append(('cpu', "physical_{}".format(
                 processor), 'min_Mhz', float(lscpu['CPU min MHz'])))
