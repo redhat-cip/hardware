@@ -46,13 +46,14 @@ class TestDetect(unittest.TestCase):
     def test_get_cidr(self):
         self.assertEqual(detect.get_cidr('255.255.0.0'), '16')
 
+    @mock.patch('os.path.exists', return_value=False)
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu').split('\n'),
                     sample('lscpux').split('\n'),
                 ]
                 )
-    def test_get_cpus(self, mock_output_lines):
+    def test_get_cpus(self, mock_output_lines, mock_os_path_exists):
         hw = []
 
         detect.get_cpus(hw)
@@ -127,7 +128,6 @@ class TestDetect(unittest.TestCase):
                                'pfthreshold avic v_vmsave_vmload vgif '
                                'overflow_recov succor smca'),
                               ('cpu', 'logical', 'number', 1),
-                              ('cpu', 'logical_0', 'governor', 'powersave'),
                               ('numa', 'nodes', 'count', 8),
                               ('numa', 'node_0', 'cpu_count', 12),
                               ('numa', 'node_0', 'cpu_mask', '0x3f00000000003f'),
@@ -151,7 +151,20 @@ class TestDetect(unittest.TestCase):
                               ('numa', 'node_7', 'cpu_mask',
                                '0xfc0000000000fc0000000000'),
                               ])
+        calls = []
+        # Once per socket
+        for i in range(2):
+            calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
+        # Once per processor
+        for i in range(1):
+            f = ('/sys/devices/system/cpu/cpufreq/policy%d/scaling_governor' %
+                 (i))
+            calls.append(mock.call(f))
+        # NOTE(tonyb): We can't use assert_has_calls() because it's too
+        # permissive.  We want an exact match
+        self.assertEqual(calls, mock_os_path_exists.mock_calls)
 
+    @mock.patch('os.path.exists', return_value=False)
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu-vm').split('\n'),
@@ -160,7 +173,7 @@ class TestDetect(unittest.TestCase):
                     ('powersave',),
                 ]
                 )
-    def test_get_cpus_vm(self, mock_output_lines):
+    def test_get_cpus_vm(self, mock_output_lines, mock_os_path_exists):
         hw = []
         detect.get_cpus(hw)
         self.assertEqual(hw, [('cpu', 'physical', 'number', 1),
@@ -187,12 +200,22 @@ class TestDetect(unittest.TestCase):
                                'lahf_lm abm 3dnowprefetch fsgsbase avx2 '
                                'invpcid rdseed clflushopt'),
                               ('cpu', 'logical', 'number', 2),
-                              ('cpu', 'logical_0', 'governor', 'powersave'),
-                              ('cpu', 'logical_1', 'governor', 'powersave'),
                               ('numa', 'nodes', 'count', 1),
                               ('numa', 'node_0', 'cpu_count', 2),
                               ('numa', 'node_0', 'cpu_mask', '0x3')
                               ])
+        calls = []
+        # Once per socket
+        for i in range(1):
+            calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
+        # Once per processor
+        for i in range(2):
+            f = ('/sys/devices/system/cpu/cpufreq/policy%d/scaling_governor' %
+                 (i))
+            calls.append(mock.call(f))
+        # NOTE(tonyb): We can't use assert_has_calls() because it's too
+        # permissive.  We want an exact match
+        self.assertEqual(calls, mock_os_path_exists.mock_calls)
 
     def test_parse_dmesg(self):
         hw = []
