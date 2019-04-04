@@ -762,33 +762,46 @@ def get_cpus(hw_lst):
 
     # Extracting numa nodes
     hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
-    for numa in range(int(lscpu['NUMA node(s)'])):
-        cpus = lscpu['NUMA node{} CPU(s)'.format(numa)]
+
+    # Allow for sparse numa nodes.
+    numa_nodes = []
+    for key in lscpux:
+        match = re.match('NUMA node(\d+) CPU\(s\)', key)
+        if match:
+            numa_nodes.append((key, int(match.groups()[0])))
+    # NOTE(tonyb): Explictly sort the list as prior to python 3.7? keys() did
+    # not have a predictable ordering and there maybe consumers of hw_lst rely
+    # on that.
+    numa_nodes.sort(key=lambda t: t[1])
+    for (key, node_id) in numa_nodes:
+        cpus = lscpu[key]
         # lscpu -x provides the cpu mask
-        cpu_mask = lscpux['NUMA node{} CPU(s)'.format(numa)]
+        cpu_mask = lscpux[key]
         total_cpus = 0
         min_cpu = None
         max_cpu = None
 
-        for item in cpus.split(','):
-            # lscpu report numa nodes like 0-5,48-53
-            if "-" in item:
-                max_cpu = int(item.split("-")[1])
-                min_cpu = int(item.split("-")[0])
-                total_cpus = total_cpus + max_cpu - min_cpu + 1
-            else:
-                # or like 0,1
-                if min_cpu is None:
-                    min_cpu = int(item)
-                else:
-                    max_cpu = int(item)
+        # It's possible to have a NUMA node without any CPUs
+        if cpus:
+            for item in cpus.split(','):
+                # lscpu report numa nodes like 0-5,48-53
+                if "-" in item:
+                    max_cpu = int(item.split("-")[1])
+                    min_cpu = int(item.split("-")[0])
                     total_cpus = total_cpus + max_cpu - min_cpu + 1
+                else:
+                    # or like 0,1
+                    if min_cpu is None:
+                        min_cpu = int(item)
+                    else:
+                        max_cpu = int(item)
+                        total_cpus = total_cpus + max_cpu - min_cpu + 1
 
         # total_cpus = 12 for "0-5,48-53"
         hw_lst.append(('numa', 'node_{}'.format(
-            numa), 'cpu_count', total_cpus))
+            node_id), 'cpu_count', total_cpus))
         hw_lst.append(('numa', 'node_{}'.format(
-            numa), 'cpu_mask', cpu_mask))
+            node_id), 'cpu_mask', cpu_mask))
 
 
 def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
