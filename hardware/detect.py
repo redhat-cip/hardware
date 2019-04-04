@@ -751,7 +751,7 @@ def get_cpus(hw_lst):
             processor), 'flags', lscpu['Flags']))
 
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
-    # Govenors could be differents on logical cpus
+    # Governors could be different on logical cpus
     for cpu in range(int(lscpu['CPU(s)'])):
         scaling_governor = "/sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(
             cpu)
