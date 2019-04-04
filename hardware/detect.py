@@ -689,6 +689,17 @@ def detect_system(hw_lst, output=None):
     return True
 
 
+def _from_file(fname, mapping=None, default=None):
+    file_exists = os.path.exists(fname)
+    value = None
+    if file_exists:
+        with open(fname) as f:
+            value = f.readline().rstrip('\n')
+        if mapping:
+            value = mapping.get(value, default)
+    return (file_exists, value)
+
+
 def get_cpus(hw_lst):
     # Extracting lspcu information
     lscpu = {}
@@ -710,16 +721,12 @@ def get_cpus(hw_lst):
 
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
     for processor in range(int(lscpu["Socket(s)"])):
-        boost = "/sys/devices/system/cpu/cpufreq/boost"
-        if os.path.exists(boost):
-            with open(boost) as boostfile:
-                value = boostfile.readline().rstrip('\n')
-                if value == "1":
-                    value = "enabled"
-                else:
-                    value = "disabled"
-                hw_lst.append(
-                    ('cpu', "physical_{}".format(processor), 'boost', value))
+        (exists, value) = _from_file("/sys/devices/system/cpu/cpufreq/boost",
+                                     mapping={'1': 'enabled'},
+                                     default='disabled')
+        if exists:
+            hw_lst.append(
+                ('cpu', "physical_{}".format(processor), 'boost', value))
 
         hw_lst.append(('cpu', "physical_{}".format(
             processor), 'vendor', lscpu['Vendor ID']))
@@ -753,12 +760,10 @@ def get_cpus(hw_lst):
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
     # Governors could be different on logical cpus
     for cpu in range(int(lscpu['CPU(s)'])):
-        scaling_governor = "/sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(
-            cpu)
-        if os.path.exists(scaling_governor):
-            with open(scaling_governor) as governorfile:
-                hw_lst.append(('cpu', "logical_{}".format(cpu),
-                               "governor", governorfile.readline().rstrip('\n')))
+        (exists, value) = _from_file(("/sys/devices/system/cpu/cpufreq/"
+                                      "policy{}/scaling_governor".format(cpu)))
+        if exists:
+            hw_lst.append(('cpu', "logical_{}".format(cpu), "governor", value))
 
     # Extracting numa nodes
     hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
