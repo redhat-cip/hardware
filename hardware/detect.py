@@ -701,6 +701,16 @@ def _from_file(fname, mapping=None, default=None):
 
 
 def get_cpus(hw_lst):
+    def _maybe_int(v):
+        try:
+            base = 10
+            if 'x' in v:
+                base = 16
+            v = int(v, base)
+        except Exception:
+            pass
+        return v
+
     # Extracting lspcu information
     lscpu = {}
     output = detect_utils.output_lines('LANG=en_US.UTF-8 lscpu')
@@ -733,8 +743,8 @@ def get_cpus(hw_lst):
                                      ('cores', 'Core(s) per socket', int),
                                      ('threads', None, None),
                                      ('family', 'CPU family', int),
-                                     ('model', 'Model', int),
-                                     ('stepping', 'Stepping', int),
+                                     ('model', 'Model', _maybe_int),
+                                     ('stepping', 'Stepping', _maybe_int),
                                      ('l1d cache', 'L1d cache', None),
                                      ('l1i cache', 'L1i cache', None),
                                      ('l2 cache', 'L2 cache', None),
