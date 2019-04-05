@@ -726,31 +726,33 @@ def get_cpus(hw_lst):
                                      mapping={'1': 'enabled'},
                                      default='disabled')
         if exists:
-            hw_lst.append(
-                ('cpu', ptag, 'boost', value))
+            hw_lst.append(('cpu', ptag, 'boost', value))
 
-        hw_lst.append(('cpu', ptag, 'vendor', lscpu['Vendor ID']))
-        hw_lst.append(('cpu', ptag, 'product', lscpu['Model name']))
-        hw_lst.append(('cpu', ptag, 'cores',
-                       int(lscpu['Core(s) per socket'])))
-        hw_lst.append(('cpu', ptag, 'threads',
-                       (int(lscpu['Thread(s) per core']) *
-                        int(lscpu['Core(s) per socket']))))
-        hw_lst.append(('cpu', ptag, 'family', int(lscpu['CPU family'])))
-        hw_lst.append(('cpu', ptag, 'model', int(lscpu['Model'])))
-        hw_lst.append(('cpu', ptag, 'stepping', int(lscpu['Stepping'])))
-        for item in ['L1d cache', 'L1i cache', 'L2 cache', 'L3 cache']:
-            if item in lscpu:
-                hw_lst.append(('cpu', ptag, item.lower(), lscpu[item]))
-        if 'CPU min MHz' in lscpu:
-            hw_lst.append(('cpu', ptag, 'min_Mhz',
-                           float(lscpu['CPU min MHz'])))
-        if 'CPU max MHz' in lscpu:
-            hw_lst.append(('cpu', ptag, 'max_Mhz',
-                           float(lscpu['CPU max MHz'])))
-        hw_lst.append(('cpu', ptag, 'current_Mhz',
-                       float(lscpu['CPU MHz'])))
-        hw_lst.append(('cpu', ptag, 'flags', lscpu['Flags']))
+        for (t_key, d_key, conv) in [('vendor', 'Vendor ID', None),
+                                     ('product', 'Model name', None),
+                                     ('cores', 'Core(s) per socket', int),
+                                     ('threads', None, None),
+                                     ('family', 'CPU family', int),
+                                     ('model', 'Model', int),
+                                     ('stepping', 'Stepping', int),
+                                     ('l1d cache', 'L1d cache', None),
+                                     ('l1i cache', 'L1i cache', None),
+                                     ('l2 cache', 'L2 cache', None),
+                                     ('l3 cache', 'L3 cache', None),
+                                     ('min_Mhz', 'CPU min MHz', float),
+                                     ('max_Mhz', 'CPU max MHz', float),
+                                     ('current_Mhz', 'CPU MHz', float),
+                                     ('flags', 'Flags', None)]:
+            value = None
+            if d_key in lscpu:
+                value = lscpu[d_key]
+                if conv:
+                    value = conv(value)
+            elif t_key == 'threads':
+                value = (int(lscpu.get('Thread(s) per core', 1)) *
+                         int(lscpu.get('Core(s) per socket', 1)))
+            if value is not None:
+                hw_lst.append(('cpu', ptag, t_key, value))
 
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
     # Governors could be different on logical cpus
