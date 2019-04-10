@@ -1,0 +1,18 @@
+Architecture:        aarch64
+Byte Order:          Little Endian
+CPU(s):              8
+On-line CPU(s) list: 0-7
+Thread(s) per core:  1
+Core(s) per socket:  2
+Socket(s):           4
+NUMA node(s):        1
+Vendor ID:           APM
+Model:               0
+Model name:          X-Gene
+Stepping:            0x0
+BogoMIPS:            100.00
+L1d cache:           unknown size
+L1i cache:           unknown size
+L2 cache:            unknown size
+NUMA node0 CPU(s):   0-7
+Flags:               fp asimd evtstrm cpuid
