@@ -689,7 +689,28 @@ def detect_system(hw_lst, output=None):
     return True
 
 
+def _from_file(fname, mapping=None, default=None):
+    file_exists = os.path.exists(fname)
+    value = None
+    if file_exists:
+        with open(fname) as f:
+            value = f.readline().rstrip('\n')
+        if mapping:
+            value = mapping.get(value, default)
+    return (file_exists, value)
+
+
 def get_cpus(hw_lst):
+    def _maybe_int(v):
+        try:
+            base = 10
+            if 'x' in v:
+                base = 16
+            v = int(v, base)
+        except Exception:
+            pass
+        return v
+
     # Extracting lspcu information
     lscpu = {}
     output = detect_utils.output_lines('LANG=en_US.UTF-8 lscpu')
@@ -710,85 +731,89 @@ def get_cpus(hw_lst):
 
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
     for processor in range(int(lscpu["Socket(s)"])):
-        boost = "/sys/devices/system/cpu/cpufreq/boost"
-        if os.path.exists(boost):
-            with open(boost) as boostfile:
-                value = boostfile.readline().rstrip('\n')
-                if value == "1":
-                    value = "enabled"
-                else:
-                    value = "disabled"
-                hw_lst.append(
-                    ('cpu', "physical_{}".format(processor), 'boost', value))
+        ptag = "physical_{}".format(processor)
+        (exists, value) = _from_file("/sys/devices/system/cpu/cpufreq/boost",
+                                     mapping={'1': 'enabled'},
+                                     default='disabled')
+        if exists:
+            hw_lst.append(('cpu', ptag, 'boost', value))
 
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'vendor', lscpu['Vendor ID']))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'product', lscpu['Model name']))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'cores', int(lscpu['Core(s) per socket'])))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'threads', int(lscpu['Thread(s) per core']) * int(lscpu['Core(s) per socket'])))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'family', int(lscpu['CPU family'])))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'model', int(lscpu['Model'])))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'stepping', int(lscpu['Stepping'])))
-        for item in ['L1d cache', 'L1i cache', 'L2 cache', 'L3 cache']:
-            if item in lscpu:
-                hw_lst.append(('cpu', "physical_{}".format(
-                    processor), item.lower(), lscpu[item]))
-        if 'CPU min MHz' in lscpu:
-            hw_lst.append(('cpu', "physical_{}".format(
-                processor), 'min_Mhz', float(lscpu['CPU min MHz'])))
-        if 'CPU max MHz' in lscpu:
-            hw_lst.append(('cpu', "physical_{}".format(
-                processor), 'max_Mhz', float(lscpu['CPU max MHz'])))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'current_Mhz', float(lscpu['CPU MHz'])))
-        hw_lst.append(('cpu', "physical_{}".format(
-            processor), 'flags', lscpu['Flags']))
+        for (t_key, d_key, conv) in [('vendor', 'Vendor ID', None),
+                                     ('product', 'Model name', None),
+                                     ('cores', 'Core(s) per socket', int),
+                                     ('threads', None, None),
+                                     ('family', 'CPU family', int),
+                                     ('model', 'Model', _maybe_int),
+                                     ('stepping', 'Stepping', _maybe_int),
+                                     ('l1d cache', 'L1d cache', None),
+                                     ('l1i cache', 'L1i cache', None),
+                                     ('l2 cache', 'L2 cache', None),
+                                     ('l3 cache', 'L3 cache', None),
+                                     ('min_Mhz', 'CPU min MHz', float),
+                                     ('max_Mhz', 'CPU max MHz', float),
+                                     ('current_Mhz', 'CPU MHz', float),
+                                     ('flags', 'Flags', None)]:
+            value = None
+            if d_key in lscpu:
+                value = lscpu[d_key]
+                if conv:
+                    value = conv(value)
+            elif t_key == 'threads':
+                value = (int(lscpu.get('Thread(s) per core', 1)) *
+                         int(lscpu.get('Core(s) per socket', 1)))
+            if value is not None:
+                hw_lst.append(('cpu', ptag, t_key, value))
 
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
-    # Govenors could be differents on logical cpus
+    # Governors could be different on logical cpus
     for cpu in range(int(lscpu['CPU(s)'])):
-        scaling_governor = "/sys/devices/system/cpu/cpufreq/policy{}/scaling_governor".format(
-            cpu)
-        if os.path.exists(scaling_governor):
-            with open(scaling_governor) as governorfile:
-                hw_lst.append(('cpu', "logical_{}".format(cpu),
-                               "governor", governorfile.readline().rstrip('\n')))
+        ltag = "logical_{}".format(cpu)
+        (exists, value) = _from_file(("/sys/devices/system/cpu/cpufreq/"
+                                      "policy{}/scaling_governor".format(cpu)))
+        if exists:
+            hw_lst.append(('cpu', ltag, "governor", value))
 
     # Extracting numa nodes
     hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
-    for numa in range(int(lscpu['NUMA node(s)'])):
-        cpus = lscpu['NUMA node{} CPU(s)'.format(numa)]
+
+    # Allow for sparse numa nodes.
+    numa_nodes = []
+    for key in lscpux:
+        match = re.match('NUMA node(\d+) CPU\(s\)', key)
+        if match:
+            numa_nodes.append((key, int(match.groups()[0])))
+    # NOTE(tonyb): Explictly sort the list as prior to python 3.7? keys() did
+    # not have a predictable ordering and there maybe consumers of hw_lst rely
+    # on that.
+    numa_nodes.sort(key=lambda t: t[1])
+    for (key, node_id) in numa_nodes:
+        ntag = 'node_{}'.format(node_id)
+        cpus = lscpu[key]
         # lscpu -x provides the cpu mask
-        cpu_mask = lscpux['NUMA node{} CPU(s)'.format(numa)]
+        cpu_mask = lscpux[key]
         total_cpus = 0
         min_cpu = None
         max_cpu = None
 
-        for item in cpus.split(','):
-            # lscpu report numa nodes like 0-5,48-53
-            if "-" in item:
-                max_cpu = int(item.split("-")[1])
-                min_cpu = int(item.split("-")[0])
-                total_cpus = total_cpus + max_cpu - min_cpu + 1
-            else:
-                # or like 0,1
-                if min_cpu is None:
-                    min_cpu = int(item)
-                else:
-                    max_cpu = int(item)
+        # It's possible to have a NUMA node without any CPUs
+        if cpus:
+            for item in cpus.split(','):
+                # lscpu report numa nodes like 0-5,48-53
+                if "-" in item:
+                    max_cpu = int(item.split("-")[1])
+                    min_cpu = int(item.split("-")[0])
                     total_cpus = total_cpus + max_cpu - min_cpu + 1
+                else:
+                    # or like 0,1
+                    if min_cpu is None:
+                        min_cpu = int(item)
+                    else:
+                        max_cpu = int(item)
+                        total_cpus = total_cpus + max_cpu - min_cpu + 1
 
         # total_cpus = 12 for "0-5,48-53"
-        hw_lst.append(('numa', 'node_{}'.format(
-            numa), 'cpu_count', total_cpus))
-        hw_lst.append(('numa', 'node_{}'.format(
-            numa), 'cpu_mask', cpu_mask))
+        hw_lst.append(('numa', ntag, 'cpu_count', total_cpus))
+        hw_lst.append(('numa', ntag, 'cpu_mask', cpu_mask))
 
 
 def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
