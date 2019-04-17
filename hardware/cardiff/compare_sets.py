@@ -56,55 +56,55 @@ def print_systems_groups(systems_groups):
     total_hosts = 0
     for system in systems_groups:
         total_hosts += len(system)
-    print("The %d systems can be grouped in %d groups of "
-          "identical hardware" % (total_hosts, len(systems_groups)))
+    print('The %d systems can be grouped in %d groups of '
+          'identical hardware' % (total_hosts, len(systems_groups)))
     for system in systems_groups:
-        print("Group %d (%d Systems)" % (
+        print('Group %d (%d Systems)' % (
             systems_groups.index(system), len(system)))
-        print("-> " + ', '.join(system))
+        print('-> ' + ', '.join(system))
         print()
 
 
 def print_groups(global_params, result, title):
-    print("##### %s #####" % title)
-    groups_name = ""
+    print('##### %s #####' % title)
+    groups_name = ''
 
     for element in result:
         group = result[element]
-        group_name = title.strip().replace(" ", "_")
+        group_name = title.strip().replace(' ', '_')
 
-        if "output_dir" in global_params.keys():
-            group_name = "%s/%s" % (global_params["output_dir"], group_name)
+        if 'output_dir' in global_params.keys():
+            group_name = '%s/%s' % (global_params['output_dir'], group_name)
 
         for host in group:
-            group_name = "%s_%s" % (group_name, host.strip())
+            group_name = '%s_%s' % (group_name, host.strip())
 
-        groups_name = "%s '%s.def'" % (groups_name, group_name)
-        print("%d identical systems :" % (len(group)))
+        groups_name = '%s \'%s.def\'' % (groups_name, group_name)
+        print('%d identical systems :' % (len(group)))
         print(group)
 
         pprint.pprint(sorted(eval(element)))
 
         # But always save it to a file for diffing
-        if "output_dir" in global_params.keys():
-            with open("%s.def" % group_name, "w") as fout:
+        if 'output_dir' in global_params.keys():
+            with open('%s.def' % group_name, 'w') as fout:
                 pprint.pprint(sorted(eval(element)), fout)
         print()
 
-    if "output_dir" in global_params.keys():
+    if 'output_dir' in global_params.keys():
         if len(result) > 1:
-            output_file = "%s/%s.diff" % (global_params["output_dir"],
-                                          title.strip().replace(" ", "_"))
-            os.system("diff -ub --from-file %s > '%s'" %
+            output_file = '%s/%s.diff' % (global_params['output_dir'],
+                                          title.strip().replace(' ', '_'))
+            os.system('diff -ub --from-file %s > \'%s\'' %
                       (groups_name, output_file))
         else:
             # If no difference exists, we can kill the def files
-            for filename in glob.glob("%s/%s*.def" %
-                                      (global_params["output_dir"],
-                                       title.strip().replace(" ", "_"))):
+            for filename in glob.glob('%s/%s*.def' %
+                                      (global_params['output_dir'],
+                                       title.strip().replace(' ', '_'))):
                 os.remove(filename)
 
-    print("#####" * 2 + "#" * len(title))
+    print('#####' * 2 + '#' * len(title))
 
 
 def compute_similar_hosts_list(systems_groups, new_groups):
@@ -113,7 +113,6 @@ def compute_similar_hosts_list(systems_groups, new_groups):
             intersection = set.intersection(systems_group, group)
             if intersection:
                 if len(intersection) < len(systems_group):
-                    # print("%d vs %d" % (len(intersection), len(systems_group)))
                     # We do have a partial match meaning we shall break
                     # the existing group in pieces
                     difference = set.difference(systems_group, group)

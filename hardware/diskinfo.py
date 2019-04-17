@@ -64,5 +64,5 @@ def _main():
         print('%s %d GB (%.2f MB/s)' % (name, sizes[name], perfs[name]))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     _main()

@@ -58,7 +58,7 @@ def dump_hp_bios(hwlst):
     return True
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     hwlst = []
     dump_hp_bios(hwlst)
     pprint.pprint(hwlst)

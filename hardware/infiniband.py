@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Fetch information about Infiniband cards.'''
+"""Fetch information about Infiniband cards."""
 
 import re
 
@@ -23,7 +23,7 @@ from hardware.detect_utils import cmd
 
 
 def ib_card_drv():
-    '''Return an array of IB device (ex: ['mlx4_0']).'''
+    """Return an array of IB device (ex: ['mlx4_0'])."""
     ret, output = cmd('ibstat -l')
     if ret == 0:
         # Use filter to omit empty item due to trailing newline.
@@ -37,10 +37,11 @@ def ib_card_drv():
 #   'device_type': 'MT4099',
 #   'hw_ver': '0', 'nb_ports': '2'}
 def ib_global_info(card_drv):
-    '''Return global info of a IB card in a python dict.
+    """Return global info of a IB card in a python dict.
 
-Take in argument a card_drv (ex: mlx4_0).
-    '''
+    Take in argument a card_drv (ex: mlx4_0).
+    """
+
     global_card_info = {}
     ret, global_info = cmd('ibstat %s -s' % card_drv)
     if ret == 0:
@@ -69,10 +70,11 @@ Take in argument a card_drv (ex: mlx4_0).
 # {'base_lid': '0', 'port_guid': '0x0002c90300ea6841', 'rate': '40',
 # 'physical_state': 'Down', 'sm_lid': '0', 'state': 'Down', 'lmc': '0'}
 def ib_port_info(card_drv, port):
-    '''Return port infos of a IB card_drv in a python dict.
+    """Return port infos of a IB card_drv in a python dict.
 
-Take in argument the card_drv name and the port number (ex: mlx4_0,1).
-'''
+    Take in argument the card_drv name and the port number (ex: mlx4_0,1).
+    """
+
     port_infos = {}
     ret, port_desc = cmd('ibstat %s %i' % (card_drv, port))
     if ret == 0:

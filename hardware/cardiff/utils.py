@@ -36,23 +36,23 @@ PRINTLEVEL = Levels.INFO | Levels.WARNING | Levels.ERROR
 
 def write_gnuplot_file(filename, index, value):
     if not os.path.isfile(filename):
-        with open(filename, "a") as myfile:
+        with open(filename, 'a') as myfile:
             if math.isnan(value) is False:
-                myfile.write("%d %.2f\n" % (index, value))
+                myfile.write('%d %.2f\n' % (index, value))
     else:
         new_lines = []
-        with open(filename, "r") as gnuplotfile:
+        with open(filename, 'r') as gnuplotfile:
             lines = (line.rstrip() for line in gnuplotfile)
             found = False
             for line in lines:
                 if int(line.split()[0].strip()) == index:
                     found = True
-                    new_lines.append("%s %.2f" % (line.strip(), value))
+                    new_lines.append('%s %.2f' % (line.strip(), value))
                 else:
-                    new_lines.append("%s" % (line.strip()))
+                    new_lines.append('%s' % (line.strip()))
             if found is False:
-                new_lines.append("%d %.2f" % (index, value))
-        with open(filename, "w") as gnuplotfile:
+                new_lines.append('%d %.2f' % (index, value))
+        with open(filename, 'w') as gnuplotfile:
             gnuplotfile.write('\n'.join(new_lines) + '\n')
 
 
@@ -60,7 +60,7 @@ def do_print(mode, level, string, *args):
     global PRINTLEVEL
     if level & int(PRINTLEVEL) != level:
         return
-    final_string = "%-34s: %-8s: " + string
+    final_string = '%-34s: %-8s: ' + string
     final_args = (mode, Levels.message[int(level)])
     final_args += args
     print(final_string % final_args)
@@ -73,7 +73,7 @@ def find_file(path, pattern):
         # If the file math the regexp
         if fnmatch.fnmatch(my_file, pattern):
             # Let's consider this file
-            health_data_file.append(path + "/" + my_file)
+            health_data_file.append(path + '/' + my_file)
 
     return health_data_file
 

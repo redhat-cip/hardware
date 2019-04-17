@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'Set of functions to manage IPMI'
+"""Set of functions to manage IPMI."""
 
 import re
 import sys
@@ -24,7 +24,7 @@ from hardware.detect_utils import cmd
 
 
 def setup_user(channel, username, password):
-    'Setup an IPMI user.'
+    """Setup an IPMI user."""
     sys.stderr.write('Info: ipmi_setup_user: Setting user="%s", '
                      'password="%s" on channel %s\n' %
                      (username, password, channel))
@@ -41,13 +41,13 @@ def setup_user(channel, username, password):
 
 
 def restart_bmc():
-    'Restart a BMC card.'
+    """Restart a BMC card."""
     sys.stderr.write('Info: Restarting IPMI BMC\n')
     cmd('ipmitool bmc reset cold')
 
 
 def setup_network(channel, ipv4, netmask, gateway, vlan_id=-1):
-    'Define the network of an IPMI interface.'
+    """Define the network of an IPMI interface."""
     sys.stderr.write('Info: ipmi_setup_network: Setting network ip="%s", '
                      'netmask="%s", gateway="%s", vland_id="%d" on '
                      'channel %s\n' %
@@ -78,7 +78,7 @@ LINE_REGEXP = re.compile(r'^([^:]+[^ ])\s*:\s*(.*[^ ])\s*$')
 
 
 def parse_lan_info(output, lst):
-    'Parse the output of ipmi lan info and turns add it to the hw list.'
+    """Parse the output of ipmi lan info and turns add it to the hw list."""
     for line in output.split('\n'):
         res = LINE_REGEXP.search(line)
         if res:

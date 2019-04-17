@@ -17,7 +17,6 @@
 
 """Main entry point for hardware and system detection routines in eDeploy."""
 
-
 from __future__ import print_function
 import argparse
 import fcntl
@@ -53,7 +52,8 @@ SIOCGIFNETMASK = 0x891b
 
 
 def size_in_gb(size):
-    'Return the size in GB without the unit.'
+    """Return the size in GB without the unit."""
+
     ret = size.replace(' ', '')
     if ret[-2:] == 'GB':
         return ret[:-2]
@@ -69,7 +69,8 @@ def size_in_gb(size):
 
 
 def detect_hpa(hw_lst):
-    'Detect HP RAID controller configuration.'
+    """Detect HP RAID controller configuration."""
+
     disk_count = 0
     try:
         cli = hpacucli.Cli(debug=False)
@@ -121,7 +122,8 @@ def detect_hpa(hw_lst):
 
 
 def detect_areca(hw_lst):
-    'Detect Areca controller configuration'
+    """Detect Areca controller configuration."""
+
     device = areca.sys_info()
     if not device:
         sys.stderr.write('Info: detect_areca: No controller found\n')
@@ -166,7 +168,8 @@ def detect_areca(hw_lst):
 
 
 def detect_megacli(hw_lst):
-    'Detect LSI MegaRAID controller configuration.'
+    """Detect LSI MegaRAID controller configuration."""
+
     ctrl_num = megacli.adp_count()
     disk_count = 0
     global_pdisk_size = 0
@@ -277,7 +280,8 @@ def detect_megacli(hw_lst):
 
 
 def detect_disks(hw_lst):
-    'Detect disks.'
+    """Detect disks."""
+
     names = diskinfo.disknames()
     sizes = diskinfo.disksizes(names)
     disks = [name for name, size in sizes.items() if size > 0]
@@ -351,14 +355,16 @@ def detect_disks(hw_lst):
 
 
 def modprobe(module):
-    'Load a kernel module using modprobe.'
+    """Load a kernel module using modprobe."""
+
     status, _ = cmd('modprobe %s' % module)
     if status == 0:
         sys.stderr.write('Info: Probing %s failed\n' % module)
 
 
 def detect_ipmi(hw_lst):
-    'Detect IPMI interfaces.'
+    """Detect IPMI interfaces."""
+
     modprobe("ipmi_smb")
     modprobe("ipmi_si")
     modprobe("ipmi_devintf")
@@ -389,7 +395,8 @@ def detect_ipmi(hw_lst):
 
 
 def get_cidr(netmask):
-    'Convert a netmask to a CIDR.'
+    """Convert a netmask to a CIDR."""
+
     binary_str = ''
     for octet in netmask.split('.'):
         binary_str += bin(int(octet))[2:].zfill(8)
@@ -397,12 +404,13 @@ def get_cidr(netmask):
 
 
 def detect_infiniband(hw_lst):
-    '''Detect Infiniband devinces.
+    """Detect Infiniband devices.
 
-To detect if an IB device is present, we search for a pci device.
-This pci device shall be from vendor Mellanox (15b3) form class 0280
-Class 280 stands for a Network Controller while ethernet device are 0200.
-'''
+    To detect if an IB device is present, we search for a pci device.
+    This pci device shall be from vendor Mellanox (15b3) form class 0280
+    Class 280 stands for a Network Controller while ethernet device are 0200.
+    """
+
     status, _ = cmd("lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
     if status != 0:
         sys.stderr.write('Info: No Infiniband device found\n')
@@ -447,7 +455,8 @@ Class 280 stands for a Network Controller while ethernet device are 0200.
 
 
 def _get_uuid_x86_64():
-    'Get uuid from dmidecode'
+    """Get uuid from dmidecode."""
+
     uuid_cmd = Popen("dmidecode -t 1 | grep UUID | "
                      "awk '{print $2}'",
                      shell=True,
@@ -493,12 +502,12 @@ def _get_value(hw_lst, *vect):
 
 
 def detect_system(hw_lst, output=None):
-    'Detect system characteristics from the output of lshw.'
+    """Detect system characteristics from the output of lshw."""
 
     def find_element(xml, xml_spec, sys_subtype,
                      sys_type='product', sys_cls='system',
                      attrib=None, transform=None):
-        'Lookup an xml element and populate hw_lst when found.'
+        # Lookup an xml element and populate hw_lst when found
         elt = xml.findall(xml_spec)
         if len(elt) >= 1:
             if attrib:
@@ -697,7 +706,7 @@ def _from_file(fname, mapping=None, default=None):
             value = f.readline().rstrip('\n')
         if mapping:
             value = mapping.get(value, default)
-    return (file_exists, value)
+    return file_exists, value
 
 
 def get_cpus(hw_lst):
@@ -817,7 +826,8 @@ def get_cpus(hw_lst):
 
 
 def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
-    'Fix bad serial number'
+    """Fix bad serial number."""
+
     # Let's manage a quirk list of stupid serial numbers TYAN
     # or Supermicro are known to provide dirty serial numbers
     # In that case, let's use another serial
@@ -928,19 +938,22 @@ def parse_dmesg(hrdw, output):
 
 
 def clean_str(val):
-    'Cleanup a bad string (invalid UTF-8 encoding)'
+    """Cleanup a bad string (invalid UTF-8 encoding)."""
+
     if isinstance(val, bytes):
         val = val.decode('UTF-8', 'replace')
     return val
 
 
 def clean_tuples(lst):
-    'Clean a list of tuples from bad UTF-8 strings'
+    """Clean a list of tuples from bad UTF-8 strings."""
+
     return [tuple([clean_str(val) for val in elt]) for elt in lst]
 
 
 def _main(options):
-    'Command line entry point.'
+    """Command line entry point."""
+
     hrdw = []
     detect_areca(hrdw)
     detect_hpa(hrdw)

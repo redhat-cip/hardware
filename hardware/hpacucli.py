@@ -15,9 +15,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''API to the hpacucli utility. Can be used to gather informations
+"""
+API to the hpacucli utility. Can be used to gather informations
 about disks, RAID arrays or controllers or to configure them.
-'''
+"""
 
 from __future__ import print_function
 import os
@@ -26,8 +27,15 @@ import re
 import pexpect
 
 
+ALL_SHOW_REGEXP = re.compile(r'^(.*) in Slot ([0-9]+).*\(sn: (.*)\)', re.M)
+ERROR_REGEXP = re.compile('Error: (.*)', re.M)
+PHYSICAL_REGEXP = re.compile(r'\s*physicaldrive (.*) \(.*, (.*), (.*), (.*)\)')
+LOGICAL_REGEXP = re.compile(r'\s*logicaldrive (.*) \((.*), (.*), (.*)\)')
+PROMPT_REGEXP = re.compile('=> ')
+
+
 class Error(Exception):
-    'Exception class to capture errors while calling hpacucli sub-commands.'
+    """Exception class to capture errors when calling hpacucli sub-commands."""
 
     def __init__(self, value):
         super(Error, self).__init__()
@@ -37,21 +45,15 @@ class Error(Exception):
         return repr(self.value)
 
 
-ALL_SHOW_REGEXP = re.compile(r'^(.*) in Slot ([0-9]+).*\(sn: (.*)\)', re.M)
-
-
 def parse_ctrl_all_show(output):
-    'Parse the output of the "ctrl <sel> all show" hpacucli sub-command.'
+    """Parse the output of the "ctrl <sel> all show" hpacucli sub-command."""
+
     lst = []
     for line in output.split('\n'):
         res = ALL_SHOW_REGEXP.search(line)
         if res:
             lst.append((int(res.group(2)), res.group(1), res.group(3)))
     return lst
-
-
-PHYSICAL_REGEXP = re.compile(r'\s*physicaldrive (.*) \(.*, (.*), (.*), (.*)\)')
-LOGICAL_REGEXP = re.compile(r'\s*logicaldrive (.*) \((.*), (.*), (.*)\)')
 
 
 def _generic_parsing(line, status, ignore_list):
@@ -84,18 +86,14 @@ def _parse_ctrl_show(output):
 
 
 def _parse_ctrl_d_all_show(output, regexp):
-    '''Parse lines like:
+    """Parse lines like:
 
-   array C
+    array C physicaldrive 1I:1:2 (port 1I:box 1:bay 2, SATA, 1 TB, OK)
+    into an associative array with the matching result like:
+    [('array C', [('1I:1:2', 'SATA', '1 TB', 'OK')]),]
+    The regexp arg must extract the 4 informations from description lines.
+    """
 
-      physicaldrive 1I:1:2 (port 1I:box 1:bay 2, SATA, 1 TB, OK)
-
-into an associative array with the matching result like:
-
-[('array C', [('1I:1:2', 'SATA', '1 TB', 'OK')]),]
-
-The regexp arg must extract the 4 informations from description lines.
-'''
     arr = []
     cur = []
     idx = None
@@ -117,40 +115,38 @@ The regexp arg must extract the 4 informations from description lines.
 
 
 def parse_ctrl_ld_all_show(output):
-    'Parse the output of the "ctrl <sel> ld all show" hpacucli sub-command.'
+    """Parse the output of "ctrl <sel> ld all show" hpacucli sub-command."""
     return _parse_ctrl_d_all_show(output, LOGICAL_REGEXP)
 
 
 def parse_ctrl_pd_all_show(output):
-    'Parse the output of the "ctrl <sel> pd all show" hpacucli sub-command.'
+    """Parse the output of "ctrl <sel> pd all show" hpacucli sub-command."""
     return _parse_ctrl_d_all_show(output, PHYSICAL_REGEXP)
 
 
 def parse_ctrl_show(output):
-    'Parse the output of the "ctrl <sel> pd <disk> show" hpacucli sub-command.'
+    """Parse the output of "ctrl <sel> pd <disk> show" hpacucli sub-command."""
     return _parse_ctrl_show(output)
 
 
 def parse_ctrl_pd_disk_show(output):
-    'Parse the output of the "ctrl <sel> pd <disk> show" hpacucli sub-command.'
+    """Parse the output of "ctrl <sel> pd <disk> show" hpacucli sub-command."""
     return _parse_ctrl_d_disk_show(output)
 
 
-ERROR_REGEXP = re.compile('Error: (.*)', re.M)
-
-
 def parse_error(output):
-    '''Parse the output of an hpacucli sub-command for an error.
+    """Parse the output of an hpacucli sub-command for an error
 
-Raises an Error exception if one is found.
-'''
+    Raises an Error exception if one is found.
+    """
+
     res = ERROR_REGEXP.search(output)
     if res:
         raise Error(res.group(1))
 
 
 def parse_ctrl_ld_show(output):
-    'Parse the output of the "ctrl <sel> ld <id> show" hpacucli sub-command.'
+    """Parse the output of "ctrl <sel> ld <id> show" hpacucli sub-command."""
     arr = {}
     idx = None
     for line in output.split('\n'):
@@ -178,25 +174,23 @@ def parse_ctrl_ld_show(output):
     return arr
 
 
-PROMPT_REGEXP = re.compile('=> ')
-
-
 class Cli:
-    '''Cli class.
+    """Cli class.
 
-Class to launch an hpacucli command in the background and to
-interact with it to configure or gather information.
-'''
+    Class to launch an hpacucli command in the background and to
+    interact with it to configure or gather information.
+    """
 
     def __init__(self, debug=False):
         self.process = None
         self.debug = debug
 
     def launch(self):
-        '''Launch an hpacucli from /usr/sbin.
+        """Launch an hpacucli from /usr/sbin.
 
-Must be called before any other method.
-'''
+        Must be called before any other method.
+        """
+
         # With the hpsa kernel module, we need to load the sg kernel
         # module before to have everything working. So we always load
         # it.
@@ -221,11 +215,12 @@ Must be called before any other method.
         return False
 
     def _sendline(self, line):
-        '''Internal method to interact with hpacucli.
+        """Internal method to interact with hpacucli.
 
-Send a command to the hpacucli, wait for the prompt and
-returns the output string.
-'''
+        Send a command to the hpacucli, wait for the prompt and
+        returns the output string.
+        """
+
         if self.debug:
             print(line)
         self.process.sendline(line)
@@ -239,67 +234,63 @@ returns the output string.
         return ret
 
     def ctrl_all_show(self):
-        '''Send the "ctrl all show" sub-command.
+        """Send the "ctrl all show" sub-command.
 
-Returns its output parsed in a structured data.
-'''
-        return parse_ctrl_all_show(
-            self._sendline('ctrl all show'))
+        Returns its output parsed in a structured data.
+        """
+        return parse_ctrl_all_show(self._sendline('ctrl all show'))
 
     def ctrl_show(self, ctrl):
-        '''Send the "ctrl <ctrl> show" sub-command.
+        """Send the "ctrl <ctrl> show" sub-command.
 
-Returns its output parsed in a structured data.
-'''
-        return parse_ctrl_show(
-            self._sendline('ctrl %s show' % ctrl))
+        Returns its output parsed in a structured data.
+        """
+        return parse_ctrl_show(self._sendline('ctrl %s show' % ctrl))
 
     def ctrl_pd_all_show(self, selector):
-        '''Send the "ctrl <selector> pd all show" sub-command.
+        """Send the "ctrl <selector> pd all show" sub-command.
 
-Returns its output parsed in a structured data.
-'''
-        return parse_ctrl_pd_all_show(
-            self._sendline('ctrl %s pd all show' % selector))
+        Returns its output parsed in a structured data.
+        """
+        return parse_ctrl_pd_all_show(self._sendline('ctrl %s pd all show'
+                                                     % selector))
 
     def ctrl_pd_disk_show(self, selector, disk):
-        '''Send the "ctrl <selector> pd <disk> show" sub-command.
+        """Send the "ctrl <selector> pd <disk> show" sub-command.
 
-Returns its output parsed in a structured data.
-'''
-        return parse_ctrl_pd_disk_show(
-            self._sendline('ctrl %s pd %s show' % (selector, disk)))
+        Returns its output parsed in a structured data.
+        """
+        return parse_ctrl_pd_disk_show(self._sendline('ctrl %s pd %s show'
+                                                      % (selector, disk)))
 
     def ctrl_ld_all_show(self, selector):
-        '''Send the "ctrl <selector> ld all show" sub-command.
+        """Send the "ctrl <selector> ld all show" sub-command.
 
-Returns its output parsed in a structured data.
-'''
-        return parse_ctrl_ld_all_show(
-            self._sendline('ctrl %s ld all show' % selector))
+        Returns its output parsed in a structured data.
+        """
+        return parse_ctrl_ld_all_show(self._sendline('ctrl %s ld all show'
+                                                     % selector))
 
     def ctrl_ld_show(self, selector, ldid):
-        '''Send the "ctrl <selector> ld <ldid> show" sub-command.
+        """Send the "ctrl <selector> ld <ldid> show" sub-command.
 
-Returns its output parsed in a structured data.
-'''
-        return parse_ctrl_ld_show(
-            self._sendline('ctrl %s ld %s show' % (selector, ldid)))
+        Returns its output parsed in a structured data.
+        """
+        return parse_ctrl_ld_show(self._sendline('ctrl %s ld %s show'
+                                                 % (selector, ldid)))
 
     def ctrl_delete(self, selector):
-        '''Send the "ctrl <selector> delete forced" sub-command.'''
+        """Send the "ctrl <selector> delete forced" sub-command."""
         self._sendline('ctrl %s delete forced' % selector)
         return True
 
     def ctrl_create_ld(self, selector, drives, raid):
-        '''ctrl_create_ld method.
+        """ctrl_create_ld method.
 
-Send the "ctrl <selector> create type=ld drives=<drives> raid=<raid>"
-sub-command.
-
-Returns the created device name like /dev/sda.
-
-        '''
+        Send the "ctrl <selector> create type=ld drives=<drives> raid=<raid>"
+        sub-command.
+        Returns the created device name like /dev/sda.
+        """
         self._sendline(
             'ctrl %s create type=ld drives=%s raid=%s' %
             (selector, ','.join(drives), raid))
@@ -311,7 +302,7 @@ Returns the created device name like /dev/sda.
 
 
 def _main():
-    'CLI entry point to test the module'
+    """CLI entry point to test the module."""
     import sys
 
     cli = Cli(debug=True)
@@ -335,7 +326,5 @@ def _main():
     return True
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     _main()
-
-# hpacucli.py ends here

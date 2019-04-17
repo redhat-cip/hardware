@@ -15,7 +15,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Manage a state file file describing the hardware profiles to test
+"""
+Manage a state file file describing the hardware profiles to test
 in the correct order.
 
 A state file is a list of tuples like this:
@@ -24,7 +25,7 @@ A state file is a list of tuples like this:
 
 which means try first to match hardware specs from the hw1 hardware
 profile and matches only 3 times then try hw2 any number of times.
-'''
+"""
 
 from __future__ import print_function
 import errno
@@ -55,7 +56,7 @@ class State(object):
         self._lock_fd = None
 
     def load(self, cfg_dir):
-        'Load a state file from the given directory'
+        """Load a state file from the given directory."""
         self._cfg_dir = cfg_dir
         self._state_filename = os.path.join(cfg_dir, 'state')
         self._validate_lockname()
@@ -64,10 +65,11 @@ class State(object):
         self._data = eval(open(self._state_filename).read(-1))
 
     def failed_profile(self, prof):
-        '''If we get a failure report, let's reincrement the counter
+        """If we get a failure report, let's reincrement the counter
 
-Returns True if the state is modified and needs to be saved.
-'''
+        Returns True if the state is modified and needs to be saved.
+        """
+
         LOG.info("Received failure for role %s" % prof)
         idx = 0
         times = '*'

@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Wrapper functions around the megacli command.'''
+"""Wrapper functions around the megacli command."""
 
 from __future__ import print_function
 import os
@@ -89,7 +89,7 @@ def search_exec(possible_names):
 
 
 def parse_output(output):
-    'Parse the output of the megacli command into an associative array.'
+    """Parse the output of the megacli command into an associative array."""
     res = {}
     for line in output.split('\n'):
         lis = re.split(SEP_REGEXP, line.strip())
@@ -104,7 +104,7 @@ def parse_output(output):
 
 
 def split_parts(sep, output):
-    'Split the output string according to the regexp sep.'
+    """Split the output string according to the regexp sep."""
     regexp = re.compile(sep)
     lines = output.split('\n')
     idx = []
@@ -123,7 +123,7 @@ def split_parts(sep, output):
 
 
 def run_megacli(*args):
-    'Run the megacli command in a subprocess and return the output.'
+    """Run the megacli command in a subprocess and return the output."""
     prog_exec = search_exec(["megacli", "MegaCli", "MegaCli64"])
     if prog_exec:
         cmd = prog_exec + ' - ' + ' '.join(args)
@@ -135,16 +135,17 @@ def run_megacli(*args):
 
 
 def run_and_parse(*args):
-    '''Run the megacli command in a subprocess.
+    """Run the megacli command in a subprocess.
 
-Returns the output as an associative array.
-'''
+    Returns the output as an associative array.
+    """
+
     res = run_megacli(*args)
     return parse_output(res)
 
 
 def adp_count():
-    'Get the numberof adaptaters.'
+    """Get the numberof adaptaters."""
     arr = run_and_parse('adpCount')
     if 'ControllerCount' in arr:
         return int(arr['ControllerCount'])
@@ -152,7 +153,7 @@ def adp_count():
 
 
 def adp_all_info(ctrl):
-    'Get adaptater info.'
+    """Get adaptater info."""
     arr = run_and_parse('adpallinfo -a%d' % ctrl)
     for key in ('RaidLevelSupported', 'SupportedDrives'):
         if key in arr:
@@ -161,7 +162,7 @@ def adp_all_info(ctrl):
 
 
 def pd_get_num(ctrl):
-    'Get the number of physical drives on a controller.'
+    """Get the number of physical drives on a controller."""
     try:
         key = 'NumberOfPhysicalDrivesOnAdapter%d' % ctrl
         return run_and_parse('PDGetNum -a%d' % ctrl)[key]
@@ -170,7 +171,7 @@ def pd_get_num(ctrl):
 
 
 def enc_info(ctrl):
-    'Get enclosing info on a controller.'
+    """Get enclosing info on a controller."""
     parts = split_parts(' +Enclosure [0-9]+:',
                         run_megacli('EncInfo -a%d' % ctrl))
     all_ = list(map(parse_output, parts))
@@ -184,12 +185,12 @@ def enc_info(ctrl):
 
 
 def pdinfo(ctrl, encl, disk):
-    'Get info about a physical drive on an enclosure and a controller.'
+    """Get info about a physical drive on an enclosure and a controller."""
     return run_and_parse('pdinfo -PhysDrv[%d:%d] -a%d' % (encl, disk, ctrl))
 
 
 def ld_get_num(ctrl):
-    'Get the number of logical drives on a controller.'
+    """Get the number of logical drives on a controller."""
     try:
         key = 'NumberOfVirtualDrivesConfiguredOnAdapter%d' % ctrl
         return run_and_parse('LDGetNum -a%d' % ctrl)[key]
@@ -198,15 +199,15 @@ def ld_get_num(ctrl):
 
 
 def ld_get_info(ctrl, ldrv):
-    'Get info about a logical drive on a controller.'
+    """Get info about a logical drive on a controller."""
     return run_and_parse('LDInfo -L%d -a%d' % (ldrv, ctrl))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import pprint
 
     for ctrl_num in range(adp_count()):
-        print('Controler', ctrl_num)
+        print('Controller', ctrl_num)
         pprint.pprint(adp_all_info(ctrl_num))
 
         encs = enc_info(ctrl_num)
@@ -226,5 +227,3 @@ if __name__ == "__main__":
             print()
             print('Logical disk', ld_num)
             pprint.pprint(ld_get_info(ctrl_num, ld_num))
-
-# megacli.py ends here
