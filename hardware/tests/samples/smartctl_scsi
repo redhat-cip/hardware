@@ -1,0 +1,44 @@
+Vendor:               SEAGATE
+Product:              ST9300605SS
+Revision:             0002
+User Capacity:        300,000,000,000 bytes [300 GB]
+Logical block size:   512 bytes
+Logical Unit id:      0x5000c5004bb62a0f
+Serial number:        6XP2FK730000M233QACC
+Device type:          disk
+Transport protocol:   SAS
+Local Time is:        Fri Apr 18 15:13:13 2014 CEST
+Device supports SMART and is Enabled
+Temperature Warning Enabled
+SMART Health Status: OK
+
+Current Drive Temperature:     36 C
+Drive Trip Temperature:        68 C
+Manufactured in week 10 of year 2012
+Specified cycle count over device lifetime:  10000
+Accumulated start-stop cycles:  8
+Specified load-unload count over device lifetime:  300000
+Accumulated load-unload cycles:  8
+Elements in grown defect list: 0
+Vendor (Seagate) cache information
+  Blocks sent to initiator = 3424156415
+  Blocks received from initiator = 2906714357
+  Blocks read from cache and sent to initiator = 120574148
+  Number of read and write commands whose size <= segment size = 85394131
+  Number of read and write commands whose size > segment size = 11
+Vendor (Seagate/Hitachi) factory information
+  number of hours powered up = 14491.72
+  number of minutes until next internal SMART test = 11
+
+Error counter log:
+           Errors Corrected by           Total   Correction     Gigabytes    Total
+               ECC          rereads/    errors   algorithm      processed    uncorrected
+           fast | delayed   rewrites  corrected  invocations   [10^9 bytes]  errors
+read:   1521076288        0         0  1521076288          0      25920.949           0
+write:         0        0         0         0          0       1543.290           0
+
+Non-medium error count:        6
+
+[GLTSD (Global Logging Target Save Disable) set. Enable Save with '-S on']
+No self-tests have been logged
+Long (extended) Self Test duration: 2520 seconds [42.0 minutes]
