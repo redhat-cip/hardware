@@ -5,6 +5,7 @@ addons:
     - bc
     - findutils
 sudo: false
+dist: xenial
 python:
   - '2.7'
   - '3.5'
