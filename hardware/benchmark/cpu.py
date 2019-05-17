@@ -21,6 +21,8 @@ Benchmark CPU functions.
 import subprocess
 import sys
 
+import six
+
 from hardware.benchmark import utils
 
 
@@ -49,6 +51,8 @@ def run_sysbench_cpu(hw_lst, max_time, cpu_count, processor_num=None):
     sysbench_cmd = subprocess.Popen(cmds, shell=True, stdout=subprocess.PIPE)
 
     for line in sysbench_cmd.stdout:
+        if isinstance(line, six.binary_type):
+            line = line.decode()
         if "total number of events" in line:
             line_ = line.rstrip('\n').replace(' ', '')
             _, perf = line_.split(':')
