@@ -48,6 +48,7 @@ from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
 from hardware import rtc
+from hardware import smart_utils
 
 SIOCGIFNETMASK = 0x891b
 
@@ -347,7 +348,7 @@ def detect_disks(hw_lst):
                         id_name = "scsi-id"
                     hw_lst.append(('disk', name, id_name, entry))
 
-        detect_utils.read_SMART(hw_lst, "/dev/%s" % name)
+        smart_utils.read_smart(hw_lst, "/dev/%s" % name)
 
 
 def modprobe(module):
