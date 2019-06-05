@@ -940,8 +940,36 @@ def clean_tuples(lst):
     return [tuple([clean_str(val) for val in elt]) for elt in lst]
 
 
-def _main(options):
-    'Command line entry point.'
+def parse_args(arguments):
+    """Arguments parser."""
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-H', '--human',
+                        help='Print output in human readable format',
+                        action='store_true',
+                        default=False)
+
+    benchmark = parser.add_argument_group('benchmark')
+    benchmark.add_argument('--benchmark', '-b',
+                           choices=['cpu', 'mem', 'disk'],
+                           nargs='+',
+                           help=('Run benchmark for specific components. '
+                                 'Valid components are: cpu, mem, disk'))
+    benchmark.add_argument('--benchmark-disk-destructive',
+                           help=('If specified make the disk component '
+                                 'benchmark to be destructive'),
+                           action='store_true',
+                           default=False)
+
+    return parser.parse_args(arguments)
+
+
+def main():
+    """Command line entry point."""
+
+    os.environ["LANG"] = "en_US.UTF-8"
+    args = parse_args(sys.argv[1:])
+
     hrdw = []
     detect_areca(hrdw)
     detect_hpa(hrdw)
@@ -959,65 +987,18 @@ def _main(options):
     parse_dmesg(hrdw, output)
     bios_hp.dump_hp_bios(hrdw)
 
-    if "benchmark_cpu" in options:
-        bm_cpu.cpu_perf(hrdw)
-
-    if "benchmark_mem" in options:
-        bm_mem.mem_perf(hrdw)
-
-    if "benchmark_disk" in options:
-        bm_disk.disk_perf(hrdw,
-                          destructive=options['benchmark_disk_destructive'])
+    if args.benchmark:
+        if 'cpu' in args.benchmark:
+            bm_cpu.cpu_perf(hrdw)
+        if 'mem' in args.benchmark:
+            bm_mem.mem_perf(hrdw)
+        if 'disk' in args.benchmark:
+            bm_disk.disk_perf(hrdw,
+                              destructive=args.benchmark_disk_destructive)
 
     hrdw = clean_tuples(hrdw)
 
-    if "human" in options.keys():
+    if args.human:
         pprint.pprint(hrdw)
     else:
         print(json.dumps(hrdw))
-
-
-def main():
-    os.environ["LANG"] = "en_US.UTF-8"
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-H', '--human',
-                        help='Print output in human readable format',
-                        action='store_true',
-                        default=False)
-    parser.add_argument('--benchmark', '-b',
-                        help=('Run benchmark for specific components. '
-                              'Valid components are: disk, cpu, mem'),
-                        metavar='component',
-                        nargs='+')
-    parser.add_argument('--benchmark-disk-destructive',
-                        help=('If specified make the disk component benchmark '
-                              'to be destructive'),
-                        action='store_true',
-                        default=False)
-
-    options = {}
-    args = parser.parse_args()
-    if args.human:
-        options["human"] = True
-    if args.benchmark:
-        invalid_opts = []
-        for opt in args.benchmark:
-            opt_ = opt.lower()
-            if opt_ == 'cpu':
-                options['benchmark_cpu'] = True
-            elif opt_ == 'mem':
-                options['benchmark_mem'] = True
-            elif opt_ == 'disk':
-                options['benchmark_disk'] = True
-                options['benchmark_disk_destructive'] = (
-                    args.benchmark_disk_destructive)
-            else:
-                invalid_opts.append(opt)
-
-        if invalid_opts:
-            print('"%s" is/are not valid benchmark component(s). Check '
-                  '--help to see the list of acceptable values' %
-                  ', '.join(invalid_opts))
-            sys.exit(1)
-
-    _main(options)
