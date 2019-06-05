@@ -36,7 +36,7 @@ SYSBENCH_OUTPUT = """Test execution summary:
 
 Threads fairness:
     events (avg/stddev):           5893.0000/0.00
-    execution time (avg/stddev):   9.9994/0.00""".splitlines()
+    execution time (avg/stddev):   9.9994/0.00"""
 
 
 @mock.patch.object(cpu, 'search_cpuinfo')
@@ -87,9 +87,23 @@ class TestBenchmarkCPU(unittest.TestCase):
                          hw_data)
         mock_search_info.assert_called_once_with(0, 'cache size')
 
-    def test_run_sysbench_cpu(self, mock_popen, mock_cpu_socket,
-                              mock_search_info):
-        mock_popen.return_value = mock.Mock(stdout=SYSBENCH_OUTPUT)
+    def test_run_sysbench_cpu_bytes(self, mock_popen, mock_cpu_socket,
+                                    mock_search_info):
+        mock_popen.return_value = mock.Mock(
+            stdout=SYSBENCH_OUTPUT.encode().splitlines())
+        hw_data = []
+        cpu.run_sysbench_cpu(hw_data, 10, 1)
+        mock_popen.assert_called_once_with(' sysbench --max-time=10 '
+                                           '--max-requests=10000000 '
+                                           '--num-threads=1 --test=cpu '
+                                           '--cpu-max-prime=15000 run',
+                                           shell=True, stdout=subprocess.PIPE)
+        self.assertEqual([('cpu', 'logical', 'loops_per_sec', '123')], hw_data)
+
+    def test_run_sysbench_cpu_text(self, mock_popen, mock_cpu_socket,
+                                   mock_search_info):
+        mock_popen.return_value = mock.Mock(
+            stdout=SYSBENCH_OUTPUT.splitlines())
         hw_data = []
         cpu.run_sysbench_cpu(hw_data, 10, 1)
         mock_popen.assert_called_once_with(' sysbench --max-time=10 '
