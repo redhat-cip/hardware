@@ -750,9 +750,9 @@ def get_cpus(hw_lst):
                                      ('l1i cache', 'L1i cache', None),
                                      ('l2 cache', 'L2 cache', None),
                                      ('l3 cache', 'L3 cache', None),
-                                     ('min_Mhz', 'CPU min MHz', float),
-                                     ('max_Mhz', 'CPU max MHz', float),
-                                     ('current_Mhz', 'CPU MHz', float),
+                                     ('min_Mhz', 'CPU min MHz', ''),
+                                     ('max_Mhz', 'CPU max MHz', ''),
+                                     ('current_Mhz', 'CPU MHz', ''),
                                      ('flags', 'Flags', None)]:
             value = None
             if d_key in lscpu:
