@@ -278,77 +278,24 @@ def detect_megacli(hw_lst):
 
 
 def detect_disks(hw_lst):
-    'Detect disks.'
+    """Detect disks."""
+
     names = diskinfo.disknames()
     sizes = diskinfo.disksizes(names)
     disks = [name for name, size in sizes.items() if size > 0]
     hw_lst.append(('disk', 'logical', 'count', str(len(disks))))
     for name in disks:
-        hw_lst.append(('disk', name, 'size', str(sizes[name])))
-        item_list = ['device/vendor', 'device/model', 'device/rev',
-                     'queue/optimal_io_size', 'queue/physical_block_size',
-                     'queue/rotational', 'queue/nr_requests']
-        for my_item in item_list:
-            try:
-                with open('/sys/block/%s/%s' % (name, my_item), 'r') as dev:
-                    hw_lst.append(('disk', name, my_item.split('/')[1],
-                                   dev.readline().rstrip('\n').strip()))
-            except Exception as excpt:
-                sys.stderr.write(
-                    'Failed at getting disk information '
-                    'at /sys/block/%s/device/%s: %s\n' % (name,
-                                                          my_item,
-                                                          str(excpt)))
+        diskinfo.get_disk_info(name, sizes, hw_lst)
 
-        try:
-            with open('/sys/block/%s/queue/scheduler' % name, 'r') as dev:
-                s_line = dev.readline().rstrip('\n').strip()
-                sched = re.findall(r'\[(.*?)\]', s_line)
-                if sched:
-                    hw_lst.append(('disk', name, 'scheduler', sched[0]))
+        # nvme devices do not need standard cache mechanisms
+        if not name.startswith('nvme'):
+            diskinfo.get_disk_cache(name, hw_lst)
 
-        except Exception:
-            sys.stderr.write('Cannot extract scheduler for disk %s' % name)
+        diskinfo.get_disk_id(name, hw_lst)
 
-        # WCE & RCD from sysfs
-        # https://www.kernel.org/doc/Documentation/scsi/sd-parameters.txt
-        my_item = '/sys/block/{0}/device'.format(name)
-        try:
-            _link_info = os.readlink(my_item)
-            _scsi_addr = _link_info.rsplit('/', 1)[1]
-            my_item = ('/sys/block/{0}/device' +
-                       '/scsi_disk/{1}/cache_type').format(name, _scsi_addr)
-            with open(my_item, 'r') as cache_info:
-                my_text = cache_info.readline().rstrip('\n').strip()
-                _wce = '1'
-                _rcd = '0'
-                if my_text == 'write through':
-                    _wce = '0'
-                elif my_text == 'none':
-                    _wce = '0'
-                    _rcd = '1'
-                elif 'daft' in my_text:
-                    _rcd = '1'
-                hw_lst.append(('disk', name, 'Write Cache Enable', _wce))
-                hw_lst.append(('disk', name, 'Read Cache Disable', _rcd))
-        except Exception as excpt:
-            sys.stderr.write(
-                'Failed at getting disk information '
-                'at %s: %s\n' % (my_item, str(excpt)))
-
-        # In some VMs, the disk-by id doesn't exists
-        if os.path.exists('/dev/disk/by-id/'):
-            for entry in os.listdir('/dev/disk/by-id/'):
-                idp = os.path.realpath('/dev/disk/by-id/' + entry).split('/')
-                if idp[-1] == name:
-                    id_name = "id"
-                    if entry.startswith('wwn'):
-                        id_name = "wwn-id"
-                    elif entry.startswith('scsi'):
-                        id_name = "scsi-id"
-                    hw_lst.append(('disk', name, id_name, entry))
-
-        smart_utils.read_smart(hw_lst, "/dev/%s" % name)
+        # TODO(rpittau): add smart-tools support for nvme devices
+        if not name.startswith('nvme'):
+            smart_utils.read_smart(hw_lst, "/dev/%s" % name)
 
 
 def modprobe(module):

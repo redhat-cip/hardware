@@ -15,13 +15,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import mock
+
 import sys
 import unittest
 
 from hardware import diskinfo
 
-if sys.version > '3':
+if sys.version_info.major == 3:
+    builtin_module_name = 'builtins'
     long = int
+else:
+    builtin_module_name = '__builtin__'
 
 
 class TestDiskinfo(unittest.TestCase):
@@ -42,6 +47,27 @@ class TestDiskinfo(unittest.TestCase):
                 '\n/dev/sdc:\n Timing buffered disk reads:  30 MB '
                 'in  3.01 seconds =   9.97 MB/sec\n'),
             9.97)
+
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
+    @mock.patch('os.path.exists', return_value=True)
+    def test_get_disk_info(self, mock_os_path_exists, mock_open):
+        fake_disk_values = ['Cyberdyne Systems', 'T1000', '0x00', '0',
+                            '512', '0', '1023', '[none]']
+        mock_open.side_effect = [
+            mock.mock_open(read_data=fake_value).return_value
+            for fake_value in fake_disk_values]
+        hw = []
+        sizes = {'fake': 100}
+        diskinfo.get_disk_info('fake', sizes, hw)
+        self.assertEqual(hw, [('disk', 'fake', 'size', '100'),
+                              ('disk', 'fake', 'vendor', 'Cyberdyne Systems'),
+                              ('disk', 'fake', 'model', 'T1000'),
+                              ('disk', 'fake', 'rev', '0x00'),
+                              ('disk', 'fake', 'optimal_io_size', '0'),
+                              ('disk', 'fake', 'physical_block_size', '512'),
+                              ('disk', 'fake', 'rotational', '0'),
+                              ('disk', 'fake', 'nr_requests', '1023'),
+                              ('disk', 'fake', 'scheduler', 'none')])
 
 
 if __name__ == "__main__":

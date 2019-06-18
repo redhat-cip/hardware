@@ -17,6 +17,8 @@
 
 from __future__ import print_function
 import os
+import re
+import sys
 
 from hardware.detect_utils import cmd
 
@@ -31,8 +33,86 @@ def disksize(name):
 
 
 def disknames():
-    return [name for name in os.listdir('/sys/block')
-            if name[1] == 'd' and name[0] in 'shv']
+    names = []
+    for name in os.listdir('/sys/block'):
+        if (name[1] == 'd' and name[0] in 'shv') or name.startswith('nvme'):
+            names.append(name)
+    return names
+
+
+def get_disk_info(name, sizes, hw_lst):
+    hw_lst.append(('disk', name, 'size', str(sizes[name])))
+    info_list = ['device/vendor', 'device/model', 'device/rev',
+                 'queue/optimal_io_size', 'queue/physical_block_size',
+                 'queue/rotational', 'queue/nr_requests']
+    for info in info_list:
+        disk_sys_info = '/sys/block/%s/%s' % (name, info)
+        # revision can be explicitly named
+        if not os.path.exists(disk_sys_info) and info == 'device/rev':
+            info = 'device/revision'
+        # for nvme devices we can have a nested device dir
+        if not os.path.exists(disk_sys_info):
+            disk_sys_info = '/sys/block/%s/device/%s' % (name, info)
+        try:
+            with open(disk_sys_info, 'r') as dev:
+                hw_lst.append(('disk', name, info.split('/')[1],
+                               dev.readline().rstrip('\n').strip()))
+        except Exception as exc:
+            sys.stderr.write(
+                'Failed retrieving disk information %s for %s: %s\n' % (
+                    info, name, str(exc)))
+    try:
+        with open('/sys/block/%s/queue/scheduler' % name, 'r') as dev:
+            s_line = dev.readline().rstrip('\n').strip()
+            sched = re.findall(r'\[(.*?)\]', s_line)
+            if sched:
+                hw_lst.append(('disk', name, 'scheduler', sched[0]))
+    except Exception as exc:
+        sys.stderr.write('Cannot extract scheduler for disk %s: %s' % (
+            name, exc))
+
+
+def get_disk_cache(name, hw_lst):
+    # WCE & RCD from sysfs
+    # https://www.kernel.org/doc/Documentation/scsi/sd-parameters.txt
+    device_path = '/sys/block/{0}/device'.format(name)
+
+    try:
+        _link_info = os.readlink(device_path)
+        _scsi_addr = _link_info.rsplit('/', 1)[1]
+        device_path = (device_path + '/scsi_disk/{0}/cache_type').format(
+            _scsi_addr)
+        with open(device_path, 'r') as cache_info:
+            my_text = cache_info.readline().rstrip('\n').strip()
+            _wce = '1'
+            _rcd = '0'
+            if my_text == 'write through':
+                _wce = '0'
+            elif my_text == 'none':
+                _wce = '0'
+                _rcd = '1'
+            elif 'daft' in my_text:
+                _rcd = '1'
+            hw_lst.append(('disk', name, 'Write Cache Enable', _wce))
+            hw_lst.append(('disk', name, 'Read Cache Disable', _rcd))
+    except Exception as exc:
+        sys.stderr.write(
+            'Failed at getting disk information at %s: %s\n' %
+            (device_path, str(exc)))
+
+
+def get_disk_id(name, hw_lst):
+    # In some VMs, the disk-by id doesn't exists
+    if os.path.exists('/dev/disk/by-id/'):
+        for entry in os.listdir('/dev/disk/by-id/'):
+            idp = os.path.realpath('/dev/disk/by-id/' + entry).split('/')
+            if idp[-1] == name:
+                id_name = "id"
+                if entry.startswith('wwn'):
+                    id_name = "wwn-id"
+                elif entry.startswith('scsi'):
+                    id_name = "scsi-id"
+                hw_lst.append(('disk', name, id_name, entry))
 
 
 def parse_hdparm_output(output):
