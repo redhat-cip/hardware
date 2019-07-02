@@ -59,9 +59,9 @@ class TestDetect(unittest.TestCase):
         detect.get_cpus(hw)
 
         self.assertEqual(hw, [('cpu', 'physical', 'number', 2),
-                              ('cpu', 'physical_0', 'vendor', 'AuthenticAMD'),
+                              ('cpu', 'physical_0', 'vendor', 'FakeAMD'),
                               ('cpu', 'physical_0', 'product',
-                               'AMD EPYC 7451 24-Core Processor'),
+                               'AMD: EPYC 7451 24-Core Processor'),
                               ('cpu', 'physical_0', 'cores', 24),
                               ('cpu', 'physical_0', 'threads', 48),
                               ('cpu', 'physical_0', 'family', 23),
@@ -93,9 +93,9 @@ class TestDetect(unittest.TestCase):
                                'flushbyasid decodeassists pausefilter '
                                'pfthreshold avic v_vmsave_vmload vgif '
                                'overflow_recov succor smca'),
-                              ('cpu', 'physical_1', 'vendor', 'AuthenticAMD'),
+                              ('cpu', 'physical_1', 'vendor', 'FakeAMD'),
                               ('cpu', 'physical_1', 'product',
-                               'AMD EPYC 7451 24-Core Processor'),
+                               'AMD: EPYC 7451 24-Core Processor'),
                               ('cpu', 'physical_1', 'cores', 24),
                               ('cpu', 'physical_1', 'threads', 48),
                               ('cpu', 'physical_1', 'family', 23),

@@ -665,16 +665,17 @@ def get_cpus(hw_lst):
 
     for line in output:
         if ':' in line:
-            item, value = line.split(':')
+            item, value = line.split(':', 1)
             lscpu[item.strip(':')] = value.strip()
 
     # Extracting lspcu -x information
+    # Use hexadecimal masks for CPU sets
     lscpux = {}
     output = detect_utils.output_lines('LANG=en_US.UTF-8 lscpu -x')
 
     for line in output:
         if ':' in line:
-            item, value = line.split(':')
+            item, value = line.split(':', 1)
             lscpux[item.strip(':')] = value.strip()
 
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
