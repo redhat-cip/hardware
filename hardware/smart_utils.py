@@ -16,7 +16,7 @@ import sys
 
 import six
 
-from hardware.detect_utils import which
+from hardware import smart_utils_info
 
 
 def _parse_line(line):
@@ -26,13 +26,13 @@ def _parse_line(line):
     return line
 
 
-def read_smart_field(hwlst, line, device, item, title):
+def read_smart_field(hwlst, line, device_name, item, title):
     if item in line:
         if "temperature" in title:
             try:
-                hwlst.append(("disk", device, "SMART/%s" % title,
+                hwlst.append(("disk", device_name, "SMART/%s" % title,
                               line.split(item)[1].strip().split()[0]))
-                hwlst.append(("disk", device, "SMART/%s_unit" % title,
+                hwlst.append(("disk", device_name, "SMART/%s_unit" % title,
                               line.split(item)[1].strip().split()[1]))
             except Exception:
                 sys.stderr.write("read_smart_field: Error while searching "
@@ -41,7 +41,8 @@ def read_smart_field(hwlst, line, device, item, title):
             value = ""
             for result in line.split(item)[1:]:
                 value = "%s %s" % (value, result.strip())
-            hwlst.append(("disk", device, "SMART/%s" % title, value.strip()))
+            hwlst.append(("disk", device_name, "SMART/%s" % title,
+                          value.strip()))
             return value.strip()
     return ""
 
@@ -197,8 +198,9 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
         try:
             fields = line.split()
             if len(fields) < 10:
-                raise ValueError('Expected at least 10 fields in %s, '
-                                 'found %d.' % (line, len(fields)))
+                raise ValueError(
+                    'Expected at least 10 fields in %s, found %d.' %
+                    (line, len(fields)))
             values["id"] = fields[0]
             values["name"] = fields[1]
             values["flag"] = fields[2]
@@ -229,10 +231,6 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
 
 
 def read_smart(hwlst, device, optional_flag=""):
-    if not which("smartctl"):
-        sys.stderr.write("Cannot find smartctl, exiting\n")
-        return
-
     optional_string = ""
     if optional_flag:
         optional_string = " with %s" % optional_flag
@@ -263,4 +261,32 @@ def read_smart(hwlst, device, optional_flag=""):
             return read_smart(hwlst, device, "-d ata")
 
     sys.stderr.write("read_smart: no device %s\n" % device)
+    return
+
+
+def read_smart_nvme(hwlst, device_name):
+    device_path = '/dev/%s' % device_name
+
+    if os.path.exists(device_path):
+        sys.stderr.write(
+            "read_smart_nvme: Reading S.M.A.R.T information on %s\n" %
+            device_path)
+
+        # to be compatible with smart tools version < 7.x we need
+        # to specify the broadcast namespace
+        # see https://www.smartmontools.org/ticket/1134 for details
+        sdparm_cmd = subprocess.Popen(
+            "smartctl -d nvme,0xffffffff -a %s" % device_path,
+            shell=True, stdout=subprocess.PIPE)
+
+        for line in sdparm_cmd.stdout:
+            line = line.strip()
+            if isinstance(line, six.binary_type):
+                line = line.decode(errors='ignore')
+            for disk_info, info_tag in six.iteritems(
+                    smart_utils_info.NVME_INFOS):
+                read_smart_field(hwlst, line, device_name, disk_info, info_tag)
+        return hwlst
+
+    sys.stderr.write("read_smart: no device %s\n" % device_name)
     return

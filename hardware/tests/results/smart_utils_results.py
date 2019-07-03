@@ -338,3 +338,18 @@ def read_smart_ata_decode_ignore_result():
             ('disk', 'fake', 'SMART/Head_Flying_Hours(240)/when_failed',
              'NEVER'),
             ('disk', 'fake', 'SMART/Head_Flying_Hours(240)/raw', ' 0')]
+
+
+def read_smart_nvme_result():
+    return [('disk', 'fake_nvme', 'SMART/model_number',
+             'Samsung SSD 950 PRO 256GB'),
+            ('disk', 'fake_nvme', 'SMART/serial_number', 'CYBERDYNE_T1000'),
+            ('disk', 'fake_nvme', 'SMART/firmware_version', '1B0QBXX7'),
+            ('disk', 'fake_nvme', 'SMART/critical_warning', '0x00'),
+            ('disk', 'fake_nvme', 'SMART/temperature', '40'),
+            ('disk', 'fake_nvme', 'SMART/temperature_unit', 'Celsius'),
+            ('disk', 'fake_nvme', 'SMART/power_cycles', '32'),
+            ('disk', 'fake_nvme', 'SMART/power_on_hours', '129'),
+            ('disk', 'fake_nvme', 'SMART/unsafe_shutdowns', '6'),
+            ('disk', 'fake_nvme', 'SMART/media_data_integrity_errors', '0'),
+            ('disk', 'fake_nvme', 'SMART/error_information_log_entries', '44')]

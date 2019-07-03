@@ -107,12 +107,11 @@ class TestSmartUtils(unittest.TestCase):
         self.assertEqual(
             hwlst, smart_utils_results.read_smart_ata_decode_ignore_result())
 
-    @mock.patch('hardware.smart_utils.which', return_value=True)
     @mock.patch('hardware.smart_utils.read_smart_ata')
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch.object(subprocess, 'Popen')
     def test_read_smart_call_smart_ata(self, mock_popen, mock_os_path_exists,
-                                       mock_ata, mock_which):
+                                       mock_ata):
         hwlst = []
         fake_output = sample('smartctl_ata').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
@@ -120,15 +119,24 @@ class TestSmartUtils(unittest.TestCase):
 
         mock_ata.assert_called()
 
-    @mock.patch('hardware.smart_utils.which', return_value=True)
     @mock.patch('hardware.smart_utils.read_smart_scsi')
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch.object(subprocess, 'Popen')
     def test_read_smart_call_smart_scsi(self, mock_popen, mock_os_path_exists,
-                                        mock_scsi, mock_which):
+                                        mock_scsi):
         hwlst = []
         fake_output = sample('smartctl_scsi').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
         smart_utils.read_smart(hwlst, 'fake')
 
         mock_scsi.assert_called()
+
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch.object(subprocess, 'Popen')
+    def test_read_smart_nvme(self, mock_popen, mock_os_path_exists):
+        hwlst = []
+        fake_output = sample('smartctl_nvme').splitlines()
+        mock_popen.return_value = mock.Mock(stdout=fake_output)
+        smart_utils.read_smart_nvme(hwlst, 'fake_nvme')
+
+        self.assertEqual(hwlst, smart_utils_results.read_smart_nvme_result())
