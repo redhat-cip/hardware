@@ -7,10 +7,10 @@ Thread(s) per core:    2
 Core(s) per socket:    24
 Socket(s):             2
 NUMA node(s):          8
-Vendor ID:             AuthenticAMD
+Vendor ID:             FakeAMD
 CPU family:            23
 Model:                 1
-Model name:            AMD EPYC 7451 24-Core Processor
+Model name:            AMD: EPYC 7451 24-Core Processor
 Stepping:              2
 CPU MHz:               1197.547
 CPU max MHz:           2300.0000
