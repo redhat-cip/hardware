@@ -19,6 +19,15 @@ import six
 from hardware.detect_utils import which
 
 
+def _parse_line(line):
+    line = line.strip()
+    if isinstance(line, six.binary_type):
+        if line.startswith('Add. Product Id:'):
+            line = ''.join(i for i in line if ord(i) < 128)
+            line = line.decode()
+    return line
+
+
 def read_smart_field(hwlst, line, device, item, title):
     if item in line:
         if "temperature" in title:
@@ -69,9 +78,8 @@ def read_smart_scsi(hwlst, device, optional_flag="", mode=""):
     vendor = ""
     product = ""
     for line in sdparm_cmd.stdout:
-        line = line.strip()
-        if isinstance(line, six.binary_type):
-            line = line.decode()
+        line = _parse_line(line)
+
         # This disk doesn't exists or doesn't support SMART
         if "INQUIRY failed" in line:
             return
@@ -165,9 +173,7 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
                                                          optional_flag),
                                   shell=True, stdout=subprocess.PIPE)
     for line in sdparm_cmd.stdout:
-        line = line.strip()
-        if isinstance(line, six.binary_type):
-            line = line.decode()
+        line = _parse_line(line)
 
         if read_smart_field(hwlst, line, device_name, "Device Model:",
                             "device_model"):
@@ -243,9 +249,8 @@ def read_smart(hwlst, device, optional_flag=""):
                                       shell=True,
                                       stdout=subprocess.PIPE)
         for line in sdparm_cmd.stdout:
-            line = line.strip()
-            if isinstance(line, six.binary_type):
-                line = line.decode()
+            line = _parse_line(line)
+
             if (line.startswith("Device does not support SMART")
                     or ("Unavailable - device lacks SMART capability" in line)
                     or line.startswith(
