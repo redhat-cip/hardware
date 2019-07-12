@@ -22,10 +22,7 @@ from hardware.detect_utils import which
 def _parse_line(line):
     line = line.strip()
     if isinstance(line, six.binary_type):
-        if line.startswith('Add. Product Id:'):
-            # Remove non-ascii characters from line
-            line = ''.join(i for i in line if ord(i) < 128)
-            line = line.decode()
+        line = line.decode(errors='ignore')
     return line
 
 
