@@ -20,5 +20,5 @@ import os
 _BASEDIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def sample(name):
-    return open(os.path.join(_BASEDIR, 'samples', name)).read()
+def sample(name, mode='r'):
+    return open(os.path.join(_BASEDIR, 'samples', name), mode).read()
