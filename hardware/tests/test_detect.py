@@ -71,9 +71,9 @@ class TestDetect(unittest.TestCase):
                               ('cpu', 'physical_0', 'l1i cache', '64K'),
                               ('cpu', 'physical_0', 'l2 cache', '512K'),
                               ('cpu', 'physical_0', 'l3 cache', '8192K'),
-                              ('cpu', 'physical_0', 'min_Mhz', 1200.0),
-                              ('cpu', 'physical_0', 'max_Mhz', 2300.0),
-                              ('cpu', 'physical_0', 'current_Mhz', 1197.549),
+                              ('cpu', 'physical_0', 'min_Mhz', '1200.0000'),
+                              ('cpu', 'physical_0', 'max_Mhz', '2300.0000'),
+                              ('cpu', 'physical_0', 'current_Mhz', '1197.549'),
                               ('cpu', 'physical_0', 'flags',
                                'fpu vme de pse tsc msr pae mce cx8 apic sep mtrr '
                                'pge mca cmov pat pse36 clflush mmx fxsr sse sse2 '
@@ -105,9 +105,9 @@ class TestDetect(unittest.TestCase):
                               ('cpu', 'physical_1', 'l1i cache', '64K'),
                               ('cpu', 'physical_1', 'l2 cache', '512K'),
                               ('cpu', 'physical_1', 'l3 cache', '8192K'),
-                              ('cpu', 'physical_1', 'min_Mhz', 1200.0),
-                              ('cpu', 'physical_1', 'max_Mhz', 2300.0),
-                              ('cpu', 'physical_1', 'current_Mhz', 1197.549),
+                              ('cpu', 'physical_1', 'min_Mhz', '1200.0000'),
+                              ('cpu', 'physical_1', 'max_Mhz', '2300.0000'),
+                              ('cpu', 'physical_1', 'current_Mhz', '1197.549'),
                               ('cpu', 'physical_1', 'flags',
                                'fpu vme de pse tsc msr pae mce cx8 apic sep mtrr '
                                'pge mca cmov pat pse36 clflush mmx fxsr sse sse2 '
@@ -189,7 +189,7 @@ class TestDetect(unittest.TestCase):
                               ('cpu', 'physical_0', 'l1i cache', '32K'),
                               ('cpu', 'physical_0', 'l2 cache', '256K'),
                               ('cpu', 'physical_0', 'l3 cache', '8192K'),
-                              ('cpu', 'physical_0', 'current_Mhz', 2112.002),
+                              ('cpu', 'physical_0', 'current_Mhz', '2112.002'),
                               ('cpu', 'physical_0', 'flags',
                                'fpu vme de pse tsc msr pae mce cx8 apic sep '
                                'mtrr pge mca cmov pat pse36 clflush mmx fxsr '
@@ -307,9 +307,9 @@ class TestDetect(unittest.TestCase):
                               ('cpu', 'physical_0', 'l1i cache', '32K'),
                               ('cpu', 'physical_0', 'l2 cache', '512K'),
                               ('cpu', 'physical_0', 'l3 cache', '10240K'),
-                              ('cpu', 'physical_0', 'min_Mhz', 2300.0),
-                              ('cpu', 'physical_0', 'max_Mhz', 3800.0),
                               ('cpu', 'physical_1', 'product', 'POWER9, altivec supported'),
+                              ('cpu', 'physical_0', 'min_Mhz', '2300.0000'),
+                              ('cpu', 'physical_0', 'max_Mhz', '3800.0000'),
                               ('cpu', 'physical_1', 'cores', 18),
                               ('cpu', 'physical_1', 'threads', 72),
                               ('cpu', 'physical_1', 'model', '2.2 (pvr 004e 1202)'),
@@ -317,8 +317,8 @@ class TestDetect(unittest.TestCase):
                               ('cpu', 'physical_1', 'l1i cache', '32K'),
                               ('cpu', 'physical_1', 'l2 cache', '512K'),
                               ('cpu', 'physical_1', 'l3 cache', '10240K'),
-                              ('cpu', 'physical_1', 'min_Mhz', 2300.0),
-                              ('cpu', 'physical_1', 'max_Mhz', 3800.0),
+                              ('cpu', 'physical_1', 'min_Mhz', '2300.0000'),
+                              ('cpu', 'physical_1', 'max_Mhz', '3800.0000'),
                               ('cpu', 'logical', 'number', 144),
                               ('numa', 'nodes', 'count', 6),
                               ('numa', 'node_0', 'cpu_count', 72),
