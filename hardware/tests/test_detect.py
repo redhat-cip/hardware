@@ -346,9 +346,12 @@ class TestDetect(unittest.TestCase):
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_os_path_exists.mock_calls)
 
-    def test_parse_dmesg(self):
+    @mock.patch('hardware.detect.cmd',
+                return_value=(0, sample('dmesg')),
+                autospec=True)
+    def test_parse_dmesg(self, mock_cmd):
         hw = []
-        detect.parse_dmesg(hw, sample('dmesg'))
+        detect.parse_dmesg(hw)
         self.assertEqual(hw, [('ahci', '0000:00:1f.2:', 'flags',
                                '64bit apst clo ems led '
                                'ncq part pio slum sntf')])

@@ -862,7 +862,10 @@ def parse_ahci(hrdw, words):
         hrdw.append(('ahci', words[1], "flags", flags.strip()))
 
 
-def parse_dmesg(hrdw, output):
+def parse_dmesg(hrdw):
+    """Run dmesg and parse the output."""
+
+    _, output = cmd("dmesg")
     for line in output.split('\n'):
         words = line.strip().split(" ")
 
@@ -931,8 +934,7 @@ def main():
     detect_utils.get_ddr_timing(hrdw)
     detect_utils.ipmi_sdr(hrdw)
     detect_rtc_clock(hrdw)
-    _, output = cmd("dmesg")
-    parse_dmesg(hrdw, output)
+    parse_dmesg(hrdw)
     bios_hp.dump_hp_bios(hrdw)
 
     if args.benchmark:
