@@ -15,8 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-''' Generate range of values according to a model.
-'''
+"""Generate range of values according to a model."""
 
 import re
 import sys
@@ -33,7 +32,8 @@ if sys.version_info.major:
 
 
 def _generate_range(num_range):
-    'Generate number for range specified like 10-12:20-30.'
+    """Generate number for range specified like 10-12:20-30."""
+
     for rang in num_range.split(':'):
         boundaries = rang.split('-')
         if len(boundaries) == 2:
@@ -62,10 +62,11 @@ _IPV4_RANGE_REGEXP = re.compile(r'^[0-9:\-.]+$')
 
 
 def _generate_values(pattern, prefix=_PREFIX):
-    '''Create a generator for ranges of IPv4 or names.
+    """Create a generator for ranges of IPv4 or names.
 
-Ranges are defined like 10-12:15-18 or from a list of entries.
-'''
+    Ranges are defined like 10-12:15-18 or from a list of entries.
+    """
+
     if isinstance(pattern, list):
         for elt in pattern:
             yield elt
@@ -83,7 +84,8 @@ Ranges are defined like 10-12:15-18 or from a list of entries.
             yield pattern
     elif isinstance(pattern, str):
         parts = pattern.split('.')
-        if (_IPV4_RANGE_REGEXP.search(pattern) and len(parts) == 4 and (pattern.find(':') != -1 or pattern.find('-') != -1)):
+        if (_IPV4_RANGE_REGEXP.search(pattern) and len(parts) == 4 and
+                (pattern.find(':') != -1 or pattern.find('-') != -1)):
             gens = [_generate_range(part) for part in parts]
             for part0 in gens[0]:
                 for part1 in gens[1]:
@@ -113,7 +115,8 @@ GENERATOR_TYPE = types.GeneratorType
 
 
 def _call_nexts(model):
-    'Walk through the model to call next() on all generators.'
+    """Walk through the model to call next() on all generators."""
+
     entry = {}
     generated = False
     for key in model.keys():
@@ -132,10 +135,11 @@ def _call_nexts(model):
 
 
 def generate(model, prefix=_PREFIX):
-    '''Generate a list of dict according to a model.
+    """Generate a list of dict according to a model.
 
-Ipv4 ranges are handled by _generate_ip.
-'''
+    Ipv4 ranges are handled by _generate_ip.
+    """
+
     # Safe guard for models without ranges
     for value in model.values():
         if type(value) != STRING_TYPE:
@@ -169,7 +173,8 @@ Ipv4 ranges are handled by _generate_ip.
 
 
 def generate_dict(model, prefix=_PREFIX):
-    '''Generate a dict with ranges in keys and values.'''
+    """Generate a dict with ranges in keys and values."""
+
     result = {}
     for thekey in model.keys():
         if not prefix or thekey[0] == prefix:
@@ -193,7 +198,8 @@ def generate_dict(model, prefix=_PREFIX):
 
 
 def is_included(dict1, dict2):
-    'Test if dict1 is included in dict2.'
+    """Test if dict1 is included in dict2."""
+
     for key, value in dict1.items():
         try:
             if dict2[key] != value:
@@ -204,7 +210,8 @@ def is_included(dict1, dict2):
 
 
 def merge(user, default):
-    'Merge 2 data structures'
+    """Merge 2 data structures."""
+
     for key, val in default.items():
         if key not in user:
             user[key] = val
@@ -216,5 +223,3 @@ def merge(user, default):
             else:
                 user[key] = val
     return user
-
-# generate.py ends here
