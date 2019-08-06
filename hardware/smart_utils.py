@@ -197,8 +197,8 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
         try:
             fields = line.split()
             if len(fields) < 10:
-                raise ValueError('Expected at least 10 fields in %s, found %d.' %
-                                 (line, len(fields)))
+                raise ValueError('Expected at least 10 fields in %s, '
+                                 'found %d.' % (line, len(fields)))
             values["id"] = fields[0]
             values["name"] = fields[1]
             values["flag"] = fields[2]
