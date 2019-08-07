@@ -42,6 +42,7 @@ from hardware.benchmark import mem as bm_mem
 from hardware import bios_hp
 from hardware import detect_utils
 from hardware.detect_utils import cmd
+from hardware.detect_utils import which
 from hardware import diskinfo
 from hardware import hpacucli
 from hardware import infiniband as ib
@@ -49,6 +50,7 @@ from hardware import ipmi
 from hardware import megacli
 from hardware import rtc
 from hardware import smart_utils
+
 
 SIOCGIFNETMASK = 0x891b
 
@@ -293,9 +295,16 @@ def detect_disks(hw_lst):
 
         diskinfo.get_disk_id(name, hw_lst)
 
-        # TODO(rpittau): add smart-tools support for nvme devices
-        if not name.startswith('nvme'):
-            smart_utils.read_smart(hw_lst, "/dev/%s" % name)
+        # smartctl support
+        # run only if smartctl command is there
+        if which("smartctl"):
+            if name.startswith('nvme'):
+                sys.stderr.write('Reading SMART for nvme\n')
+                smart_utils.read_smart_nvme(hw_lst, name)
+            else:
+                smart_utils.read_smart(hw_lst, "/dev/%s" % name)
+        else:
+            sys.stderr.write("Cannot find smartctl, exiting\n")
 
 
 def modprobe(module):
