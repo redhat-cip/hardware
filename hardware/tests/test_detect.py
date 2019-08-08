@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import textwrap
 import unittest
 
 import mock
@@ -239,34 +238,8 @@ class TestDetect(unittest.TestCase):
             'AT_PLATFORM': ('platform', 'x86_64'),
         }
 
-        test_x86_data = textwrap.dedent(
-            """AT_SYSINFO_EHDR:      0x7fff623e0000
-            {}:             {}
-            {}:            {}
-            AT_CLKTCK:            100
-            AT_PHDR:              0x55f94b7ae040
-            AT_PHENT:             56
-            AT_PHNUM:             12
-            AT_BASE:              0x7fe141d7c000
-            {}:             {}
-            AT_ENTRY:             0x55f94b7b0620
-            AT_UID:               1000
-            AT_EUID:              1000
-            AT_GID:               1000
-            AT_EGID:              1000
-            AT_SECURE:            0
-            AT_RANDOM:            0x7fff62363f59
-            {}:            {}
-            AT_EXECFN:            /bin/true
-            {}:          {}
-            """.format('AT_HWCAP', test_data['AT_HWCAP'][1],
-                       'AT_PAGESZ', test_data['AT_PAGESZ'][1],
-                       'AT_FLAGS', test_data['AT_FLAGS'][1],
-                       'AT_HWCAP2', test_data['AT_HWCAP2'][1],
-                       'AT_PLATFORM', test_data['AT_PLATFORM'][1]))
-
         process_mock = mock.Mock()
-        attrs = {'communicate.return_value': (test_x86_data.encode('utf-8'),
+        attrs = {'communicate.return_value': (sample('auxv_x86').encode('utf-8'),
                                               None)}
         process_mock.configure_mock(**attrs)
         mock_popen.return_value = process_mock
@@ -291,39 +264,8 @@ class TestDetect(unittest.TestCase):
             'AT_BASE_PLATFORM': ('base_platform', 'power8'),
         }
 
-        test_ppc8_data = textwrap.dedent(
-            """AT_DCACHEBSIZE:  0x80
-            AT_ICACHEBSIZE:  0x80
-            AT_UCACHEBSIZE:  0x0
-            AT_SYSINFO_EHDR: 0x3fff95170000
-            {}:        {}
-            {}:       {}
-            AT_CLKTCK:       100
-            AT_PHDR:         0x10000040
-            AT_PHENT:        56
-            AT_PHNUM:        9
-            AT_BASE:         0x3fff95190000
-            {}:        {}
-            AT_ENTRY:        0x1000147c
-            AT_UID:          0
-            AT_EUID:         0
-            AT_GID:          0
-            AT_EGID:         0
-            AT_SECURE:       0
-            AT_RANDOM:       0x3ffff55c9492
-            {}:       {}
-            AT_EXECFN:       /bin/true
-            {}:     {}
-            {}:{}
-            """.format('AT_HWCAP', test_data['AT_HWCAP'][1],
-                       'AT_PAGESZ', test_data['AT_PAGESZ'][1],
-                       'AT_FLAGS', test_data['AT_FLAGS'][1],
-                       'AT_HWCAP2', test_data['AT_HWCAP2'][1],
-                       'AT_PLATFORM', test_data['AT_PLATFORM'][1],
-                       'AT_BASE_PLATFORM', test_data['AT_BASE_PLATFORM'][1]))
-
         process_mock = mock.Mock()
-        attrs = {'communicate.return_value': (test_ppc8_data.encode('utf-8'),
+        attrs = {'communicate.return_value': (sample('auxv_ppc8').encode('utf-8'),
                                               None)}
         process_mock.configure_mock(**attrs)
         mock_popen.return_value = process_mock
