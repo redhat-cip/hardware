@@ -15,6 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import textwrap
 import unittest
 
 import mock
@@ -226,6 +227,56 @@ class TestDetect(unittest.TestCase):
             detect.clean_tuples([(b'\x8f' * 4, b'\x8f' * 4,
                                   b'h\xc3\xa9llo', 1)]),
             [(u'\ufffd' * 4, u'\ufffd' * 4, u'h\xe9llo', 1)])
+
+    @mock.patch.object(detect, 'Popen')
+    @mock.patch('os.environ.copy')
+    def test_detect_auxv_x86_succeed(self, mock_environ_copy, mock_popen):
+        test_data = {
+            'AT_HWCAP': ('hwcap', 'bfebfbff'),
+            'AT_HWCAP2': ('hwcap2', '0x0'),
+            'AT_PAGESZ': ('pagesz', '4096'),
+            'AT_FLAGS': ('flags', '0x0'),
+            'AT_PLATFORM': ('platform', 'x86_64'),
+        }
+
+        test_x86_data = textwrap.dedent(
+            """AT_SYSINFO_EHDR:      0x7fff623e0000
+            {}:             {}
+            {}:            {}
+            AT_CLKTCK:            100
+            AT_PHDR:              0x55f94b7ae040
+            AT_PHENT:             56
+            AT_PHNUM:             12
+            AT_BASE:              0x7fe141d7c000
+            {}:             {}
+            AT_ENTRY:             0x55f94b7b0620
+            AT_UID:               1000
+            AT_EUID:              1000
+            AT_GID:               1000
+            AT_EGID:              1000
+            AT_SECURE:            0
+            AT_RANDOM:            0x7fff62363f59
+            {}:            {}
+            AT_EXECFN:            /bin/true
+            {}:          {}
+            """.format('AT_HWCAP', test_data['AT_HWCAP'][1],
+                       'AT_PAGESZ', test_data['AT_PAGESZ'][1],
+                       'AT_FLAGS', test_data['AT_FLAGS'][1],
+                       'AT_HWCAP2', test_data['AT_HWCAP2'][1],
+                       'AT_PLATFORM', test_data['AT_PLATFORM'][1]))
+
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': (test_x86_data.encode('utf-8'),
+                                              None)}
+        process_mock.configure_mock(**attrs)
+        mock_popen.return_value = process_mock
+
+        hw = []
+        detect.detect_auxv(hw)
+
+        for k in detect.AUXV_FLAGS:
+            t = ('hw', 'auxv', test_data[k][0], test_data[k][1])
+            self.assertTrue(t in hw)
 
     @mock.patch.object(detect, 'Popen')
     @mock.patch('os.uname', return_value=('', '', '', '', 'x86_64'))

@@ -51,8 +51,9 @@ from hardware import megacli
 from hardware import rtc
 from hardware import smart_utils
 
-
 SIOCGIFNETMASK = 0x891b
+AUXV_FLAGS = ("AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
+              "AT_FLAGS", "AT_PLATFORM")
 
 
 def size_in_gb(size):
@@ -861,6 +862,25 @@ def detect_rtc_clock(hw_lst):
     hw_lst.append(('system', 'rtc', 'utc', rtc.get_rtc()))
 
 
+def detect_auxv(hw_lst):
+    new_env = os.environ.copy()
+    new_env["LD_SHOW_AUXV"] = "1"
+
+    uuid_cmd = Popen("/bin/true",
+                     env=new_env,
+                     stdout=PIPE)
+    stdout, err = uuid_cmd.communicate()
+    if err is not None:
+        return
+
+    auxv = dict()
+    for line in stdout.decode("utf-8").splitlines():
+        k, v = [i.strip() for i in line.split(":")]
+        if k in AUXV_FLAGS:
+            auxv[k[3:].lower()] = v
+            hw_lst.append(('hw', 'auxv', k[3:].lower(), v))
+
+
 def parse_ahci(hrdw, words):
     if len(words) < 4:
         return
@@ -943,6 +963,7 @@ def main():
     detect_utils.get_ddr_timing(hrdw)
     detect_utils.ipmi_sdr(hrdw)
     detect_rtc_clock(hrdw)
+    detect_auxv(hrdw)
     parse_dmesg(hrdw)
     bios_hp.dump_hp_bios(hrdw)
 
