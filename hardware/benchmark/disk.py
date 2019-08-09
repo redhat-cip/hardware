@@ -37,7 +37,7 @@ RAMP_TIME = 5
 
 def is_booted_storage_device(disk):
     """Check if a given disk is booted."""
-    cmdline = "grep -w /ahcexport /proc/mounts | cut -d ' ' -f 1 | sed -e 's/[0-9]*//g'"
+    cmdline = "grep -w /ahcexport /proc/mounts | cut -d ' ' -f 1 | sed -e 's/[0-9]*//g'"  # noqa
     if '/dev/' not in disk:
         disk = '/dev/%s' % disk
     grep_cmd = subprocess.Popen(cmdline,

@@ -239,8 +239,8 @@ class TestDetect(unittest.TestCase):
         }
 
         process_mock = mock.Mock()
-        attrs = {'communicate.return_value': (sample('auxv_x86').encode('utf-8'),
-                                              None)}
+        attrs = {'communicate.return_value': (
+            sample('auxv_x86').encode('utf-8'), None)}
         process_mock.configure_mock(**attrs)
         mock_popen.return_value = process_mock
 
@@ -256,8 +256,11 @@ class TestDetect(unittest.TestCase):
     @mock.patch('os.environ.copy')
     def test_detect_auxv_ppc8_succeed(self, mock_environ_copy, mock_popen):
         test_data = {
-            'AT_HWCAP': ('hwcap', 'true_le archpmu vsx arch_2_06 dfp ic_snoop smt mmu fpu altivec ppc64 ppc32'),
-            'AT_HWCAP2': ('hwcap2', 'htm-nosc vcrypto tar isel ebb dscr htm arch_2_07'),
+            'AT_HWCAP': ('hwcap',
+                         'true_le archpmu vsx arch_2_06 dfp ic_snoop smt '
+                         'mmu fpu altivec ppc64 ppc32'),
+            'AT_HWCAP2': ('hwcap2', 'htm-nosc vcrypto tar isel ebb dscr '
+                          'htm arch_2_07'),
             'AT_PAGESZ': ('pagesz', '65536'),
             'AT_FLAGS': ('flags', '0x0'),
             'AT_PLATFORM': ('platform', 'power8'),
@@ -265,8 +268,8 @@ class TestDetect(unittest.TestCase):
         }
 
         process_mock = mock.Mock()
-        attrs = {'communicate.return_value': (sample('auxv_ppc8').encode('utf-8'),
-                                              None)}
+        attrs = {'communicate.return_value': (
+            sample('auxv_ppc8').encode('utf-8'), None)}
         process_mock.configure_mock(**attrs)
         mock_popen.return_value = process_mock
 
