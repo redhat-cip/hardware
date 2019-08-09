@@ -228,6 +228,57 @@ class TestDetect(unittest.TestCase):
             [(u'\ufffd' * 4, u'\ufffd' * 4, u'h\xe9llo', 1)])
 
     @mock.patch.object(detect, 'Popen')
+    @mock.patch('os.environ.copy')
+    def test_detect_auxv_x86_succeed(self, mock_environ_copy, mock_popen):
+        test_data = {
+            'AT_HWCAP': ('hwcap', 'bfebfbff'),
+            'AT_HWCAP2': ('hwcap2', '0x0'),
+            'AT_PAGESZ': ('pagesz', '4096'),
+            'AT_FLAGS': ('flags', '0x0'),
+            'AT_PLATFORM': ('platform', 'x86_64'),
+        }
+
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': (sample('auxv_x86').encode('utf-8'),
+                                              None)}
+        process_mock.configure_mock(**attrs)
+        mock_popen.return_value = process_mock
+
+        hw = []
+        detect.detect_auxv(hw)
+
+        # NOTE(mrda): x86 doesn't have AUXV_OPT_FLAGS
+        for k in detect.AUXV_FLAGS:
+            t = ('hw', 'auxv', test_data[k][0], test_data[k][1])
+            self.assertTrue(t in hw)
+
+    @mock.patch.object(detect, 'Popen')
+    @mock.patch('os.environ.copy')
+    def test_detect_auxv_ppc8_succeed(self, mock_environ_copy, mock_popen):
+        test_data = {
+            'AT_HWCAP': ('hwcap', 'true_le archpmu vsx arch_2_06 dfp ic_snoop smt mmu fpu altivec ppc64 ppc32'),
+            'AT_HWCAP2': ('hwcap2', 'htm-nosc vcrypto tar isel ebb dscr htm arch_2_07'),
+            'AT_PAGESZ': ('pagesz', '65536'),
+            'AT_FLAGS': ('flags', '0x0'),
+            'AT_PLATFORM': ('platform', 'power8'),
+            'AT_BASE_PLATFORM': ('base_platform', 'power8'),
+        }
+
+        process_mock = mock.Mock()
+        attrs = {'communicate.return_value': (sample('auxv_ppc8').encode('utf-8'),
+                                              None)}
+        process_mock.configure_mock(**attrs)
+        mock_popen.return_value = process_mock
+
+        hw = []
+        detect.detect_auxv(hw)
+
+        ppc_flags = detect.AUXV_FLAGS + detect.AUXV_OPT_FLAGS
+        for k in ppc_flags:
+            t = ('hw', 'auxv', test_data[k][0], test_data[k][1])
+            self.assertTrue(t in hw)
+
+    @mock.patch.object(detect, 'Popen')
     @mock.patch('os.uname', return_value=('', '', '', '', 'x86_64'))
     def test_get_uuid_x86_64(self, mock_uname, mock_popen):
         # This is more complex and 'magic' than I'd like :/

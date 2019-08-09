@@ -1,0 +1,23 @@
+AT_DCACHEBSIZE:  0x80
+AT_ICACHEBSIZE:  0x80
+AT_UCACHEBSIZE:  0x0
+AT_SYSINFO_EHDR: 0x3fff95170000
+AT_HWCAP:        true_le archpmu vsx arch_2_06 dfp ic_snoop smt mmu fpu altivec ppc64 ppc32
+AT_PAGESZ:       65536
+AT_CLKTCK:       100
+AT_PHDR:         0x10000040
+AT_PHENT:        56
+AT_PHNUM:        9
+AT_BASE:         0x3fff95190000
+AT_FLAGS:        0x0
+AT_ENTRY:        0x1000147c
+AT_UID:          0
+AT_EUID:         0
+AT_GID:          0
+AT_EGID:         0
+AT_SECURE:       0
+AT_RANDOM:       0x3ffff55c9492
+AT_HWCAP2:       htm-nosc vcrypto tar isel ebb dscr htm arch_2_07
+AT_EXECFN:       /bin/true
+AT_PLATFORM:     power8
+AT_BASE_PLATFORM:power8
