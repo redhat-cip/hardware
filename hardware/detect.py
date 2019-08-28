@@ -735,7 +735,10 @@ def get_cpus(hw_lst):
             hw_lst.append(('cpu', ltag, "governor", value))
 
     # Extracting numa nodes
-    hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
+    try:
+        hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
+    except KeyError:
+        pass
 
     # Allow for sparse numa nodes.
     numa_nodes = []

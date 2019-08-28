@@ -26,15 +26,17 @@ LOG = logging.getLogger('hardware.rtc')
 
 def get_rtc():
     cmd = ['timedatectl', 'status', '--no-pager']
-    stdout = check_output(cmd).decode("utf-8")
+    try:
+        stdout = check_output(cmd).decode("utf-8")
+    except OSError:
+        LOG.warning('Unable to determine RTC timezone (no timedatectl)')
+        return 'unknown'
     if stdout:
         match = re.search(r'RTC in local TZ: ([a-z]+)$', stdout)
         if match:
             LOG.info('Is RTC set to UTC: %s' % match.group(1))
             return match.group(1)
-
         LOG.warning('Unable to determine RTC timezone (no match)')
     else:
         LOG.warning('Unable to determine RTC timezone (no output)')
-
     return 'unknown'
