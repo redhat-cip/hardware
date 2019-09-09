@@ -113,7 +113,6 @@ def compute_similar_hosts_list(systems_groups, new_groups):
             intersection = set.intersection(systems_group, group)
             if intersection:
                 if len(intersection) < len(systems_group):
-                    # print("%d vs %d" % (len(intersection), len(systems_group)))
                     # We do have a partial match meaning we shall break
                     # the existing group in pieces
                     difference = set.difference(systems_group, group)

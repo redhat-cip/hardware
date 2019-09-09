@@ -447,7 +447,8 @@ def print_summary(mode, array, array_name, unit, df, item_value=None):
                         perf_status = ": " + GREEN + "PERF OK" + WHITE
                     else:
                         perf_status = (": " + RED + "PERF FAIL" + WHITE +
-                                       " as min perf should have been : " + str(min_cpu_perf))
+                                       " as min perf should have been : " +
+                                       str(min_cpu_perf))
         utils.do_print(
             mode, utils.Levels.SUMMARY,
             "%3d %s%-10s%s hosts with %8.2f %-4s as average value and %8.2f "

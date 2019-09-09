@@ -25,7 +25,8 @@ import unittest
 
 class TestBiosHP(unittest.TestCase):
 
-    @mock.patch('hardware.bios_hp.get_hp_conrep', return_value=(True, sample('conrep.dat')))
+    @mock.patch('hardware.bios_hp.get_hp_conrep',
+                return_value=(True, sample('conrep.dat')))
     def test_bios_hp(self, mocked_cmd):
         self.maxDiff = None
         hardware_lst = []
