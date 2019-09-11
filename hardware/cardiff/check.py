@@ -441,19 +441,36 @@ def print_summary(mode, array, array_name, unit, df, item_value=None):
                     min_cpu_perf = perf_cpu_tables.get_cpu_min_perf(mode,
                                                                     item_value)
                     if min_cpu_perf == 0:
-                        perf_status = (": " + ORANGE + "NO PERF ENTRY IN DB" +
-                                       WHITE + " for " + item_value)
+                        perf_status = (": %(orange)sNO PERF ENTRY IN DB"
+                                       "%(white)s for %(item_value)s" %
+                                       {'orange': ORANGE,
+                                        'white': WHITE,
+                                        'item_value': item_value})
                     elif mean >= min_cpu_perf:
-                        perf_status = ": " + GREEN + "PERF OK" + WHITE
+                        perf_status = (": %(green)sPERF OK%(white)s" %
+                                       {'green': GREEN,
+                                        'white': WHITE})
                     else:
-                        perf_status = (": " + RED + "PERF FAIL" + WHITE +
-                                       " as min perf should have been : " +
-                                       str(min_cpu_perf))
-        utils.do_print(
-            mode, utils.Levels.SUMMARY,
-            "%3d %s%-10s%s hosts with %8.2f %-4s as average value and %8.2f "
-            "standard deviation %s", len(array), before, array_name, after,
-            mean, unit, numpy.std(result), perf_status)
+                        perf_status = (": %(red)sPERF FAIL%(white)s as min "
+                                       "perf should have been : "
+                                       "%(min_cpu_perf)s" %
+                                       {'red': RED,
+                                        'white': WHITE,
+                                        'min_cpu_perf': str(min_cpu_perf)})
+
+        msg = ("%(array_length)3d %(before)s%(array_name)-10s%(after)s hosts "
+               "with %(mean)8.2f %(unit)-4s as average value and "
+               "%(result)8.2f standard deviation %(perf_status)s" %
+               {'array_length': len(array),
+                'before': before,
+                'array_name': array_name,
+                'after': after,
+                'mean': mean,
+                'unit': unit,
+                'result': numpy.std(result),
+                'perf_status': perf_status})
+
+        utils.do_print(mode, utils.Levels.SUMMARY, msg)
 
 
 def cpu_perf(system_list, unique_id, group_number, detail_options,
