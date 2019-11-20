@@ -16,6 +16,7 @@ env:
   - TOX_ENV=pep8
   - TOX_ENV=pylint
   - TOX_ENV=cover
+  - TOX_ENV=docs
 install:
   - pip install tox
 script:
