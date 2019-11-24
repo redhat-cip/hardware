@@ -8,9 +8,9 @@ sudo: false
 dist: xenial
 python:
   - '2.7'
-  - '3.5'
   - '3.6'
   - '3.7'
+  - '3.8'
 env:
   - TOX_ENV=unit
   - TOX_ENV=pep8

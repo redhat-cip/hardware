@@ -71,7 +71,8 @@ def _generate_values(pattern, prefix=_PREFIX):
         for elt in pattern:
             yield elt
     elif isinstance(pattern, dict):
-        for key, entry in pattern.items():
+        pattern_copy = pattern.copy()
+        for key, entry in pattern_copy.items():
             if not prefix or key[0] == prefix:
                 if prefix:
                     pattern[key[1:]] = _generate_values(entry)
@@ -152,7 +153,8 @@ def generate(model, prefix=_PREFIX):
     result = []
     yielded = {}
     yielded.update(model)
-    for key, value in yielded.items():
+    yielded_copy = yielded.copy()
+    for key, value in yielded_copy.items():
         if not prefix or key[0] == prefix:
             if prefix:
                 yielded[key[1:]] = _generate_values(value, prefix)

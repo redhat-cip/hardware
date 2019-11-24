@@ -235,7 +235,7 @@ Store variables starting with a $ in <arr>. Variables starting with
                     sys.stderr.write('new var: %s %s\n' % (arr, line))
 
     # Manage $$ variables
-    for key in arr:
+    for key in list(arr):
         if key[0] == '$':
             nkey = key[1:]
             arr[nkey] = arr[key]
