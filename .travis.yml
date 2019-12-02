@@ -18,6 +18,6 @@ env:
   - TOX_ENV=cover
   - TOX_ENV=docs
 install:
-  - pip install tox
+  - pip install tox-travis
 script:
-  - if [ $TOX_ENV = unit ]; then PYENV=py$(echo $TRAVIS_PYTHON_VERSION|sed -e 's/^py//' -e 's/\.//'); travis_wait tox -e $PYENV; elif [ $TRAVIS_PYTHON_VERSION = 2.7 ]; then travis_wait tox -e $TOX_ENV; fi
+  - tox
