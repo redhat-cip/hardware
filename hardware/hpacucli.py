@@ -212,7 +212,7 @@ Must be called before any other method.
             try:
                 if self.debug:
                     print('Launching', path)
-                self.process = pexpect.spawn(path)
+                self.process = pexpect.spawn(path, encoding='utf-8')
                 self.process.expect(PROMPT_REGEXP)
             except (OSError, pexpect.EOF, pexpect.TIMEOUT):
                 return False
