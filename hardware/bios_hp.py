@@ -17,7 +17,6 @@
 
 """API to the hp-conrep utility to list the bios settings"""
 
-from __future__ import print_function
 import os
 import pprint
 import sys

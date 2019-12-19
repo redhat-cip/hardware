@@ -19,7 +19,6 @@
 about disks, RAID arrays or controllers or to configure them.
 '''
 
-from __future__ import print_function
 import os
 import re
 

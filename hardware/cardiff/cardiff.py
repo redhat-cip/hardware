@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import print_function
 import getopt
 import glob
 import os
