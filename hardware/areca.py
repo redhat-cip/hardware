@@ -17,7 +17,6 @@
 
 '''Wrapper functions around the areca command.'''
 
-from __future__ import print_function
 import re
 from subprocess import PIPE
 from subprocess import Popen

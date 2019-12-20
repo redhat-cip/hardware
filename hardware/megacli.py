@@ -17,7 +17,6 @@
 
 '''Wrapper functions around the megacli command.'''
 
-from __future__ import print_function
 import os
 import re
 from subprocess import PIPE
