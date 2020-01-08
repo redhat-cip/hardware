@@ -155,11 +155,14 @@ def prepare_detail(detail_options, group_number, category, item, details,
 def network_perf(system_list, unique_id, group_number, detail_options,
                  rampup_value=0, current_dir=""):
     have_net_data = False
-    sets = search_item(system_list, unique_id, "network", r"(.*)", [], [])
     modes = ['bandwidth', 'requests_per_sec']
+    sets = search_item(system_list, unique_id, "network", r"(.*)", [], modes)
     for mode in sorted(modes):
         results = {}
         for system in sets:
+            # ignore empty sets, e.g sets = {'CZ3222KDMF': set([])}
+            if not sets[system]:
+                continue
             net = []
             series = []
             global_perf = 0.0
@@ -171,6 +174,10 @@ def network_perf(system_list, unique_id, group_number, detail_options,
 
             series.append(global_perf)
             results[system] = Series(series, index=net)
+
+        # No need to continue if no network drive data in this benchmark
+        if not results:
+            continue
 
         df = DataFrame(results)
         details = []
