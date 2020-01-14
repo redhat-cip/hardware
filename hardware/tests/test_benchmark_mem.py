@@ -98,17 +98,6 @@ class TestBenchmarkMem(unittest.TestCase):
         expected = EXPECTED_RESULT
         self.assertEqual(sorted(expected), sorted(self.hw_data))
 
-    def test_mem_perf_text(self, mock_popen, mock_cpu_socket,
-                           mock_get_memory):
-        mock_get_memory.return_value = 123456789012
-        mock_popen.return_value = mock.Mock(
-            stdout=SYSBENCH_OUTPUT.splitlines())
-        mock_cpu_socket.return_value = range(2)
-        mem.mem_perf(self.hw_data)
-
-        expected = EXPECTED_RESULT
-        self.assertEqual(sorted(expected), sorted(self.hw_data))
-
     def test_check_mem_size(self, mock_popen, mock_cpu_socket,
                             mock_get_memory):
         block_size_list = ('1K', '4K', '1M', '16M', '128M', '1G', '2G')
@@ -122,17 +111,6 @@ class TestBenchmarkMem(unittest.TestCase):
         for block_size in block_size_list:
             self.assertFalse(mem.check_mem_size(block_size, 2))
 
-    def test_run_sysbench_memory_forked_text(self, mock_popen, mock_cpu_socket,
-                                             mock_get_memory):
-        mock_get_memory.return_value = 123456789012
-        mock_popen.return_value = mock.Mock(
-            stdout=SYSBENCH_OUTPUT.splitlines())
-
-        hw_data = []
-        mem.run_sysbench_memory_forked(hw_data, 10, '1K', 2)
-        self.assertEqual([('cpu', 'logical', 'forked_bandwidth_1K', '382')],
-                         hw_data)
-
     def test_run_sysbench_memory_forked_bytes(self, mock_popen,
                                               mock_cpu_socket,
                                               mock_get_memory):
@@ -143,18 +121,6 @@ class TestBenchmarkMem(unittest.TestCase):
         hw_data = []
         mem.run_sysbench_memory_forked(hw_data, 10, '1K', 2)
         self.assertEqual([('cpu', 'logical', 'forked_bandwidth_1K', '382')],
-                         hw_data)
-
-    def test_run_sysbench_memory_threaded_text(self, mock_popen,
-                                               mock_cpu_socket,
-                                               mock_get_memory):
-        mock_get_memory.return_value = 123456789012
-        mock_popen.return_value = mock.Mock(
-            stdout=SYSBENCH_OUTPUT.splitlines())
-
-        hw_data = []
-        mem.run_sysbench_memory_threaded(hw_data, 10, '1K', 2)
-        self.assertEqual([('cpu', 'logical', 'threaded_bandwidth_1K', '382')],
                          hw_data)
 
     def test_run_sysbench_memory_threaded_bytes(self, mock_popen,

@@ -14,15 +14,11 @@ import os
 import subprocess
 import sys
 
-import six
-
 from hardware import smart_utils_info
 
 
 def _parse_line(line):
-    line = line.strip()
-    if isinstance(line, six.binary_type):
-        line = line.decode(errors='ignore')
+    line = line.strip().decode(errors='ignore')
     return line
 
 
@@ -280,11 +276,8 @@ def read_smart_nvme(hwlst, device_name):
             shell=True, stdout=subprocess.PIPE)
 
         for line in sdparm_cmd.stdout:
-            line = line.strip()
-            if isinstance(line, six.binary_type):
-                line = line.decode(errors='ignore')
-            for disk_info, info_tag in six.iteritems(
-                    smart_utils_info.NVME_INFOS):
+            line = line.strip().decode(errors='ignore')
+            for disk_info, info_tag in smart_utils_info.NVME_INFOS.items():
                 read_smart_field(hwlst, line, device_name, disk_info, info_tag)
         return hwlst
 

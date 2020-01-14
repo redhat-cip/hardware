@@ -303,7 +303,7 @@ class TestDetect(unittest.TestCase):
     def test_get_uuid_ppc64le_ok_generate(self, mock_access, mock_uname):
         expected_uuid = 'a2724b67-c27e-5e5f-aa2b-3089a2bd8f41'
         fileobj = mock.mock_open(read_data=expected_uuid)
-        with mock.patch('six.moves.builtins.open', fileobj, create=True):
+        with mock.patch('builtins.open', fileobj, create=True):
             uuid = detect.get_uuid([])
         self.assertEqual(expected_uuid, uuid)
 

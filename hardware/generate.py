@@ -18,17 +18,10 @@
 """Generate range of values according to a model."""
 
 import re
-import sys
 import types
-
-from six.moves import range
 
 
 _PREFIX = None
-
-
-if sys.version_info.major:
-    xrange = range
 
 
 def _generate_range(num_range):
