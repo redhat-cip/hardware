@@ -4,5 +4,3 @@
 
 pbr>=1.0 # Apache-2.0
 pexpect # ISC
-numpy # BSD
-pandas # BSD
