@@ -20,6 +20,7 @@
 
 import argparse
 import fcntl
+import ipaddress
 import json
 import os
 import pprint
@@ -31,8 +32,6 @@ from subprocess import Popen
 import sys
 import uuid
 import xml.etree.ElementTree as ET
-
-from netaddr import IPNetwork
 
 from hardware import areca
 from hardware.benchmark import cpu as bm_cpu
@@ -573,9 +572,10 @@ def detect_system(hw_lst, output=None):
                         cidr = get_cidr(netmask)
                         hw_lst.append(
                             ('network', name.text, 'ipv4-cidr', cidr))
+                        net = (ipaddress.IPv4Interface('%s/%s' % (ipv4, cidr))
+                               .network.network_address)
                         hw_lst.append(
-                            ('network', name.text, 'ipv4-network',
-                             "%s" % IPNetwork('%s/%s' % (ipv4, cidr)).network))
+                            ('network', name.text, 'ipv4-network', str(net)))
                     except Exception as excpt:
                         sys.stderr.write('unable to get info for %s: %s\n'
                                          % (name.text, str(excpt)))
