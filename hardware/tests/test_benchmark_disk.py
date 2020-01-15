@@ -52,12 +52,6 @@ class TestBenchmarkDisk(unittest.TestCase):
         self.hw_data = [('disk', 'fake-disk', 'size', '10'),
                         ('disk', 'fake-disk2', 'size', '15')]
 
-    def test_disk_perf_text(self, mock_popen):
-        mock_popen.return_value = mock.Mock(
-            stdout=FIO_OUTPUT_READ.splitlines())
-        disk.disk_perf(self.hw_data)
-        self.assertEqual(sorted(DISK_PERF_EXPECTED), sorted(self.hw_data))
-
     def test_disk_perf_bytes(self, mock_popen):
         mock_popen.return_value = mock.Mock(
             stdout=FIO_OUTPUT_READ.encode().splitlines())
@@ -70,7 +64,7 @@ class TestBenchmarkDisk(unittest.TestCase):
 
     def test_run_fio(self, mock_popen):
         mock_popen.return_value = mock.Mock(
-            stdout=FIO_OUTPUT_READ.splitlines())
+            stdout=FIO_OUTPUT_READ.encode().splitlines())
         hw_data = []
         disks_list = ['fake-disk', 'fake-disk2']
         disk.run_fio(hw_data, disks_list, "read", 123, 10, 5)

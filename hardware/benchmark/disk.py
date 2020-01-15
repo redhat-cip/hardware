@@ -23,8 +23,6 @@ import re
 import subprocess
 import sys
 
-import six
-
 
 # NOTE(lucasagomes): The amount of time a specified workload will run before
 # logging any performance numbers. Useful for letting performance settle
@@ -44,8 +42,7 @@ def is_booted_storage_device(disk):
     grep_cmd = subprocess.Popen(cmdline,
                                 shell=True, stdout=subprocess.PIPE)
     for booted_disk in grep_cmd.stdout:
-        if isinstance(booted_disk, six.binary_type):
-            booted_disk = booted_disk.decode(errors='ignore')
+        booted_disk = booted_disk.decode(errors='ignore')
         booted_disk = booted_disk.rstrip('\n').strip()
         if booted_disk == disk:
             return True
@@ -94,8 +91,7 @@ def run_fio(hw_lst, disks_list, mode, io_size, time, rampup_time):
                                shell=True, stdout=subprocess.PIPE)
     current_disk = ''
     for line in fio_cmd.stdout:
-        if isinstance(line, six.binary_type):
-            line = line.decode(errors='ignore')
+        line = line.decode(errors='ignore')
         if ('MYJOB-' in line) and ('pid=' in line):
             # MYJOB-sda: (groupid=0, jobs=1): err= 0: pid=23652: Mon Sep  9
             # 16:21:42 2013

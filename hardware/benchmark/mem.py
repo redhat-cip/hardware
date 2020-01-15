@@ -22,8 +22,6 @@ import re
 import subprocess
 import sys
 
-import six
-
 from hardware.benchmark import utils
 
 
@@ -90,8 +88,7 @@ def run_sysbench_memory_threaded(hw_lst, max_time, block_size, cpu_count,
                                     shell=True, stdout=subprocess.PIPE)
 
     for line in sysbench_cmd.stdout:
-        if isinstance(line, six.binary_type):
-            line = line.decode()
+        line = line.decode()
         if "transferred" in line:
             _, right = line.rstrip('\n').replace(' ', '').split('(')
             perf, _ = right.split('.')
@@ -129,8 +126,7 @@ def run_sysbench_memory_forked(hw_lst, max_time, block_size, cpu_count):
     process = subprocess.Popen(
         sysbench_cmd, shell=True, stdout=subprocess.PIPE)
     for line in process.stdout:
-        if isinstance(line, six.binary_type):
-            line = line.decode()
+        line = line.decode()
         if "transferred" in line:
             _, right = line.rstrip('\n').replace(' ', '').split('(')
             perf, _ = right.split('.')

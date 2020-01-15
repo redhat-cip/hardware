@@ -82,7 +82,7 @@ class TestSmartUtils(unittest.TestCase):
     @mock.patch.object(subprocess, 'Popen')
     def test_read_smart_scsi(self, mock_popen):
         hwlst = []
-        fake_output = sample('smartctl_scsi').splitlines()
+        fake_output = sample('smartctl_scsi', mode='rb').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
         smart_utils.read_smart_scsi(hwlst, 'fake')
 
@@ -91,7 +91,7 @@ class TestSmartUtils(unittest.TestCase):
     @mock.patch.object(subprocess, 'Popen')
     def test_read_smart_ata(self, mock_popen):
         hwlst = []
-        fake_output = sample('smartctl_ata').splitlines()
+        fake_output = sample('smartctl_ata', mode='rb').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
         smart_utils.read_smart_ata(hwlst, 'fake')
 
@@ -113,7 +113,7 @@ class TestSmartUtils(unittest.TestCase):
     def test_read_smart_call_smart_ata(self, mock_popen, mock_os_path_exists,
                                        mock_ata):
         hwlst = []
-        fake_output = sample('smartctl_ata').splitlines()
+        fake_output = sample('smartctl_ata', mode='rb').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
         smart_utils.read_smart(hwlst, 'fake')
 
@@ -125,7 +125,7 @@ class TestSmartUtils(unittest.TestCase):
     def test_read_smart_call_smart_scsi(self, mock_popen, mock_os_path_exists,
                                         mock_scsi):
         hwlst = []
-        fake_output = sample('smartctl_scsi').splitlines()
+        fake_output = sample('smartctl_scsi', mode='rb').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
         smart_utils.read_smart(hwlst, 'fake')
 
@@ -135,7 +135,7 @@ class TestSmartUtils(unittest.TestCase):
     @mock.patch.object(subprocess, 'Popen')
     def test_read_smart_nvme(self, mock_popen, mock_os_path_exists):
         hwlst = []
-        fake_output = sample('smartctl_nvme').splitlines()
+        fake_output = sample('smartctl_nvme', mode='rb').splitlines()
         mock_popen.return_value = mock.Mock(stdout=fake_output)
         smart_utils.read_smart_nvme(hwlst, 'fake_nvme')
 
