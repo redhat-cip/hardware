@@ -648,15 +648,17 @@ def detect_system(hw_lst, output=None):
     return True
 
 
-def _from_file(fname, mapping=None, default=None):
-    file_exists = os.path.exists(fname)
-    value = None
-    if file_exists:
-        with open(fname) as f:
-            value = f.readline().rstrip('\n')
-        if mapping:
-            value = mapping.get(value, default)
-    return (file_exists, value)
+def _from_file(filename):
+    """Open a file and read its first line.
+
+    :param filename: the name of the file to be read
+    :returns: string -- the first line of filename, stripped of the final '\n'
+    :raises: IOError
+    """
+
+    with open(filename) as f:
+        value = f.readline().rstrip('\n')
+    return value
 
 
 def get_cpus(hw_lst):
@@ -692,10 +694,12 @@ def get_cpus(hw_lst):
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
     for processor in range(int(lscpu["Socket(s)"])):
         ptag = "physical_{}".format(processor)
-        (exists, value) = _from_file("/sys/devices/system/cpu/cpufreq/boost",
-                                     mapping={'1': 'enabled'},
-                                     default='disabled')
-        if exists:
+        try:
+            value = _from_file("/sys/devices/system/cpu/cpufreq/boost")
+        except IOError:
+            pass
+        else:
+            value = 'enabled' if value == '1' else 'disabled'
             hw_lst.append(('cpu', ptag, 'boost', value))
 
         for (t_key, d_key, conv) in [('vendor', 'Vendor ID', None),
@@ -728,9 +732,12 @@ def get_cpus(hw_lst):
     # Governors could be different on logical cpus
     for cpu in range(int(lscpu['CPU(s)'])):
         ltag = "logical_{}".format(cpu)
-        (exists, value) = _from_file(("/sys/devices/system/cpu/cpufreq/"
-                                      "policy{}/scaling_governor".format(cpu)))
-        if exists:
+        try:
+            value = _from_file(("/sys/devices/system/cpu/cpufreq/"
+                                "policy{}/scaling_governor".format(cpu)))
+        except IOError:
+            pass
+        else:
             hw_lst.append(('cpu', ltag, "governor", value))
 
     # Extracting numa nodes
