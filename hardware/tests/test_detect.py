@@ -47,12 +47,12 @@ class TestDetect(unittest.TestCase):
     def test_get_cidr(self):
         self.assertEqual(detect.get_cidr('255.255.0.0'), '16')
 
-    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('hardware.detect._from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu').split('\n'),
                     sample('lscpux').split('\n')])
-    def test_get_cpus(self, mock_output_lines, mock_os_path_exists):
+    def test_get_cpus(self, mock_output_lines, mock_throws_ioerror):
         hw = []
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_RESULT)
@@ -67,28 +67,28 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call(f))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
-        self.assertEqual(calls, mock_os_path_exists.mock_calls)
+        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('hardware.detect._from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu-7302').split('\n'),
                     sample('lscpu-7302x').split('\n')])
-    def test_get_cpus_7302(self, mock_output_lines, mock_os_path_exists):
+    def test_get_cpus_7302(self, mock_output_lines, mock_throws_ioerror):
         self.maxDiff=None
         hw = []
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_7302_RESULT)
 
 
-    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('hardware.detect._from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu-vm').split('\n'),
                     sample('lscpu-vmx').split('\n'),
                     ('powersave',),
                     ('powersave',)])
-    def test_get_cpus_vm(self, mock_output_lines, mock_os_path_exists):
+    def test_get_cpus_vm(self, mock_output_lines, mock_throws_ioerror):
         hw = []
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_VM_RESULT)
@@ -103,16 +103,16 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call(f))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
-        self.assertEqual(calls, mock_os_path_exists.mock_calls)
+        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('hardware.detect._from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu_aarch64').split('\n'),
                     sample('lscpux_aarch64').split('\n'),
                     ('powersave',),
                     ('powersave',)])
-    def test_get_cpus_aarch64(self, mock_output_lines, mock_os_path_exists):
+    def test_get_cpus_aarch64(self, mock_output_lines, mock_throws_ioerror):
         self.maxDiff = None
         hw = []
         detect.get_cpus(hw)
@@ -128,14 +128,14 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call(f))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
-        self.assertEqual(calls, mock_os_path_exists.mock_calls)
+        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('os.path.exists', return_value=False)
+    @mock.patch('hardware.detect._from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu_ppc64le').split('\n'),
                     sample('lscpux_ppc64le').split('\n')])
-    def test_get_cpus_ppc64le(self, mock_output_lines, mock_os_path_exists):
+    def test_get_cpus_ppc64le(self, mock_output_lines, mock_throws_ioerror):
         hw = []
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_PPC64LE)
@@ -150,7 +150,7 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call(f))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
-        self.assertEqual(calls, mock_os_path_exists.mock_calls)
+        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
     @mock.patch('hardware.detect.cmd',
                 return_value=(0, sample('dmesg')),
