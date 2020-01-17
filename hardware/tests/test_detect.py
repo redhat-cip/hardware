@@ -62,9 +62,10 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
         # Once per processor
         for i in range(1):
-            f = ('/sys/devices/system/cpu/cpufreq/policy%d/scaling_governor' %
-                 i)
-            calls.append(mock.call(f))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
+                                    'policy{}/scaling_governor'.format(i))))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
+                                    'scaling_governor'.format(i))))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
@@ -97,9 +98,10 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
         # Once per processor
         for i in range(2):
-            f = ('/sys/devices/system/cpu/cpufreq/policy%d/scaling_governor' %
-                 i)
-            calls.append(mock.call(f))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
+                                    'policy{}/scaling_governor'.format(i))))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
+                                    'scaling_governor'.format(i))))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
@@ -122,9 +124,10 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
         # Once per processor
         for i in range(8):
-            f = ('/sys/devices/system/cpu/cpufreq/policy%d/scaling_governor' %
-                 i)
-            calls.append(mock.call(f))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
+                                    'policy{}/scaling_governor'.format(i))))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
+                                    'scaling_governor'.format(i))))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
@@ -144,9 +147,10 @@ class TestDetect(unittest.TestCase):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
         # Once per processor
         for i in range(144):
-            f = ('/sys/devices/system/cpu/cpufreq/policy%d/scaling_governor' %
-                 i)
-            calls.append(mock.call(f))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
+                                    'policy{}/scaling_governor'.format(i))))
+            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
+                                    'scaling_governor'.format(i))))
         # NOTE(tonyb): We can't use assert_has_calls() because it's too
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
