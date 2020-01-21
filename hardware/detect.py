@@ -73,7 +73,7 @@ def size_in_gb(size):
 
 
 def detect_hpa(hw_lst):
-    'Detect HP RAID controller configuration.'
+    """Detect HP RAID controller configuration."""
     disk_count = 0
     try:
         cli = hpacucli.Cli(debug=False)
