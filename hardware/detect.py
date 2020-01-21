@@ -63,7 +63,7 @@ def size_in_gb(size):
         return ret[:-2]
 
     if ret[-2:] == 'TB':
-        # some size are provided in x.yGB
+        # some size are provided in x.y GB
         # we need to compute the size in TB by
         # considering the input as a float to be
         # multiplied by 1000
@@ -347,7 +347,7 @@ def detect_ipmi(hw_lst):
 
 
 def get_cidr(netmask):
-    'Convert a netmask to a CIDR.'
+    """Convert a netmask to a CIDR."""
     binary_str = ''
     for octet in netmask.split('.'):
         binary_str += bin(int(octet))[2:].zfill(8)
@@ -355,12 +355,12 @@ def get_cidr(netmask):
 
 
 def detect_infiniband(hw_lst):
-    '''Detect Infiniband devinces.
+    """Detect Infiniband devices.
 
-To detect if an IB device is present, we search for a pci device.
-This pci device shall be from vendor Mellanox (15b3) form class 0280
-Class 280 stands for a Network Controller while ethernet device are 0200.
-'''
+    To detect if an IB device is present, we search for a pci device.
+    This pci device shall be from vendor Mellanox (15b3) from class 0280
+    Class 280 stands for a Network Controller while ethernet device are 0200.
+    """
     status, _ = cmd("lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
     if status != 0:
         sys.stderr.write('Info: No Infiniband device found\n')
@@ -745,7 +745,7 @@ def get_cpus(hw_lst):
         match = re.match('NUMA node(\d+) CPU\(s\)', key)
         if match:
             numa_nodes.append((key, int(match.groups()[0])))
-    # NOTE(tonyb): Explictly sort the list as prior to python 3.7? keys() did
+    # NOTE(tonyb): Explicitly sort the list as prior to python 3.7? keys() did
     # not have a predictable ordering and there maybe consumers of hw_lst rely
     # on that.
     numa_nodes.sort(key=lambda t: t[1])
@@ -780,10 +780,18 @@ def get_cpus(hw_lst):
 
 
 def fix_bad_serial(hw_lst, uuid, mobo_id, nic_id):
-    'Fix bad serial number'
-    # Let's manage a quirk list of stupid serial numbers TYAN
-    # or Supermicro are known to provide dirty serial numbers
-    # In that case, let's use another serial
+    """Fix bad serial number.
+
+    TYAN or Supermicro are known to provide fake serial numbers
+    as a system serial number.
+
+    In that case, let's use another serial.
+
+    :param hw_lst: list of tuples that represent the system
+    :param uuid: system uuid
+    :param mobo_id: motherboard id
+    :param nic_id: NIC id
+    """
     for i in hw_lst:
         if i[0:3] == ('system', 'product', 'serial'):
             # Does the current serial number is part of the quirk list
@@ -915,14 +923,14 @@ def parse_dmesg(hrdw):
 
 
 def clean_str(val):
-    'Cleanup a bad string (invalid UTF-8 encoding)'
+    """Cleanup a bad string (invalid UTF-8 encoding)."""
     if isinstance(val, bytes):
         val = val.decode('UTF-8', 'replace')
     return val
 
 
 def clean_tuples(lst):
-    'Clean a list of tuples from bad UTF-8 strings'
+    """Clean a list of tuples from bad UTF-8 strings."""
     return [tuple([clean_str(val) for val in elt]) for elt in lst]
 
 
