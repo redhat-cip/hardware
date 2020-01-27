@@ -100,6 +100,53 @@ GET_CPUS_RESULT = [('cpu', 'physical', 'number', 2),
                    ('numa', 'node_7', 'cpu_mask',
                     '0xfc0000000000fc0000000000')]
 
+GET_CPUS_7302_RESULT = [('cpu', 'physical', 'number', 1),
+                        ('cpu', 'physical_0', 'vendor', 'AuthenticAMD'),
+                        ('cpu', 'physical_0', 'product', 'AMD EPYC 7302P 16-Core Processor'),
+                        ('cpu', 'physical_0', 'cores', 16),
+                        ('cpu', 'physical_0', 'threads', 32),
+                        ('cpu', 'physical_0', 'family', 23),
+                        ('cpu', 'physical_0', 'model', 49),
+                        ('cpu', 'physical_0', 'stepping', 0),
+                        ('cpu', 'physical_0', 'l1d cache', '32K'),
+                        ('cpu', 'physical_0', 'l1i cache', '32K'),
+                        ('cpu', 'physical_0', 'l2 cache', '512K'),
+                        ('cpu', 'physical_0', 'l3 cache', '16384K'),
+                        ('cpu', 'physical_0', 'min_Mhz', 1500.0),
+                        ('cpu', 'physical_0', 'max_Mhz', 3000.0),
+                        ('cpu', 'physical_0', 'current_Mhz', 1794.163),
+                        ('cpu', 'physical_0', 'flags',
+                            'fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 '
+                            'clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm '
+                            'constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni '
+                            'pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx '
+                            'f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse '
+                            '3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext '
+                            'perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate sme ssbd mba sev ibrs ibpb '
+                            'stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap '
+                            'clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc '
+                            'cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv '
+                            'svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists '
+                            'pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov '
+                            'succor smca'),
+                        ('cpu', 'logical', 'number', 32),
+                        ('numa', 'nodes', 'count', 8),
+                        ('numa', 'node_0', 'cpu_count', 4),
+                        ('numa', 'node_0', 'cpu_mask', '0xf0000000f'),
+                        ('numa', 'node_1', 'cpu_count', 4),
+                        ('numa', 'node_1', 'cpu_mask', '0xf0000000f0'),
+                        ('numa', 'node_2', 'cpu_count', 4),
+                        ('numa', 'node_2', 'cpu_mask', '0xf0000000f00'),
+                        ('numa', 'node_3', 'cpu_count', 4),
+                        ('numa', 'node_3', 'cpu_mask', '0xf0000000f000'),
+                        ('numa', 'node_4', 'cpu_count', 4),
+                        ('numa', 'node_4', 'cpu_mask', '0xf0000000f0000'),
+                        ('numa', 'node_5', 'cpu_count', 4),
+                        ('numa', 'node_5', 'cpu_mask', '0xf0000000f00000'),
+                        ('numa', 'node_6', 'cpu_count', 4),
+                        ('numa', 'node_6', 'cpu_mask', '0xf0000000f000000'),
+                        ('numa', 'node_7', 'cpu_count', 4),
+                        ('numa', 'node_7', 'cpu_mask', '0xf0000000f0000000')]
 
 GET_CPUS_VM_RESULT = [('cpu', 'physical', 'number', 1),
                       ('cpu', 'physical_0', 'vendor', 'GenuineIntel'),
