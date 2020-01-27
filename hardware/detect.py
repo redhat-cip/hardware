@@ -768,11 +768,8 @@ def get_cpus(hw_lst):
                     total_cpus = total_cpus + max_cpu - min_cpu + 1
                 else:
                     # or like 0,1
-                    if min_cpu is None:
-                        min_cpu = int(item)
-                    else:
-                        max_cpu = int(item)
-                        total_cpus = total_cpus + max_cpu - min_cpu + 1
+                    # As we don't have dashes, there is only one core to count
+                    total_cpus = total_cpus + 1
 
         # total_cpus = 12 for "0-5,48-53"
         hw_lst.append(('numa', ntag, 'cpu_count', total_cpus))
