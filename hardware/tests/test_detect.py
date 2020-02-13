@@ -75,11 +75,10 @@ class TestDetect(unittest.TestCase):
                     sample('lscpu-7302').split('\n'),
                     sample('lscpu-7302x').split('\n')])
     def test_get_cpus_7302(self, mock_output_lines, mock_throws_ioerror):
-        self.maxDiff=None
+        self.maxDiff = None
         hw = []
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_7302_RESULT)
-
 
     @mock.patch('hardware.detect._from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',

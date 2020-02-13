@@ -11,12 +11,12 @@ python:
   - '3.7'
   - '3.8'
 env:
-  - TOX_ENV=unit
-  - TOX_ENV=pep8
-  - TOX_ENV=pylint
-  - TOX_ENV=cover
-  - TOX_ENV=docs
+  - TOXENV=$(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
+  - TOXENV=pep8
+  - TOXENV=pylint
+  - TOXENV=cover
+  - TOXENV=docs
 install:
   - pip install tox-travis
 script:
-  - tox
+  - tox -vv
