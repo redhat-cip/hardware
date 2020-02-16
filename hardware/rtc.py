@@ -19,7 +19,7 @@
 '''
 import logging
 import re
-from subprocess import check_output
+import subprocess
 
 LOG = logging.getLogger('hardware.rtc')
 
@@ -27,9 +27,12 @@ LOG = logging.getLogger('hardware.rtc')
 def get_rtc():
     cmd = ['timedatectl', 'status', '--no-pager']
     try:
-        stdout = check_output(cmd).decode("utf-8")
+        stdout = subprocess.check_output(cmd).decode("utf-8")
     except OSError:
         LOG.warning('Unable to determine RTC timezone (no timedatectl)')
+        return 'unknown'
+    except subprocess.CalledProcessError as excpt:
+        LOG.warning('RTC timezone command failed - %s' % excpt.output)
         return 'unknown'
     if stdout:
         match = re.search(r'RTC in local TZ: ([a-z]+)$', stdout)
