@@ -57,6 +57,7 @@ class TestDetect(unittest.TestCase):
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_RESULT)
         calls = []
+        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
         # Once per socket
         for i in range(2):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
@@ -93,6 +94,7 @@ class TestDetect(unittest.TestCase):
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_VM_RESULT)
         calls = []
+        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
         # Once per socket
         for i in range(1):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
@@ -119,6 +121,7 @@ class TestDetect(unittest.TestCase):
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_AARCH64_RESULT)
         calls = []
+        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
         # Once per socket
         for i in range(4):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
@@ -142,6 +145,7 @@ class TestDetect(unittest.TestCase):
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_PPC64LE)
         calls = []
+        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
         # Once per socket
         for i in range(2):
             calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
