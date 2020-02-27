@@ -709,6 +709,11 @@ def get_cpus(hw_lst):
             lscpux[item.strip(':')] = value.strip()
 
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
+
+    with contextlib.suppress(IOError):
+        value = _from_file("/sys/devices/system/cpu/smt/control")
+        hw_lst.append(("cpu", "physical", "smt", value))
+
     for processor in range(int(lscpu["Socket(s)"])):
         ptag = "physical_{}".format(processor)
         try:
@@ -726,6 +731,7 @@ def get_cpus(hw_lst):
                                      ('family', 'CPU family', int),
                                      ('model', 'Model', _maybe_int),
                                      ('stepping', 'Stepping', _maybe_int),
+                                     ('architecture', 'Architecture', None),
                                      ('l1d cache', 'L1d cache', None),
                                      ('l1i cache', 'L1i cache', None),
                                      ('l2 cache', 'L2 cache', None),
@@ -733,7 +739,9 @@ def get_cpus(hw_lst):
                                      ('min_Mhz', 'CPU min MHz', float),
                                      ('max_Mhz', 'CPU max MHz', float),
                                      ('current_Mhz', 'CPU MHz', float),
-                                     ('flags', 'Flags', None)]:
+                                     ('flags', 'Flags', None),
+                                     ('threads_per_core', 'Thread(s) per core',
+                                      int)]:
             value = None
             if d_key in lscpu:
                 value = lscpu[d_key]
