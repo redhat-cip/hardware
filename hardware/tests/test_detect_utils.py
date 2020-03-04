@@ -13,7 +13,7 @@
 import unittest
 
 from hardware import detect_utils
-from hardware.tests.results import parse_ipmi_sdr
+from hardware.tests.results import detect_utils_results
 from hardware.tests.utils import sample
 
 
@@ -22,4 +22,4 @@ class TestDetectUtils(unittest.TestCase):
     def test_parse_ipmi_sdr(self):
         hw = []
         detect_utils.parse_ipmi_sdr(hw, sample('parse_ipmi_sdr').split('\n'))
-        self.assertEqual(hw, parse_ipmi_sdr.get_ipmi_sdr_result())
+        self.assertEqual(hw, detect_utils_results.IPMI_SDR_RESULT)
