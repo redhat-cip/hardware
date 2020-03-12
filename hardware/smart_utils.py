@@ -145,6 +145,8 @@ def read_smart_scsi(hwlst, device, optional_flag="", mode=""):
                          "drive_trip_temperature")
         read_smart_field(hwlst, line, device_name, "Manufactured in ",
                          "manufacture_date")
+        read_smart_field(hwlst, line, device_name, "Rotation Rate",
+                         "rotation_rate")
 
         for error_log in ["read", "write", "verify"]:
             if line.startswith("%s:" % error_log):
@@ -182,6 +184,10 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
 
         if read_smart_field(hwlst, line, device_name, "Firmware Version:",
                             "firmware_version"):
+            continue
+
+        if read_smart_field(hwlst, line, device_name, "Rotation Rate:",
+                            "rotation_rate"):
             continue
 
         if line.startswith("ID#"):
