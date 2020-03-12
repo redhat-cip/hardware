@@ -98,6 +98,15 @@ class TestSmartUtils(unittest.TestCase):
         self.assertEqual(hwlst, smart_utils_results.READ_SMART_ATA_RESULT)
 
     @mock.patch.object(subprocess, 'Popen')
+    def test_read_smart_ata_hdd(self, mock_popen):
+        hwlst = []
+        fake_output = sample('smartctl_ata_hdd', mode='rb').splitlines()
+        mock_popen.return_value = mock.Mock(stdout=fake_output)
+        smart_utils.read_smart_ata(hwlst, 'fake')
+
+        self.assertEqual(hwlst, smart_utils_results.READ_SMART_ATA_HDD_RESULT)
+
+    @mock.patch.object(subprocess, 'Popen')
     def test_read_smart_ata_decode_ignore(self, mock_popen):
         hwlst = []
         fake_output = sample('smartctl_ata_decode_ignore',
