@@ -25,15 +25,15 @@ class TestMegacliTest(unittest.TestCase):
     def setUp(self):
         def my_run(*args, **arr):
             return self.output
-        self.run = areca.run_areca
-        areca.run_areca = my_run
+        self.run = areca._run_areca
+        areca._run_areca = my_run
 
     def tearDown(self):
         areca.run = self.run
 
     def test_sys_info(self):
         self.output = sample('areca_sysinfo')
-        self.assertEqual(areca.sys_info(),
+        self.assertEqual(areca._sys_info(),
                          {'MainProcessor': 800,
                           'MainProcessor/unit': 'MHz',
                           'CpuIcacheSize': 32,
@@ -51,7 +51,7 @@ class TestMegacliTest(unittest.TestCase):
 
     def test_sys_showcfg(self):
         self.output = sample('areca_sys_showcfg')
-        self.assertEqual(areca.sys_showcfg(),
+        self.assertEqual(areca._sys_showcfg(),
                          {'SystemBeeperSetting': 'Enabled',
                           'BackgroundTaskPriority': 'High(80%)',
                           'Jbod/RaidConfiguration': 'JBOD',
@@ -74,7 +74,7 @@ class TestMegacliTest(unittest.TestCase):
 
     def test_adsys_info(self):
         self.output = sample('areca_adsysinfo')
-        self.assertEqual(areca.adsys_info(),
+        self.assertEqual(areca._adsys_info(),
                          {'TlerSetting': 7,
                           'TlerSetting/unit': 'Seconds',
                           'TimeoutSetting': 8,
@@ -98,7 +98,7 @@ class TestMegacliTest(unittest.TestCase):
 
     def test_hw_info(self):
         self.output = sample('areca_hw_info')
-        self.assertEqual(areca.hw_info(),
+        self.assertEqual(areca._hw_info(),
                          {'Enclosure1/12V': '12.220',
                           'Enclosure1/12V/unit': 'V',
                           'Enclosure1/3.3V': '3.328',
@@ -126,7 +126,7 @@ class TestMegacliTest(unittest.TestCase):
 
     def test_hddpwr_info(self):
         self.output = sample('areca_hddpwr_info')
-        self.assertEqual(areca.hdd_pwr_info(),
+        self.assertEqual(areca._hdd_pwr_info(),
                          {'StaggerPowerOnControl': '0.7',
                           'TimeToHddLowPowerIdle': 'Disabled',
                           'TimeToHddLowRpmMode': 'Disabled',
@@ -134,7 +134,7 @@ class TestMegacliTest(unittest.TestCase):
 
     def test_diskinfo(self):
         self.output = sample('areca_disks_info')
-        self.assertEqual(areca.disk_info(1),
+        self.assertEqual(areca._disk_info(1),
                          {'DeviceLocation': 'Enclosure#1 Slot#8',
                           'DeviceState': 'NORMAL',
                           'DeviceTemperature': 27,
@@ -153,9 +153,3 @@ class TestMegacliTest(unittest.TestCase):
                           'SmartSpinupRetries': '100(60)',
                           'SmartSpinupTime': '122(24)',
                           'TimeoutCount': 0})
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-# test_areca.py ends here
