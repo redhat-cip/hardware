@@ -12,19 +12,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Wrapper functions around the areca command.'''
+"""Wrapper functions around the areca command."""
 
 import re
 from subprocess import PIPE
 from subprocess import Popen
+import sys
 
-SEP_REGEXP = re.compile(r'\s*:\s*')
+SEP_REGEXP = re.compile(r"\s*:\s*")
 
 
-def split_units(lis):
-    'If the value have unit, remove it from the value and return the unit name'
-    for unit in ['RPM', '%', ' V', ' C', 'Seconds', 'Times', 'MHz', 'KB', 'MB',
-                 'GB']:
+def _split_units(lis):
+    """Return the unit name if it has a value associated."""
+    units = ['RPM', '%', ' V', ' C', 'Seconds',
+             'Times', 'MHz', 'KB', 'MB', 'GB']
+    for unit in units:
         match = re.search("(.*)%s$" % unit, lis[1])
         if match:
             lis[1] = match.group(1).replace(' ', '')
@@ -32,8 +34,8 @@ def split_units(lis):
     return None
 
 
-def parse_output(output, rev=False):
-    'Parse the output of the areca command into an associative array.'
+def _parse_output(output, rev=False):
+    """Parse the output of the areca command into an associative array."""
     res = {}
     append = ""
     if rev is True:
@@ -53,7 +55,7 @@ def parse_output(output, rev=False):
                 lis[0] = "%s%s" % (append, lis[0])
             if len(lis[1]) > 1 and lis[1][-1] == '.':
                 lis[1] = lis[1][:-1]
-            unit = split_units(lis)
+            unit = _split_units(lis)
             try:
                 res[lis[0].title().replace(' ', '')] = int(lis[1])
                 if unit:
@@ -65,8 +67,8 @@ def parse_output(output, rev=False):
     return res
 
 
-def split_parts(sep, output):
-    'Split the output string according to the regexp sep.'
+def _split_parts(sep, output):
+    """Split the output string according to the regexp sep."""
     regexp = re.compile(sep)
     lines = output.split('\n')
     idx = []
@@ -84,8 +86,8 @@ def split_parts(sep, output):
     return arr
 
 
-def run_areca(*args):
-    'Run the areca command in a subprocess and return the output.'
+def _run_areca(*args):
+    """Run the areca command in a subprocess and return the output."""
     cmd = 'cli64 ' + ' '.join(args)
     proc = Popen(cmd,
                  shell=True,
@@ -94,60 +96,98 @@ def run_areca(*args):
     return proc.communicate()[0]
 
 
-def run_and_parse(*args):
-    '''Run the areca command in a subprocess.
+def _run_and_parse(*args, rev=False):
+    """Run the areca command in a subprocess.
 
-Returns the output as an associative array.
-'''
-    res = run_areca(*args)
-    return parse_output(res)
-
-
-def run_and_parse_rev(*args):
-    '''Run the areca command in a subprocess.
-
-Returns the output as an associative array.
-'''
-    res = run_areca(*args)
-    return parse_output(res, rev=True)
+    Returns the output as an associative array.
+    """
+    res = _run_areca(*args)
+    return _parse_output(res, rev=rev)
 
 
-def adsys_info():
-    'Get advanced system info.'
-    arr = run_and_parse('adsys info')
+def _adsys_info():
+    """Get advanced system info."""
+    arr = _run_and_parse('adsys info')
     return arr
 
 
-def hw_info():
-    'Get hardware info.'
-    arr = run_and_parse_rev('hw info')
+def _hw_info():
+    """Get hardware info."""
+    arr = _run_and_parse('hw info', rev=True)
     return arr
 
 
-def sys_info():
-    'Get system info.'
-    arr = run_and_parse('sys info')
+def _sys_info():
+    """Get system info."""
+    arr = _run_and_parse('sys info')
     return arr
 
 
-def sys_showcfg():
-    'Get system configuration.'
-    arr = run_and_parse('sys showcfg')
+def _sys_showcfg():
+    """Get system configuration."""
+    arr = _run_and_parse('sys showcfg')
     return arr
 
 
-def hdd_pwr_info():
-    'Get hard disk power information.'
-    return run_and_parse('hddpwr info')
+def _hdd_pwr_info():
+    """Get hard disk power information."""
+    return _run_and_parse('hddpwr info')
 
 
-def disk_info(disk):
-    'Get hard disk information.'
-    output = run_and_parse('disk info drv=%d' % disk)
+def _disk_info(disk):
+    """Get hard disk information."""
+    output = _run_and_parse('disk info drv=%d' % disk)
     return output
 
 
-def disable_password():
-    'Command to temporarly disable password on the cli'
-    run_areca('set password=0000')
-# areca.py ends here
+def _disable_password():
+    """Command to temporarly disable password on the cli"""
+    _run_areca('set password=0000')
+
+
+def detect():
+    """Detect Areca controller configuration."""
+    hwlist = []
+    device = _sys_info()
+    if not device:
+        sys.stderr.write('Info: No Areca controller found\n')
+        return []
+    if "ControllerName" not in device.keys():
+        sys.stderr.write('Info: Cannot find Areca controller name\n')
+        return []
+
+    sys.stderr.write('Info: Areca controller found: %s version %s\n' %
+                     (device['ControllerName'], device['FirmwareVersion']))
+
+    _disable_password()
+
+    for info, value in device.items():
+        hwlist.append(('areca', 'system', info, value))
+
+    adsys = _adsys_info()
+    for info, value in adsys.items():
+        hwlist.append(('areca', 'system', info, value))
+
+    cfg = _sys_showcfg()
+    for info, value in cfg.items():
+        hwlist.append(('areca', 'config', info, value))
+
+    hw_info_out = _hw_info()
+    for info, value in hw_info_out.items():
+        hwlist.append(('areca', 'hardware', info, value))
+
+    pwr_info = _hdd_pwr_info()
+    for info, value in pwr_info.items():
+        hwlist.append(('areca', 'power', info, value))
+
+    for disk_number in range(1, 255):
+        disk_info_out = _disk_info(disk_number)
+        # If we don't have info about that disk, let's stop here
+        if len(disk_info_out) < 2:
+            break
+        # Extracting disk information
+        for info in disk_info_out:
+            hwlist.append(('areca', "disk%d" % disk_number, info,
+                           disk_info_out[info]))
+
+    return hwlist
