@@ -78,8 +78,9 @@ def _generate_values(pattern, prefix=_PREFIX):
             yield pattern
     elif isinstance(pattern, str):
         parts = pattern.split('.')
-        if (_IPV4_RANGE_REGEXP.search(pattern) and len(parts) == 4 and
-                (pattern.find(':') != -1 or pattern.find('-') != -1)):
+        if (_IPV4_RANGE_REGEXP.search(pattern)
+                and len(parts) == 4
+                and (pattern.find(':') != -1 or pattern.find('-') != -1)):
             gens = [_generate_range(part) for part in parts]
             for part0 in gens[0]:
                 for part1 in gens[1]:

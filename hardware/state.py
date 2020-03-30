@@ -190,8 +190,9 @@ Need to call unlock to release the lock.
     @staticmethod
     def _get_value(lines, spec, key):
         info = {}
-        if (matcher.match_spec(spec, lines, info) and key in info and
-                info[key][0] != '$'):
+        if (matcher.match_spec(spec, lines, info)
+                and key in info
+                and info[key][0] != '$'):
             return int(info[key])
         return None
 

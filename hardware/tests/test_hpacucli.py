@@ -152,15 +152,15 @@ class TestController(unittest.TestCase):
                                 )
 
     def test_ctrl_pd_all_show(self):
-        self.cli.process.before = ('ctrl slot=2 pd all show' +
-                                   CTRL_PD_ALL_SHOW_OUTPUT)
+        self.cli.process.before = ('ctrl slot=2 pd all show'
+                                   + CTRL_PD_ALL_SHOW_OUTPUT)
         return self.assertEqual(self.cli.ctrl_pd_all_show('slot=2'),
                                 CTRL_PD_ALL_SHOW_RESULT
                                 )
 
     def test_ctrl_ld_all_show(self):
-        self.cli.process.before = ('ctrl slot=2 ld all show' +
-                                   CTRL_LD_ALL_SHOW_OUTPUT)
+        self.cli.process.before = ('ctrl slot=2 ld all show'
+                                   + CTRL_LD_ALL_SHOW_OUTPUT)
         return self.assertEqual(self.cli.ctrl_ld_all_show('slot=2'),
                                 CTRL_LD_ALL_SHOW_RESULT
                                 )
@@ -174,9 +174,9 @@ class TestController(unittest.TestCase):
 
     @unittest.skip("WIP")
     def test_ctrl_create_ld(self):
-        self.cli.process.before = ('ctrl slot=2 ld 2 show' +
-                                   CTRL_LD_ALL_SHOW_OUTPUT +
-                                   CTRL_LD_SHOW_OUTPUT)
+        self.cli.process.before = ('ctrl slot=2 ld 2 show'
+                                   + CTRL_LD_ALL_SHOW_OUTPUT
+                                   + CTRL_LD_SHOW_OUTPUT)
         return self.assertEqual(
             self.cli.ctrl_create_ld('slot=2', ('2I:1:7', '2I:1:8'), '1'),
             '/dev/sda'

@@ -48,7 +48,7 @@ def parse_output(output, rev=False):
         if len(lis) == 2:
             if "GuiErrMsg" in lis[0]:
                 continue
-            match = re.search('\[(Enclosure#.*)', lis[0])
+            match = re.search(r"\[(Enclosure#.*)", lis[0])
             if match:
                 append = match.group(1).replace('#', '') + "/"
                 continue
