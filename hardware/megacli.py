@@ -176,7 +176,7 @@ def enc_info(ctrl):
     all_ = list(map(parse_output, parts))
     for entry in all_:
         for key in entry.keys():
-            if re.search('Enclosure\d+', key):
+            if re.search(r"Enclosure\d+", key):
                 entry['Enclosure'] = int(key[len('Enclosure'):])
                 del entry[key]
                 break

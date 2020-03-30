@@ -265,13 +265,12 @@ As a result, we do have a filename like :
 
     # Duplicate items as it will be modified by match_* functions
     hw_items = list(items)
-    sysvars = {}
-    sysvars['sysname'] = ''
+    sysvars = {'sysname': ''}
 
     if match_spec(('system', 'product', 'vendor', '$sysprodvendor'),
                   hw_items, sysvars):
-        sysvars['sysname'] += (re.sub(r'\W+', '', sysvars['sysprodvendor']) +
-                               '-')
+        sysvars['sysname'] += (re.sub(r'\W+', '',
+                                      sysvars['sysprodvendor']) + '-')
 
     if match_spec(('system', 'product', 'name', '$sysprodname'),
                   hw_items, sysvars):

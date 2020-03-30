@@ -171,7 +171,7 @@ def parse_ctrl_ld_show(output):
         # handle this kind of lines:
         # Disk Name: /dev/sda          Mount Points: None
         elif len(res) == 3:
-            middle = re.split('\s+', res[1].strip(), 1)
+            middle = re.split(r"\s+", res[1].strip(), 1)
             arr[res[0].strip()] = middle[0]
             arr[middle[1]] = res[2].strip()
     return arr

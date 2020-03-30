@@ -95,7 +95,7 @@ def run_fio(hw_lst, disks_list, mode, io_size, time, rampup_time):
         if ('MYJOB-' in line) and ('pid=' in line):
             # MYJOB-sda: (groupid=0, jobs=1): err= 0: pid=23652: Mon Sep  9
             # 16:21:42 2013
-            current_disk = re.search('MYJOB-(.*): \(groupid', line).group(1)
+            current_disk = re.search(r"MYJOB-(.*): \(groupid", line).group(1)
             continue
         if ("read : io=" in line) or ("write: io=" in line):
             # read : io=169756KB, bw=16947KB/s, iops=4230, runt= 10017msec

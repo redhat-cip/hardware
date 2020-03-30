@@ -321,8 +321,9 @@ def detect_ipmi(hw_lst):
     modprobe("ipmi_smb")
     modprobe("ipmi_si")
     modprobe("ipmi_devintf")
-    if (os.path.exists('/dev/ipmi0') or os.path.exists('/dev/ipmi/0') or
-            os.path.exists('/dev/ipmidev/0')):
+    if (os.path.exists('/dev/ipmi0')
+            or os.path.exists('/dev/ipmi/0')
+            or os.path.exists('/dev/ipmidev/0')):
         for channel in range(0, 16):
             status, _ = cmd('ipmitool channel info %d 2>&1 | grep -sq Volatile'
                             % channel)
@@ -527,10 +528,8 @@ def detect_system(hw_lst, output=None):
                         bank_count = bank_count + 1
                         for bank in elt.findall(".//node[@id='%s']" %
                                                 (bank_list.get('id'))):
-                            bank_id = bank_list.get('id').replace("bank:",
-                                                                  "bank" +
-                                                                  location +
-                                                                  ":")
+                            bank_id = bank_list.get('id').replace(
+                                "bank:", "bank" + location + ":")
                             find_element(bank, 'size', 'size',
                                          bank_id, 'memory')
                             find_element(bank, 'clock', 'clock',
@@ -748,8 +747,8 @@ def get_cpus(hw_lst):
                 if conv:
                     value = conv(value)
             elif t_key == 'threads':
-                value = (int(lscpu.get('Thread(s) per core', 1)) *
-                         int(lscpu.get('Core(s) per socket', 1)))
+                value = (int(lscpu.get('Thread(s) per core', 1))
+                         * int(lscpu.get('Core(s) per socket', 1)))
             if value is not None:
                 hw_lst.append(('cpu', ptag, t_key, value))
 
@@ -771,7 +770,7 @@ def get_cpus(hw_lst):
     # Allow for sparse numa nodes.
     numa_nodes = []
     for key in lscpux:
-        match = re.match('NUMA node(\d+) CPU\(s\)', key)
+        match = re.match(r"NUMA node(\d+) CPU\(s\)", key)
         if match:
             numa_nodes.append((key, int(match.groups()[0])))
     # NOTE(tonyb): Explicitly sort the list as prior to python 3.7? keys() did
