@@ -1,7 +1,4 @@
-#
 # Copyright (C) 2013-2014 eNovance SAS <licensing@enovance.com>
-#
-# Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,8 +13,7 @@
 # under the License.
 
 import unittest
-
-import mock
+from unittest import mock
 
 from hardware import detect
 from hardware.tests.results import detect_results

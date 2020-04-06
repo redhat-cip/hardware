@@ -12,8 +12,7 @@
 
 import subprocess
 import unittest
-
-import mock
+from unittest import mock
 
 from hardware import smart_utils
 from hardware.tests.results import smart_utils_results
