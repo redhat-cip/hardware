@@ -17,8 +17,7 @@
 
 import subprocess
 import unittest
-
-import mock
+from unittest import mock
 
 from hardware.benchmark import cpu
 from hardware.benchmark import utils

@@ -1,7 +1,4 @@
-#
 # Copyright (C) 2014-2015 eNovance SAS <licensing@enovance.com>
-#
-# Author: Frederic Lepied <frederic.lepied@enovance.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,17 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''
-'''
-
 import errno
 import logging
 import os
 import pprint
 import shutil
 
-# generate must be exposed for eval to work correctly in load_cmdb
-from hardware.generate import is_included  # noqa
+from hardware.generate import is_included
 
 LOG = logging.getLogger('hardware.cmdb')
 

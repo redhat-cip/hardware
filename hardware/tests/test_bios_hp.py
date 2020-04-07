@@ -1,7 +1,4 @@
-#
 # Copyright (C) 2019 Criteo
-#
-# Author: Erwan Velu <e.velu@criteo.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,12 +12,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import unittest
+from unittest import mock
+
 from hardware import bios_hp
 from hardware.tests.utils import sample
-
-import mock
-
-import unittest
 
 
 class TestBiosHP(unittest.TestCase):
