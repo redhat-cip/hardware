@@ -1,9 +1,4 @@
 language: python
-addons:
-  apt:
-    packages:
-    - bc
-    - findutils
 sudo: false
 dist: bionic
 python:
@@ -13,7 +8,6 @@ python:
 env:
   - TOXENV=$(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
   - TOXENV=pep8
-  - TOXENV=pylint
   - TOXENV=cover
   - TOXENV=docs
 install:
