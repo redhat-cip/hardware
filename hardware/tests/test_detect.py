@@ -28,18 +28,6 @@ from hardware.tests.utils import sample
             lambda *args, **kwargs: [])
 class TestDetect(unittest.TestCase):
 
-    def test_size_in_gb(self):
-        self.assertEqual(detect.size_in_gb('100 GB'), '100')
-
-    def test_size_in_tb(self):
-        self.assertEqual(detect.size_in_gb('100TB'), '100000')
-
-    def test_size_in_dottb(self):
-        self.assertEqual(detect.size_in_gb('3.4601 TB'), '3460')
-
-    def test_size_in_nothing(self):
-        self.assertEqual(detect.size_in_gb('100'), '100')
-
     def test_get_cidr(self):
         self.assertEqual(detect.get_cidr('255.255.0.0'), '16')
 
@@ -155,7 +143,7 @@ class TestDetect(unittest.TestCase):
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('hardware.detect.cmd',
+    @mock.patch('hardware.detect_utils.cmd',
                 return_value=(0, sample('dmesg')),
                 autospec=True)
     def test_parse_dmesg(self, mock_cmd):

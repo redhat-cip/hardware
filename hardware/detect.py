@@ -37,8 +37,6 @@ from hardware.benchmark import disk as bm_disk
 from hardware.benchmark import mem as bm_mem
 from hardware import bios_hp
 from hardware import detect_utils
-from hardware.detect_utils import cmd
-from hardware.detect_utils import which
 from hardware import diskinfo
 from hardware import hpacucli
 from hardware import infiniband as ib
@@ -52,22 +50,6 @@ AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
               "AT_FLAGS", "AT_PLATFORM"]
 # These flags may or not be present on a particular arch
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
-
-
-def size_in_gb(size):
-    'Return the size in GB without the unit.'
-    ret = size.replace(' ', '')
-    if ret[-2:] == 'GB':
-        return ret[:-2]
-
-    if ret[-2:] == 'TB':
-        # some size are provided in x.y GB
-        # we need to compute the size in TB by
-        # considering the input as a float to be
-        # multiplied by 1000
-        return str(int(float(ret[:-2]) * 1000))
-
-    return ret
 
 
 def detect_hpa(hw_lst):
@@ -106,7 +88,8 @@ def detect_hpa(hw_lst):
                     for disk_info in disk_infos.keys():
                         value = disk_infos[disk_info]
                         if disk_info == "size":
-                            value = size_in_gb(disk_infos[disk_info])
+                            value = detect_utils.size_in_gb(
+                                disk_infos[disk_info])
                             global_pdisk_size = (
                                 global_pdisk_size + float(value))
                         hw_lst.append(('disk', disk[0], disk_info,
@@ -168,9 +151,9 @@ def detect_megacli(hw_lst):
                                    'id',
                                    '%s:%d' % (info['EnclosureDeviceId'],
                                               slot_num)))
-                    disk_size = size_in_gb("%s %s" %
-                                           (info['CoercedSize'].split()[0],
-                                            info['CoercedSize'].split()[1]))
+                    disk_size = detect_utils.size_in_gb(
+                        "%s %s" % (info['CoercedSize'].split()[0],
+                                   info['CoercedSize'].split()[1]))
                     global_pdisk_size = global_pdisk_size + float(disk_size)
                     hw_lst.append(('pdisk',
                                    disk,
@@ -223,10 +206,11 @@ def detect_megacli(hw_lst):
                                            item,
                                            str(info[item])))
                     if 'Size' in info:
-                        hw_lst.append(('ldisk',
-                                       disk,
-                                       'Size',
-                                       size_in_gb(info['Size'])))
+                        hw_lst.append(
+                            ('ldisk',
+                             disk,
+                             'Size',
+                             detect_utils.size_in_gb(info['Size'])))
         hw_lst.append(('disk', 'megaraid', 'count', str(disk_count)))
         return True
     else:
@@ -251,7 +235,7 @@ def detect_disks(hw_lst):
 
         # smartctl support
         # run only if smartctl command is there
-        if which("smartctl"):
+        if detect_utils.which("smartctl"):
             if name.startswith('nvme'):
                 sys.stderr.write('Reading SMART for nvme\n')
                 smart_utils.read_smart_nvme(hw_lst, name)
@@ -263,7 +247,7 @@ def detect_disks(hw_lst):
 
 def modprobe(module):
     'Load a kernel module using modprobe.'
-    status, _ = cmd('modprobe %s' % module)
+    status, _ = detect_utils.cmd('modprobe %s' % module)
     if status == 0:
         sys.stderr.write('Info: Probing %s failed\n' % module)
 
@@ -277,19 +261,19 @@ def detect_ipmi(hw_lst):
             or os.path.exists('/dev/ipmi/0')
             or os.path.exists('/dev/ipmidev/0')):
         for channel in range(0, 16):
-            status, _ = cmd('ipmitool channel info %d 2>&1 | grep -sq Volatile'
-                            % channel)
+            status, _ = detect_utils.cmd(
+                'ipmitool channel info %d 2>&1 | grep -sq Volatile' % channel)
             if status == 0:
                 hw_lst.append(('system', 'ipmi', 'channel', '%s' % channel))
                 break
-        status, output = cmd('ipmitool lan print')
+        status, output = detect_utils.cmd('ipmitool lan print')
         if status == 0:
             ipmi.parse_lan_info(output, hw_lst)
 
         return True
 
     # do we need a fake ipmi device for testing purpose ?
-    status, _ = cmd('grep -qi FAKEIPMI /proc/cmdline')
+    status, _ = detect_utils.cmd('grep -qi FAKEIPMI /proc/cmdline')
     if status == 0:
         # Yes ! So let's create a fake entry
         hw_lst.append(('system', 'ipmi-fake', 'channel', '0'))
@@ -315,7 +299,8 @@ def detect_infiniband(hw_lst):
     This pci device shall be from vendor Mellanox (15b3) from class 0280
     Class 280 stands for a Network Controller while ethernet device are 0200.
     """
-    status, _ = cmd("lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
+    status, _ = detect_utils.cmd(
+        "lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
     if status != 0:
         sys.stderr.write('Info: No Infiniband device found\n')
         return False
@@ -427,7 +412,7 @@ def detect_system(hw_lst, output=None):
     if output:
         status = 0
     else:
-        status, output = cmd('lshw -xml')
+        status, output = detect_utils.cmd('lshw -xml')
     if status == 0:
         mobo_id = ''
         nic_id = ''
@@ -550,7 +535,7 @@ def detect_system(hw_lst, output=None):
                 # devices Let's workaround it with an ip command.
                 if name.text.startswith('ib'):
                     cmds = "ip addr show %s | grep link | awk '{print $2}'"
-                    status_ip, output_ip = cmd(cmds % name.text)
+                    status_ip, output_ip = detect_utils.cmd(cmds % name.text)
                     if status_ip == 0:
                         hw_lst.append(('network',
                                        name.text,
@@ -885,7 +870,7 @@ def parse_ahci(hrdw, words):
 def parse_dmesg(hrdw):
     """Run dmesg and parse the output."""
 
-    _, output = cmd("dmesg")
+    _, output = detect_utils.cmd("dmesg")
     for line in output.split('\n'):
         words = line.strip().split(" ")
 
