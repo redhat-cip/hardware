@@ -52,59 +52,6 @@ AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
 
 
-def detect_hpa(hw_lst):
-    'Detect HP RAID controller configuration.'
-    disk_count = 0
-    try:
-        cli = hpacucli.Cli(debug=False)
-        if not cli.launch():
-            return False
-        controllers = cli.ctrl_all_show()
-        if not controllers:
-            sys.stderr.write("Info: No hpa controller found\n")
-            return False
-
-    except hpacucli.Error as expt:
-        sys.stderr.write('Info: detect_hpa : %s\n' % expt.value)
-        return False
-
-    hw_lst.append(('hpa', "slots", "count", str(len(controllers))))
-    global_pdisk_size = 0
-    for controller in controllers:
-        try:
-            slot = 'slot=%d' % controller[0]
-            controllers_infos = cli.ctrl_show(slot)
-            for controller_info in controllers_infos.keys():
-                hw_lst.append(('hpa', slot.replace('=', '_'),
-                               controller_info,
-                               controllers_infos[controller_info]))
-            for _, disks in cli.ctrl_pd_all_show(slot):
-                for disk in disks:
-                    disk_count += 1
-                    hw_lst.append(('disk', disk[0], 'type', disk[1]))
-                    hw_lst.append(('disk', disk[0], 'slot',
-                                   str(controller[0])))
-                    disk_infos = cli.ctrl_pd_disk_show(slot, disk[0])
-                    for disk_info in disk_infos.keys():
-                        value = disk_infos[disk_info]
-                        if disk_info == "size":
-                            value = detect_utils.size_in_gb(
-                                disk_infos[disk_info])
-                            global_pdisk_size = (
-                                global_pdisk_size + float(value))
-                        hw_lst.append(('disk', disk[0], disk_info,
-                                       value))
-        except hpacucli.Error as expt:
-            sys.stderr.write('Info: detect_hpa : controller %d : %s\n'
-                             % (controller[0], expt.value))
-
-    if global_pdisk_size > 0:
-        hw_lst.append(('disk', 'hpa', 'size', "%.2f" % global_pdisk_size))
-
-    hw_lst.append(('disk', 'hpa', 'count', str(disk_count)))
-    return True
-
-
 def detect_megacli(hw_lst):
     'Detect LSI MegaRAID controller configuration.'
     ctrl_num = megacli.adp_count()
@@ -928,7 +875,7 @@ def main():
 
     hrdw = []
     hrdw.append(areca.detect())
-    detect_hpa(hrdw)
+    hrdw.append(hpacucli.detect())
     detect_megacli(hrdw)
     detect_disks(hrdw)
     if not detect_system(hrdw):
