@@ -23,3 +23,15 @@ class TestDetectUtils(unittest.TestCase):
         hw = []
         detect_utils.parse_ipmi_sdr(hw, sample('parse_ipmi_sdr').split('\n'))
         self.assertEqual(hw, detect_utils_results.IPMI_SDR_RESULT)
+
+    def test_size_in_gb(self):
+        self.assertEqual(detect_utils.size_in_gb('100 GB'), '100')
+
+    def test_size_in_tb(self):
+        self.assertEqual(detect_utils.size_in_gb('100TB'), '100000')
+
+    def test_size_in_dottb(self):
+        self.assertEqual(detect_utils.size_in_gb('3.4601 TB'), '3460')
+
+    def test_size_in_nothing(self):
+        self.assertEqual(detect_utils.size_in_gb('100'), '100')

@@ -203,3 +203,19 @@ def ipmi_sdr(hrdw):
                                 stdout=subprocess.PIPE,
                                 universal_newlines=True)
     parse_ipmi_sdr(hrdw, ipmi_cmd.stdout)
+
+
+def size_in_gb(size):
+    """Return the size in GB without the unit."""
+    result = size.replace(' ', '')
+    if result[-2:] == 'GB':
+        return result[:-2]
+
+    elif result[-2:] == 'TB':
+        # some size are provided in x.y GB
+        # we need to compute the size in TB by
+        # considering the input as a float to be
+        # multiplied by 1000
+        return str(int(float(result[:-2]) * 1000))
+
+    return result
