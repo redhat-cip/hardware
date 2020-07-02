@@ -52,118 +52,6 @@ AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
 
 
-def detect_megacli(hw_lst):
-    'Detect LSI MegaRAID controller configuration.'
-    ctrl_num = megacli.adp_count()
-    disk_count = 0
-    global_pdisk_size = 0
-    if ctrl_num > 0:
-        for ctrl in range(ctrl_num):
-            ctrl_info = megacli.adp_all_info(ctrl)
-            for entry in ctrl_info.keys():
-                hw_lst.append(('megaraid', 'Controller_%d' % (ctrl),
-                               '%s' % entry, '%s' % ctrl_info[entry]))
-
-            for enc in megacli.enc_info(ctrl):
-                if "Enclosure" in enc.keys():
-                    for key in enc.keys():
-                        if "ExitCode" in key or "Enclosure" in key:
-                            continue
-                        hw_lst.append(('megaraid',
-                                       'Controller_%d/Enclosure_%s' %
-                                       (ctrl, enc["Enclosure"]),
-                                       '%s' % key, '%s' % enc[key]))
-
-                for slot_num in range(enc['NumberOfSlots']):
-                    disk = 'disk%d' % slot_num
-                    info = megacli.pdinfo(ctrl,
-                                          enc['DeviceId'],
-                                          slot_num)
-
-                    # If no PdType, it means that's not a disk
-                    if 'PdType' not in info.keys():
-                        continue
-
-                    disk_count += 1
-                    hw_lst.append(('pdisk',
-                                   disk,
-                                   'ctrl',
-                                   str(ctrl_num)))
-                    hw_lst.append(('pdisk',
-                                   disk,
-                                   'type',
-                                   info['PdType']))
-                    hw_lst.append(('pdisk',
-                                   disk,
-                                   'id',
-                                   '%s:%d' % (info['EnclosureDeviceId'],
-                                              slot_num)))
-                    disk_size = detect_utils.size_in_gb(
-                        "%s %s" % (info['CoercedSize'].split()[0],
-                                   info['CoercedSize'].split()[1]))
-                    global_pdisk_size = global_pdisk_size + float(disk_size)
-                    hw_lst.append(('pdisk',
-                                   disk,
-                                   'size',
-                                   disk_size))
-
-                    for key in info.keys():
-                        ignore_list = ['PdType', 'EnclosureDeviceId',
-                                       'CoercedSize', 'ExitCode']
-                        if key not in ignore_list:
-                            if "DriveTemperature" in key:
-                                if "C" in str(info[key].split()[0]):
-                                    pdisk = info[key].split()[0].split("C")[0]
-                                    hw_lst.append(('pdisk', disk, key,
-                                                   str(pdisk).strip()))
-                                    hw_lst.append(('pdisk', disk,
-                                                   "%s_units" % key,
-                                                   "Celsius"))
-                                else:
-                                    hw_lst.append(('pdisk', disk, key,
-                                                   str(info[key]).strip()))
-
-                            elif "InquiryData" in key:
-                                count = 0
-                                for mystring in info[key].split():
-                                    hw_lst.append(('pdisk', disk,
-                                                   "%s[%d]" % (key, count),
-                                                   str(mystring.strip())))
-                                    count = count + 1
-
-                            else:
-                                hw_lst.append(('pdisk', disk, key,
-                                               str(info[key]).strip()))
-
-                if global_pdisk_size > 0:
-                    hw_lst.append(('pdisk',
-                                   'all',
-                                   'size',
-                                   "%.2f" % global_pdisk_size))
-
-                for ld_num in range(megacli.ld_get_num(ctrl)):
-                    disk = 'disk%d' % ld_num
-                    info = megacli.ld_get_info(ctrl, ld_num)
-                    ignore_list = ['Size']
-
-                    for item in info.keys():
-                        if item not in ignore_list:
-                            hw_lst.append(('ldisk',
-                                           disk,
-                                           item,
-                                           str(info[item])))
-                    if 'Size' in info:
-                        hw_lst.append(
-                            ('ldisk',
-                             disk,
-                             'Size',
-                             detect_utils.size_in_gb(info['Size'])))
-        hw_lst.append(('disk', 'megaraid', 'count', str(disk_count)))
-        return True
-    else:
-        return False
-
-
 def detect_disks(hw_lst):
     """Detect disks."""
 
@@ -876,7 +764,7 @@ def main():
     hrdw = []
     hrdw.append(areca.detect())
     hrdw.append(hpacucli.detect())
-    detect_megacli(hrdw)
+    hrdw.append(megacli.detect())
     detect_disks(hrdw)
     if not detect_system(hrdw):
         sys.exit(1)
