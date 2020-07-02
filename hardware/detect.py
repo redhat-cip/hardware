@@ -43,41 +43,13 @@ from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
 from hardware import rtc
-from hardware import smart_utils
+
 
 SIOCGIFNETMASK = 0x891b
 AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
               "AT_FLAGS", "AT_PLATFORM"]
 # These flags may or not be present on a particular arch
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
-
-
-def detect_disks(hw_lst):
-    """Detect disks."""
-
-    names = diskinfo.disknames()
-    sizes = diskinfo.disksizes(names)
-    disks = [name for name, size in sizes.items() if size > 0]
-    hw_lst.append(('disk', 'logical', 'count', str(len(disks))))
-    for name in disks:
-        diskinfo.get_disk_info(name, sizes, hw_lst)
-
-        # nvme devices do not need standard cache mechanisms
-        if not name.startswith('nvme'):
-            diskinfo.get_disk_cache(name, hw_lst)
-
-        diskinfo.get_disk_id(name, hw_lst)
-
-        # smartctl support
-        # run only if smartctl command is there
-        if detect_utils.which("smartctl"):
-            if name.startswith('nvme'):
-                sys.stderr.write('Reading SMART for nvme\n')
-                smart_utils.read_smart_nvme(hw_lst, name)
-            else:
-                smart_utils.read_smart(hw_lst, "/dev/%s" % name)
-        else:
-            sys.stderr.write("Cannot find smartctl, exiting\n")
 
 
 def modprobe(module):
@@ -762,10 +734,12 @@ def main():
     args = parse_args(sys.argv[1:])
 
     hrdw = []
+
     hrdw.append(areca.detect())
     hrdw.append(hpacucli.detect())
     hrdw.append(megacli.detect())
-    detect_disks(hrdw)
+    hrdw.append(diskinfo.detect())
+
     if not detect_system(hrdw):
         sys.exit(1)
     detect_ipmi(hrdw)

@@ -16,7 +16,8 @@ import os
 import re
 import sys
 
-from hardware.detect_utils import cmd
+from hardware import detect_utils
+from hardware import smart_utils
 
 
 def sizeingb(size):
@@ -123,22 +124,40 @@ def parse_hdparm_output(output):
 
 
 def diskperfs(names):
-    return dict((name, parse_hdparm_output(cmd('hdparm -t /dev/%s' % name)))
-                for name in names)
+    return dict((name, parse_hdparm_output(
+        detect_utils.cmd('hdparm -t /dev/%s' % name))) for name in names)
 
 
 def disksizes(names):
     return dict((name, disksize(name)) for name in names)
 
 
-def _main():
+def detect():
+    """Detect disks."""
+
+    hw_lst = []
     names = disknames()
     sizes = disksizes(names)
-    names = [name for name, size in sizes.items() if size > 0]
-    perfs = diskperfs(names)
-    for name in names:
-        print('%s %d GB (%.2f MB/s)' % (name, sizes[name], perfs[name]))
+    disks = [name for name, size in sizes.items() if size > 0]
+    hw_lst.append(('disk', 'logical', 'count', str(len(disks))))
+    for name in disks:
+        get_disk_info(name, sizes, hw_lst)
 
+        # nvme devices do not need standard cache mechanisms
+        if not name.startswith('nvme'):
+            get_disk_cache(name, hw_lst)
 
-if __name__ == "__main__":
-    _main()
+        get_disk_id(name, hw_lst)
+
+        # smartctl support
+        # run only if smartctl command is there
+        if detect_utils.which("smartctl"):
+            if name.startswith('nvme'):
+                sys.stderr.write('Reading SMART for nvme\n')
+                smart_utils.read_smart_nvme(hw_lst, name)
+            else:
+                smart_utils.read_smart(hw_lst, "/dev/%s" % name)
+        else:
+            sys.stderr.write("Cannot find smartctl, exiting\n")
+
+    return hw_lst
