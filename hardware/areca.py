@@ -190,4 +190,9 @@ def detect():
             hwlist.append(('areca', "disk%d" % disk_number, info,
                            disk_info_out[info]))
 
-    return hwlist
+    if len(hwlist):
+        return hwlist
+
+    # If we dont't detect any areca controller, return None
+    # This avoid having empty lists
+    return None

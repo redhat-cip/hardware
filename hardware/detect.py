@@ -927,8 +927,7 @@ def main():
     args = parse_args(sys.argv[1:])
 
     hrdw = []
-    areca_hrdw = areca.detect()
-    hrdw.append(areca_hrdw)
+    hrdw.append(areca.detect())
     detect_hpa(hrdw)
     detect_megacli(hrdw)
     detect_disks(hrdw)
@@ -954,6 +953,8 @@ def main():
                               destructive=args.benchmark_disk_destructive)
 
     hrdw = clean_tuples(hrdw)
+
+    hrdw = list(filter(None, hrdw))
 
     if args.human:
         pprint.pprint(hrdw)
