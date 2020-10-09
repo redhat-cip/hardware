@@ -221,15 +221,6 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(detect._get_value(hwl, 'system', 'product', 'serial'),
                          'mobo')
 
-    def test_clean_str(self):
-        self.assertEqual(detect.clean_str(b'\x8f' * 4), u'\ufffd' * 4)
-
-    def test_clean_tuples(self):
-        self.assertEqual(
-            detect.clean_tuples([(b'\x8f' * 4, b'\x8f' * 4,
-                                  b'h\xc3\xa9llo', 1)]),
-            [(u'\ufffd' * 4, u'\ufffd' * 4, u'h\xe9llo', 1)])
-
     @mock.patch.object(detect, 'Popen')
     @mock.patch('os.environ.copy')
     def test_detect_auxv_x86_succeed(self, mock_environ_copy, mock_popen):

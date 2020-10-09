@@ -35,3 +35,12 @@ class TestDetectUtils(unittest.TestCase):
 
     def test_size_in_nothing(self):
         self.assertEqual(detect_utils.size_in_gb('100'), '100')
+
+    def test_clean_str(self):
+        self.assertEqual(detect_utils.clean_str(b'\x8f' * 4), u'\ufffd' * 4)
+
+    def test_clean_tuples(self):
+        self.assertEqual(
+            detect_utils.clean_tuples([(b'\x8f' * 4, b'\x8f' * 4,
+                                        b'h\xc3\xa9llo', 1)]),
+            [(u'\ufffd' * 4, u'\ufffd' * 4, u'h\xe9llo', 1)])
