@@ -19,7 +19,7 @@ import sys
 
 
 def cmd(cmdline):
-    'Equivalent of commands.getstatusoutput'
+    """Equivalent of commands.getstatusoutput"""
     try:
         return 0, subprocess.check_output(cmdline,
                                           shell=True, universal_newlines=True)
@@ -28,7 +28,7 @@ def cmd(cmdline):
 
 
 def output_lines(cmdline):
-    "Run a shell command and returns the output as lines."
+    """Run a shell command and returns the output as lines."""
     proc = subprocess.Popen(cmdline, shell=True, stdout=subprocess.PIPE,
                             universal_newlines=True)
     stdout = proc.communicate()[0]
@@ -130,7 +130,7 @@ def which(program):
 
 
 def get_ddr_timing(hw_):
-    'Report the DDR timings'
+    """Report the DDR timings"""
     sys.stderr.write('Reporting DDR Timings\n')
     found = False
     ddrprocess = subprocess.Popen('ddr-timings-%s' % platform.machine(),
@@ -219,3 +219,15 @@ def size_in_gb(size):
         return str(int(float(result[:-2]) * 1000))
 
     return result
+
+
+def clean_str(val):
+    """Cleanup a bad string (invalid UTF-8 encoding)."""
+    if isinstance(val, bytes):
+        val = val.decode('UTF-8', 'replace')
+    return val
+
+
+def clean_tuples(lst):
+    """Clean a list of tuples from bad UTF-8 strings."""
+    return [tuple([clean_str(val) for val in elt]) for elt in lst]

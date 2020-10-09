@@ -691,18 +691,6 @@ def parse_dmesg(hrdw):
             parse_ahci(hrdw, words)
 
 
-def clean_str(val):
-    """Cleanup a bad string (invalid UTF-8 encoding)."""
-    if isinstance(val, bytes):
-        val = val.decode('UTF-8', 'replace')
-    return val
-
-
-def clean_tuples(lst):
-    """Clean a list of tuples from bad UTF-8 strings."""
-    return [tuple([clean_str(val) for val in elt]) for elt in lst]
-
-
 def parse_args(arguments):
     """Arguments parser."""
 
@@ -761,7 +749,7 @@ def main():
             bm_disk.disk_perf(hrdw,
                               destructive=args.benchmark_disk_destructive)
 
-    hrdw = clean_tuples(hrdw)
+    hrdw = detect_utils.clean_tuples(hrdw)
 
     hrdw = list(filter(None, hrdw))
 
