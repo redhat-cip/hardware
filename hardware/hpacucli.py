@@ -322,15 +322,15 @@ def detect():
     try:
         cli = Cli(debug=False)
         if not cli.launch():
-            return False
+            return hwlist
         controllers = cli.ctrl_all_show()
         if not controllers:
             sys.stderr.write('Info: No hpa controller found\n')
-            return False
+            return hwlist
 
     except Error as expt:
         sys.stderr.write('Info: detect_hpa : %s\n' % expt.value)
-        return False
+        return hwlist
 
     hwlist.append(('hpa', 'slots', 'count', str(len(controllers))))
     global_pdisk_size = 0
