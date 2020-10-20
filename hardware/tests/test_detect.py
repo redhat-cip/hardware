@@ -154,7 +154,7 @@ class TestDetect(unittest.TestCase):
                                'ncq part pio slum sntf')])
 
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
-    @mock.patch('hardware.detect.get_uuid',
+    @mock.patch('hardware.detect_utils.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
     @mock.patch('hardware.detect.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
@@ -171,7 +171,7 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(result, detect_results.DETECT_SYSTEM3_RESULT)
 
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
-    @mock.patch('hardware.detect.get_uuid',
+    @mock.patch('hardware.detect_utils.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
     @mock.patch('hardware.detect.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
@@ -188,7 +188,7 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(result, detect_results.DETECT_SYSTEM2_RESULT)
 
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 7))
-    @mock.patch('hardware.detect.get_uuid',
+    @mock.patch('hardware.detect_utils.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
     @mock.patch('hardware.detect.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
@@ -274,51 +274,3 @@ class TestDetect(unittest.TestCase):
         for k in ppc_flags:
             t = ('hw', 'auxv', test_data[k][0], test_data[k][1])
             self.assertTrue(t in hw)
-
-    @mock.patch.object(detect, 'Popen')
-    @mock.patch('os.uname', return_value=('', '', '', '', 'x86_64'))
-    def test_get_uuid_x86_64(self, mock_uname, mock_popen):
-        # This is more complex and 'magic' than I'd like :/
-        process_mock = mock.Mock()
-        attrs = {'communicate.return_value': ('83462C81-52BA-11CB-870F', '')}
-        process_mock.configure_mock(**attrs)
-        mock_popen.return_value = process_mock
-
-        hw_list = []
-        system_uuid = detect.get_uuid(hw_list)
-        mock_popen.assert_has_calls([
-            mock.call("dmidecode -t 1 | grep UUID | " "awk '{print $2}'",
-                      shell=True, stdout=detect.PIPE,
-                      universal_newlines=True)])
-        self.assertEqual('83462C81-52BA-11CB-870F', system_uuid)
-
-    @mock.patch('os.uname', return_value=('', '', '', '', 'ppc64le'))
-    @mock.patch('os.access', return_value=True)
-    def test_get_uuid_ppc64le_ok_generate(self, mock_access, mock_uname):
-        expected_uuid = 'a2724b67-c27e-5e5f-aa2b-3089a2bd8f41'
-        fileobj = mock.mock_open(read_data=expected_uuid)
-        with mock.patch('builtins.open', fileobj, create=True):
-            uuid = detect.get_uuid([])
-        self.assertEqual(expected_uuid, uuid)
-
-    @mock.patch('os.uname', return_value=('', '', '', '', 'ppc64le'))
-    def test_get_uuid_ppc64le_ok_read(self, mock_uname):
-        hw_list = [('sys_cls', 'sys_type', 'vendor', 'IBM'),
-                   ('sys_cls', 'sys_type', 'serial', '1234567A')]
-        self.assertEqual('a2724b67-c27e-5e5f-aa2b-3089a2bd8f41',
-                         detect.get_uuid(hw_list))
-
-    @mock.patch('os.uname', return_value=('', '', '', '', 'ppc64le'))
-    def test_get_uuid_ppc64le_missing_serial(self, mock_uname):
-        hw_list = [('sys_cls', 'sys_type', 'vendor', 'IBM')]
-        self.assertIsNone(detect.get_uuid(hw_list))
-
-    @mock.patch('os.uname', return_value=('', '', '', '', 'ppc64le'))
-    def test_get_uuid_ppc64le_missing_vendor(self, mock_uname):
-        hw_list = [('sys_cls', 'sys_type', 'serial', '1234567A')]
-        self.assertIsNone(detect.get_uuid(hw_list))
-
-    @mock.patch('os.uname', return_value=('', '', '', '', 'ppc64le'))
-    def test_get_uuid_ppc64le_no_hw_list(self, mock_uname):
-        hw_list = []
-        self.assertIsNone(detect.get_uuid(hw_list))
