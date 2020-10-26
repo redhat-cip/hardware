@@ -16,6 +16,7 @@ import unittest
 from unittest import mock
 
 from hardware import detect
+from hardware import detect_utils
 from hardware.tests.results import detect_results
 from hardware.tests.utils import sample
 
@@ -28,10 +29,7 @@ from hardware.tests.utils import sample
             lambda *args, **kwargs: [])
 class TestDetect(unittest.TestCase):
 
-    def test_get_cidr(self):
-        self.assertEqual(detect.get_cidr('255.255.0.0'), '16')
-
-    @mock.patch('hardware.detect._from_file', side_effect=IOError())
+    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu').split('\n'),
@@ -55,7 +53,7 @@ class TestDetect(unittest.TestCase):
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('hardware.detect._from_file', side_effect=IOError())
+    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu-7302').split('\n'),
@@ -66,7 +64,7 @@ class TestDetect(unittest.TestCase):
         detect.get_cpus(hw)
         self.assertEqual(hw, detect_results.GET_CPUS_7302_RESULT)
 
-    @mock.patch('hardware.detect._from_file', side_effect=IOError())
+    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu-vm').split('\n'),
@@ -92,7 +90,7 @@ class TestDetect(unittest.TestCase):
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('hardware.detect._from_file', side_effect=IOError())
+    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu_aarch64').split('\n'),
@@ -119,7 +117,7 @@ class TestDetect(unittest.TestCase):
         # permissive.  We want an exact match
         self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
-    @mock.patch('hardware.detect._from_file', side_effect=IOError())
+    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     sample('lscpu_ppc64le').split('\n'),
@@ -205,21 +203,17 @@ class TestDetect(unittest.TestCase):
         detect.detect_system(result, sample('lshw'))
         self.assertEqual(result, detect_results.DETECT_SYSTEM_RESULT)
 
-    def test_get_value(self):
-        self.assertEqual(detect._get_value([('a', 'b', 'c', 'd')],
-                                           'a', 'b', 'c'), 'd')
-
     def test_fix_bad_serial_zero(self):
         hwl = [('system', 'product', 'serial', '0000000000')]
         detect.fix_bad_serial(hwl, 'uuid', '', '')
-        self.assertEqual(detect._get_value(hwl, 'system', 'product', 'serial'),
-                         'uuid')
+        self.assertEqual(detect_utils.get_value(
+            hwl, 'system', 'product', 'serial'), 'uuid')
 
     def test_fix_bad_serial_mobo(self):
         hwl = [('system', 'product', 'serial', '0123456789')]
         detect.fix_bad_serial(hwl, '', 'mobo', '')
-        self.assertEqual(detect._get_value(hwl, 'system', 'product', 'serial'),
-                         'mobo')
+        self.assertEqual(detect_utils.get_value(
+            hwl, 'system', 'product', 'serial'), 'mobo')
 
     @mock.patch.object(detect, 'Popen')
     @mock.patch('os.environ.copy')

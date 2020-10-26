@@ -90,14 +90,6 @@ def detect_ipmi(hw_lst):
     return False
 
 
-def get_cidr(netmask):
-    """Convert a netmask to a CIDR."""
-    binary_str = ''
-    for octet in netmask.split('.'):
-        binary_str += bin(int(octet))[2:].zfill(8)
-    return str(len(binary_str.rstrip('0')))
-
-
 def detect_infiniband(hw_lst):
     """Detect Infiniband devices.
 
@@ -147,13 +139,6 @@ def detect_infiniband(hw_lst):
             hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
                            'port_guid', ib_port_infos['port_guid']))
     return True
-
-
-def _get_value(hw_lst, *vect):
-    for i in hw_lst:
-        if i[0:3] == vect:
-            return i[3]
-    return ''
 
 
 def detect_system(hw_lst, output=None):
@@ -207,7 +192,8 @@ def detect_system(hw_lst, output=None):
                 find_element(elt, 'version', 'version', 'motherboard',
                              'system')
                 find_element(elt, 'serial', 'serial', 'motherboard', 'system')
-                mobo_id = _get_value(hw_lst, 'system', 'motherboard', 'serial')
+                mobo_id = detect_utils.get_value(hw_lst, 'system',
+                                                 'motherboard', 'serial')
 
         for elt in xml.findall(".//node[@id='firmware']"):
             name = elt.find('physid')
@@ -273,7 +259,7 @@ def detect_system(hw_lst, output=None):
                                             name.text.encode('utf-8')))[20:24])
                         hw_lst.append(
                             ('network', name.text, 'ipv4-netmask', netmask))
-                        cidr = get_cidr(netmask)
+                        cidr = detect_utils.get_cidr(netmask)
                         hw_lst.append(
                             ('network', name.text, 'ipv4-cidr', cidr))
                         net = (ipaddress.IPv4Interface('%s/%s' % (ipv4, cidr))
@@ -313,8 +299,8 @@ def detect_system(hw_lst, output=None):
                                  transform=lambda x: x.lower())
 
                 if not nic_id:
-                    nic_id = _get_value(hw_lst, 'network',
-                                        name.text, 'serial')
+                    nic_id = detect_utils.get_value(
+                        hw_lst, 'network', name.text, 'serial')
                     nic_id = nic_id.replace(':', '')
 
                 detect_utils.get_ethtool_status(hw_lst, name.text)
@@ -352,19 +338,6 @@ def detect_system(hw_lst, output=None):
     return True
 
 
-def _from_file(filename):
-    """Open a file and read its first line.
-
-    :param filename: the name of the file to be read
-    :returns: string -- the first line of filename, stripped of the final '\n'
-    :raises: IOError
-    """
-
-    with open(filename) as f:
-        value = f.readline().rstrip('\n')
-    return value
-
-
 def get_cpus(hw_lst):
     def _maybe_int(v):
         try:
@@ -383,13 +356,15 @@ def get_cpus(hw_lst):
         :returns: the scaling governor if it exists, otherwise None
         """
         with contextlib.suppress(IOError):
-            return _from_file("/sys/devices/system/cpu/cpufreq/"
-                              "policy{}/scaling_governor".format(lcpu))
+            file_name = ("/sys/devices/system/cpu/cpufreq/"
+                         "policy{}/scaling_governor".format(lcpu))
+            return detect_utils.from_file(file_name)
 
         # fallback to the old interface available in kernels < 4.3;
         with contextlib.suppress(IOError):
-            return _from_file("/sys/devices/system/cpu/cpu{}/cpufreq/"
-                              "scaling_governor".format(lcpu))
+            file_name = ("/sys/devices/system/cpu/cpu{}/cpufreq/"
+                         "scaling_governor".format(lcpu))
+            return detect_utils.from_file(file_name)
         return None
 
     # Extracting lspcu information
@@ -414,13 +389,14 @@ def get_cpus(hw_lst):
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
 
     with contextlib.suppress(IOError):
-        value = _from_file("/sys/devices/system/cpu/smt/control")
+        value = detect_utils.from_file("/sys/devices/system/cpu/smt/control")
         hw_lst.append(("cpu", "physical", "smt", value))
 
     for processor in range(int(lscpu["Socket(s)"])):
         ptag = "physical_{}".format(processor)
         try:
-            value = _from_file("/sys/devices/system/cpu/cpufreq/boost")
+            value = detect_utils.from_file("/sys/devices/system/cpu/"
+                                           "cpufreq/boost")
         except IOError:
             pass
         else:

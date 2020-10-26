@@ -271,3 +271,31 @@ def get_uuid(hw_lst):
     if os.uname()[4] == 'ppc64le':
         return _get_uuid_ppc64le(hw_lst)
     return _get_uuid_x86_64()
+
+
+def get_value(hw_lst, *vect):
+    for i in hw_lst:
+        if i[0:3] == vect:
+            return i[3]
+    return ''
+
+
+def get_cidr(netmask):
+    """Convert a netmask to a CIDR."""
+    binary_str = ''
+    for octet in netmask.split('.'):
+        binary_str += bin(int(octet))[2:].zfill(8)
+    return str(len(binary_str.rstrip('0')))
+
+
+def from_file(filename):
+    """Open a file and read its first line.
+
+    :param filename: the name of the file to be read
+    :returns: string -- the first line of filename, stripped of the final '\n'
+    :raises: IOError
+    """
+
+    with open(filename) as f:
+        value = f.readline().rstrip('\n')
+    return value
