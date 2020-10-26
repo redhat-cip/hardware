@@ -94,3 +94,10 @@ class TestDetectUtils(unittest.TestCase):
     def test_get_uuid_ppc64le_no_hw_list(self, mock_uname):
         hw_list = []
         self.assertIsNone(detect_utils.get_uuid(hw_list))
+
+    def test_get_value(self):
+        self.assertEqual(detect_utils.get_value([('a', 'b', 'c', 'd')],
+                                                'a', 'b', 'c'), 'd')
+
+    def test_get_cidr(self):
+        self.assertEqual(detect_utils.get_cidr('255.255.0.0'), '16')
