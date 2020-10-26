@@ -12,8 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import contextlib
 import os
 import platform
+import re
 import subprocess
 import sys
 import uuid
@@ -299,3 +301,185 @@ def from_file(filename):
     with open(filename) as f:
         value = f.readline().rstrip('\n')
     return value
+
+
+def fix_bad_serial(hw_lst, system_uuid, mobo_id, nic_id):
+    """Fix bad serial number.
+
+    TYAN or Supermicro are known to provide fake serial numbers
+    as a system serial number.
+
+    In that case, let's use another serial.
+
+    :param hw_lst: list of tuples that represent the system
+    :param system_uuid: system uuid
+    :param mobo_id: motherboard id
+    :param nic_id: NIC id
+    """
+    for i in hw_lst:
+        if i[0:3] == ('system', 'product', 'serial'):
+            # Does the current serial number is part of the quirk list
+            if i[3] in ['0123456789', '0000000000']:
+
+                # Let's delete the stupid SN and use the another ID instead
+                # Items are ordered by level of confidence
+                new_serial = ''
+
+                if system_uuid:
+                    new_serial = system_uuid
+                elif mobo_id:
+                    new_serial = mobo_id
+                elif nic_id:
+                    new_serial = nic_id
+
+                if new_serial:
+                    hw_lst.remove(i)
+                    hw_lst.append(('system', 'product', 'serial',
+                                   new_serial))
+
+                break
+
+
+def get_cpus(hw_lst):
+    def _maybe_int(v):
+        try:
+            base = 10
+            if 'x' in v:
+                base = 16
+            v = int(v, base)
+        except Exception:
+            pass
+        return v
+
+    def _get_governor(lcpu):
+        """Return the scaling governor of a logical core.
+
+        :param lcpu: the logical core number
+        :returns: the scaling governor if it exists, otherwise None
+        """
+        with contextlib.suppress(IOError):
+            file_name = ("/sys/devices/system/cpu/cpufreq/"
+                         "policy{}/scaling_governor".format(lcpu))
+            return from_file(file_name)
+
+        # fallback to the old interface available in kernels < 4.3;
+        with contextlib.suppress(IOError):
+            file_name = ("/sys/devices/system/cpu/cpu{}/cpufreq/"
+                         "scaling_governor".format(lcpu))
+            return from_file(file_name)
+        return None
+
+    # Extracting lspcu information
+    lscpu = {}
+    output = output_lines('LANG=en_US.UTF-8 lscpu')
+
+    for line in output:
+        if ':' in line:
+            item, value = line.split(':', 1)
+            lscpu[item.strip(':')] = value.strip()
+
+    # Extracting lspcu -x information
+    # Use hexadecimal masks for CPU sets
+    lscpux = {}
+    output = output_lines('LANG=en_US.UTF-8 lscpu -x')
+
+    for line in output:
+        if ':' in line:
+            item, value = line.split(':', 1)
+            lscpux[item.strip(':')] = value.strip()
+
+    hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
+
+    with contextlib.suppress(IOError):
+        value = from_file("/sys/devices/system/cpu/smt/control")
+        hw_lst.append(("cpu", "physical", "smt", value))
+
+    for processor in range(int(lscpu["Socket(s)"])):
+        ptag = "physical_{}".format(processor)
+        try:
+            value = from_file("/sys/devices/system/cpu/cpufreq/boost")
+        except IOError:
+            pass
+        else:
+            value = 'enabled' if value == '1' else 'disabled'
+            hw_lst.append(('cpu', ptag, 'boost', value))
+
+        for (t_key, d_key, conv) in [('vendor', 'Vendor ID', None),
+                                     ('product', 'Model name', None),
+                                     ('cores', 'Core(s) per socket', int),
+                                     ('threads', None, None),
+                                     ('family', 'CPU family', int),
+                                     ('model', 'Model', _maybe_int),
+                                     ('stepping', 'Stepping', _maybe_int),
+                                     ('architecture', 'Architecture', None),
+                                     ('l1d cache', 'L1d cache', None),
+                                     ('l1i cache', 'L1i cache', None),
+                                     ('l2 cache', 'L2 cache', None),
+                                     ('l3 cache', 'L3 cache', None),
+                                     ('min_Mhz', 'CPU min MHz', float),
+                                     ('max_Mhz', 'CPU max MHz', float),
+                                     ('current_Mhz', 'CPU MHz', float),
+                                     ('flags', 'Flags', None),
+                                     ('threads_per_core', 'Thread(s) per core',
+                                      int)]:
+            value = None
+            if d_key in lscpu:
+                value = lscpu[d_key]
+                if conv:
+                    value = conv(value)
+            elif t_key == 'threads':
+                value = (int(lscpu.get('Thread(s) per core', 1))
+                         * int(lscpu.get('Core(s) per socket', 1)))
+            if value is not None:
+                hw_lst.append(('cpu', ptag, t_key, value))
+
+    hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
+    # Governors could be different on logical cpus
+    for cpu in range(int(lscpu['CPU(s)'])):
+        ltag = "logical_{}".format(cpu)
+
+        governor = _get_governor(cpu)
+        if governor is not None:
+            hw_lst.append(('cpu', ltag, "governor", governor))
+
+    # Extracting numa nodes
+    try:
+        hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
+    except KeyError:
+        pass
+
+    # Allow for sparse numa nodes.
+    numa_nodes = []
+    for key in lscpux:
+        match = re.match(r"NUMA node(\d+) CPU\(s\)", key)
+        if match:
+            numa_nodes.append((key, int(match.groups()[0])))
+    # NOTE(tonyb): Explicitly sort the list as prior to python 3.7? keys() did
+    # not have a predictable ordering and there maybe consumers of hw_lst rely
+    # on that.
+    numa_nodes.sort(key=lambda t: t[1])
+    for (key, node_id) in numa_nodes:
+        ntag = 'node_{}'.format(node_id)
+        cpus = lscpu[key]
+        # lscpu -x provides the cpu mask
+        cpu_mask = lscpux[key]
+        total_cpus = 0
+        min_cpu = None
+        max_cpu = None
+
+        # It's possible to have a NUMA node without any CPUs
+        if cpus:
+            for item in cpus.split(','):
+                # lscpu report numa nodes like 0-5,48-53
+                if "-" in item:
+                    max_cpu = int(item.split("-")[1])
+                    min_cpu = int(item.split("-")[0])
+                    total_cpus = total_cpus + max_cpu - min_cpu + 1
+                else:
+                    # or like 0,1
+                    # As we don't have dashes, there is only one core to count
+                    total_cpus = total_cpus + 1
+
+        # total_cpus = 12 for "0-5,48-53"
+        hw_lst.append(('numa', ntag, 'cpu_count', total_cpus))
+        hw_lst.append(('numa', ntag, 'cpu_mask', cpu_mask))

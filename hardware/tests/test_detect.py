@@ -16,7 +16,6 @@ import unittest
 from unittest import mock
 
 from hardware import detect
-from hardware import detect_utils
 from hardware.tests.results import detect_results
 from hardware.tests.utils import sample
 
@@ -28,118 +27,6 @@ from hardware.tests.utils import sample
 @mock.patch('hardware.detect_utils.get_lld_status',
             lambda *args, **kwargs: [])
 class TestDetect(unittest.TestCase):
-
-    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    sample('lscpu').split('\n'),
-                    sample('lscpux').split('\n')])
-    def test_get_cpus(self, mock_output_lines, mock_throws_ioerror):
-        hw = []
-        detect.get_cpus(hw)
-        self.assertEqual(hw, detect_results.GET_CPUS_RESULT)
-        calls = []
-        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
-        # Once per socket
-        for i in range(2):
-            calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
-        # Once per processor
-        for i in range(1):
-            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
-                                    'policy{}/scaling_governor'.format(i))))
-            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
-                                    'scaling_governor'.format(i))))
-        # NOTE(tonyb): We can't use assert_has_calls() because it's too
-        # permissive.  We want an exact match
-        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
-
-    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    sample('lscpu-7302').split('\n'),
-                    sample('lscpu-7302x').split('\n')])
-    def test_get_cpus_7302(self, mock_output_lines, mock_throws_ioerror):
-        self.maxDiff = None
-        hw = []
-        detect.get_cpus(hw)
-        self.assertEqual(hw, detect_results.GET_CPUS_7302_RESULT)
-
-    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    sample('lscpu-vm').split('\n'),
-                    sample('lscpu-vmx').split('\n'),
-                    ('powersave',),
-                    ('powersave',)])
-    def test_get_cpus_vm(self, mock_output_lines, mock_throws_ioerror):
-        hw = []
-        detect.get_cpus(hw)
-        self.assertEqual(hw, detect_results.GET_CPUS_VM_RESULT)
-        calls = []
-        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
-        # Once per socket
-        for i in range(1):
-            calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
-        # Once per processor
-        for i in range(2):
-            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
-                                    'policy{}/scaling_governor'.format(i))))
-            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
-                                    'scaling_governor'.format(i))))
-        # NOTE(tonyb): We can't use assert_has_calls() because it's too
-        # permissive.  We want an exact match
-        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
-
-    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    sample('lscpu_aarch64').split('\n'),
-                    sample('lscpux_aarch64').split('\n'),
-                    ('powersave',),
-                    ('powersave',)])
-    def test_get_cpus_aarch64(self, mock_output_lines, mock_throws_ioerror):
-        self.maxDiff = None
-        hw = []
-        detect.get_cpus(hw)
-        self.assertEqual(hw, detect_results.GET_CPUS_AARCH64_RESULT)
-        calls = []
-        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
-        # Once per socket
-        for i in range(4):
-            calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
-        # Once per processor
-        for i in range(8):
-            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
-                                    'policy{}/scaling_governor'.format(i))))
-            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
-                                    'scaling_governor'.format(i))))
-        # NOTE(tonyb): We can't use assert_has_calls() because it's too
-        # permissive.  We want an exact match
-        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
-
-    @mock.patch('hardware.detect_utils.from_file', side_effect=IOError())
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    sample('lscpu_ppc64le').split('\n'),
-                    sample('lscpux_ppc64le').split('\n')])
-    def test_get_cpus_ppc64le(self, mock_output_lines, mock_throws_ioerror):
-        hw = []
-        detect.get_cpus(hw)
-        self.assertEqual(hw, detect_results.GET_CPUS_PPC64LE)
-        calls = []
-        calls.append(mock.call('/sys/devices/system/cpu/smt/control'))
-        # Once per socket
-        for i in range(2):
-            calls.append(mock.call('/sys/devices/system/cpu/cpufreq/boost'))
-        # Once per processor
-        for i in range(144):
-            calls.append(mock.call(('/sys/devices/system/cpu/cpufreq/'
-                                    'policy{}/scaling_governor'.format(i))))
-            calls.append(mock.call(('/sys/devices/system/cpu/cpu{}/cpufreq/'
-                                    'scaling_governor'.format(i))))
-        # NOTE(tonyb): We can't use assert_has_calls() because it's too
-        # permissive.  We want an exact match
-        self.assertEqual(calls, mock_throws_ioerror.mock_calls)
 
     @mock.patch('hardware.detect_utils.cmd',
                 return_value=(0, sample('dmesg')),
@@ -154,7 +41,7 @@ class TestDetect(unittest.TestCase):
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
     @mock.patch('hardware.detect_utils.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
-    @mock.patch('hardware.detect.get_cpus', return_value='[]')
+    @mock.patch('hardware.detect_utils.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     ('Ubuntu',),
@@ -171,7 +58,7 @@ class TestDetect(unittest.TestCase):
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
     @mock.patch('hardware.detect_utils.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
-    @mock.patch('hardware.detect.get_cpus', return_value='[]')
+    @mock.patch('hardware.detect_utils.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     ('Ubuntu',),
@@ -188,7 +75,7 @@ class TestDetect(unittest.TestCase):
     @mock.patch('hardware.detect_utils.cmd', return_value=(0, 7))
     @mock.patch('hardware.detect_utils.get_uuid',
                 return_value='83462C81-52BA-11CB-870F')
-    @mock.patch('hardware.detect.get_cpus', return_value='[]')
+    @mock.patch('hardware.detect_utils.get_cpus', return_value='[]')
     @mock.patch('hardware.detect_utils.output_lines',
                 side_effect=[
                     ('Ubuntu',),
@@ -202,18 +89,6 @@ class TestDetect(unittest.TestCase):
         result = []
         detect.detect_system(result, sample('lshw'))
         self.assertEqual(result, detect_results.DETECT_SYSTEM_RESULT)
-
-    def test_fix_bad_serial_zero(self):
-        hwl = [('system', 'product', 'serial', '0000000000')]
-        detect.fix_bad_serial(hwl, 'uuid', '', '')
-        self.assertEqual(detect_utils.get_value(
-            hwl, 'system', 'product', 'serial'), 'uuid')
-
-    def test_fix_bad_serial_mobo(self):
-        hwl = [('system', 'product', 'serial', '0123456789')]
-        detect.fix_bad_serial(hwl, '', 'mobo', '')
-        self.assertEqual(detect_utils.get_value(
-            hwl, 'system', 'product', 'serial'), 'mobo')
 
     @mock.patch.object(detect, 'Popen')
     @mock.patch('os.environ.copy')
