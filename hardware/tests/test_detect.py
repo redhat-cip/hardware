@@ -16,7 +16,6 @@ import unittest
 from unittest import mock
 
 from hardware import detect
-from hardware.tests.results import detect_results
 from hardware.tests.utils import sample
 
 
@@ -37,58 +36,6 @@ class TestDetect(unittest.TestCase):
         self.assertEqual(hw, [('ahci', '0000:00:1f.2:', 'flags',
                                '64bit apst clo ems led '
                                'ncq part pio slum sntf')])
-
-    @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
-    @mock.patch('hardware.detect_utils.get_uuid',
-                return_value='83462C81-52BA-11CB-870F')
-    @mock.patch('hardware.detect_utils.get_cpus', return_value='[]')
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    ('Ubuntu',),
-                    ('Ubuntu 14.04 LTS',),
-                    ('3.13.0-24-generic',),
-                    ('x86_64',),
-                    ('BOOT_IMAGE=/boot/vmlinuz',)])
-    def test_detect_system_3(self, mock_cmd, mock_get_uuid, mock_get_cpus,
-                             mock_output_lines):
-        result = []
-        detect.detect_system(result, sample('lshw3'))
-        self.assertEqual(result, detect_results.DETECT_SYSTEM3_RESULT)
-
-    @mock.patch('hardware.detect_utils.cmd', return_value=(0, 4))
-    @mock.patch('hardware.detect_utils.get_uuid',
-                return_value='83462C81-52BA-11CB-870F')
-    @mock.patch('hardware.detect_utils.get_cpus', return_value='[]')
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    ('Ubuntu',),
-                    ('Ubuntu 14.04 LTS',),
-                    ('3.13.0-24-generic',),
-                    ('x86_64',),
-                    ('BOOT_IMAGE=/boot/vmlinuz',)])
-    def test_detect_system_2(self, mock_cmd, mock_get_uuid, mock_get_cpus,
-                             mock_output_lines):
-        result = []
-        detect.detect_system(result, sample('lshw2'))
-        self.assertEqual(result, detect_results.DETECT_SYSTEM2_RESULT)
-
-    @mock.patch('hardware.detect_utils.cmd', return_value=(0, 7))
-    @mock.patch('hardware.detect_utils.get_uuid',
-                return_value='83462C81-52BA-11CB-870F')
-    @mock.patch('hardware.detect_utils.get_cpus', return_value='[]')
-    @mock.patch('hardware.detect_utils.output_lines',
-                side_effect=[
-                    ('Ubuntu',),
-                    ('Ubuntu 14.04 LTS',),
-                    ('3.13.0-24-generic',),
-                    ('x86_64',),
-                    ('BOOT_IMAGE=/boot/vmlinuz',)
-                ])
-    def test_detect_system(self, mock_cmd, mock_get_uuid, mock_get_cpus,
-                           mock_output_lines):
-        result = []
-        detect.detect_system(result, sample('lshw'))
-        self.assertEqual(result, detect_results.DETECT_SYSTEM_RESULT)
 
     @mock.patch.object(detect, 'Popen')
     @mock.patch('os.environ.copy')
