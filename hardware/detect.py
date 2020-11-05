@@ -271,15 +271,15 @@ def main():
 
     hrdw = []
 
-    hrdw.append(areca.detect())
-    hrdw.append(hpacucli.detect())
-    hrdw.append(megacli.detect())
-    hrdw.append(diskinfo.detect())
+    hrdw.extend(areca.detect())
+    hrdw.extend(hpacucli.detect())
+    hrdw.extend(megacli.detect())
+    hrdw.extend(diskinfo.detect())
 
     system_info = system.detect()
     if not system_info:
         sys.exit(1)
-    hrdw.append(system_info)
+    hrdw.extend(system_info)
 
     detect_ipmi(hrdw)
     detect_infiniband(hrdw)
