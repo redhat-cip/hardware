@@ -483,3 +483,10 @@ def get_cpus(hw_lst):
         # total_cpus = 12 for "0-5,48-53"
         hw_lst.append(('numa', ntag, 'cpu_count', total_cpus))
         hw_lst.append(('numa', ntag, 'cpu_mask', cpu_mask))
+
+
+def modprobe(module):
+    """Load a kernel module using modprobe."""
+    status, _ = cmd('modprobe %s' % module)
+    if status == 0:
+        sys.stderr.write('Info: Probing %s failed\n' % module)

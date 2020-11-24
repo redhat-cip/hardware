@@ -43,45 +43,6 @@ AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
 
 
-def modprobe(module):
-    'Load a kernel module using modprobe.'
-    status, _ = detect_utils.cmd('modprobe %s' % module)
-    if status == 0:
-        sys.stderr.write('Info: Probing %s failed\n' % module)
-
-
-def detect_ipmi(hw_lst):
-    'Detect IPMI interfaces.'
-    modprobe("ipmi_smb")
-    modprobe("ipmi_si")
-    modprobe("ipmi_devintf")
-    if (os.path.exists('/dev/ipmi0')
-            or os.path.exists('/dev/ipmi/0')
-            or os.path.exists('/dev/ipmidev/0')):
-        for channel in range(0, 16):
-            status, _ = detect_utils.cmd(
-                'ipmitool channel info %d 2>&1 | grep -sq Volatile' % channel)
-            if status == 0:
-                hw_lst.append(('system', 'ipmi', 'channel', '%s' % channel))
-                break
-        status, output = detect_utils.cmd('ipmitool lan print')
-        if status == 0:
-            ipmi.parse_lan_info(output, hw_lst)
-
-        return True
-
-    # do we need a fake ipmi device for testing purpose ?
-    status, _ = detect_utils.cmd('grep -qi FAKEIPMI /proc/cmdline')
-    if status == 0:
-        # Yes ! So let's create a fake entry
-        hw_lst.append(('system', 'ipmi-fake', 'channel', '0'))
-        sys.stderr.write('Info: Added fake IPMI device\n')
-        return True
-
-    sys.stderr.write('Info: No IPMI device found\n')
-    return False
-
-
 def detect_infiniband(hw_lst):
     """Detect Infiniband devices.
 
@@ -281,7 +242,8 @@ def main():
         sys.exit(1)
     hrdw.extend(system_info)
 
-    detect_ipmi(hrdw)
+    hrdw.extend(ipmi.detect())
+
     detect_infiniband(hrdw)
     detect_temperatures(hrdw)
     detect_utils.get_ddr_timing(hrdw)

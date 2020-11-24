@@ -12,24 +12,28 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'Set of functions to manage IPMI'
+# Set of functions to manage IPMI
 
+import os
 import re
 import sys
 
-from hardware.detect_utils import cmd
+from hardware import detect_utils
+
+
+LINE_REGEXP = re.compile(r'^([^:]+[^ ])\s*:\s*(.*[^ ])\s*$')
 
 
 def setup_user(channel, username, password):
-    'Setup an IPMI user.'
+    """Setup an IPMI user."""
     sys.stderr.write('Info: ipmi_setup_user: Setting user="%s", '
                      'password="%s" on channel %s\n' %
                      (username, password, channel))
-    cmd('ipmitool user set name 1 %s' % username)
-    cmd('ipmitool user set password 1 %s' % password)
-    cmd('ipmitool user priv 1 4 %s' % channel)
-    cmd('ipmitool user enable')
-    state, _ = cmd('ipmitool user test 1 16 %s' % password)
+    detect_utils.cmd('ipmitool user set name 1 %s' % username)
+    detect_utils.cmd('ipmitool user set password 1 %s' % password)
+    detect_utils.cmd('ipmitool user priv 1 4 %s' % channel)
+    detect_utils.cmd('ipmitool user enable')
+    state, _ = detect_utils.cmd('ipmitool user test 1 16 %s' % password)
     if state == 0:
         sys.stderr.write('Info: ipmi_setup_user: Setting user successful !\n')
 
@@ -38,13 +42,13 @@ def setup_user(channel, username, password):
 
 
 def restart_bmc():
-    'Restart a BMC card.'
+    """Restart a BMC card."""
     sys.stderr.write('Info: Restarting IPMI BMC\n')
-    cmd('ipmitool bmc reset cold')
+    detect_utils.cmd('ipmitool bmc reset cold')
 
 
 def setup_network(channel, ipv4, netmask, gateway, vlan_id=-1):
-    'Define the network of an IPMI interface.'
+    """Define the network of an IPMI interface."""
     sys.stderr.write('Info: ipmi_setup_network: Setting network ip="%s", '
                      'netmask="%s", gateway="%s", vland_id="%d" on '
                      'channel %s\n' %
@@ -56,26 +60,24 @@ def setup_network(channel, ipv4, netmask, gateway, vlan_id=-1):
     # NOTE (leseb): assuming you're missing an argument
     # and this already happened
     # ipmitool always returns 0 and prompt the valid values...
-    cmd('ipmitool lan set %s ipsrc static' % channel)
-    cmd('ipmitool lan set %s ipaddr %s' % (channel, ipv4))
-    cmd('ipmitool lan set %s netmask %s' % (channel, netmask))
-    cmd('ipmitool lan set %s defgw ipaddr %s' % (channel, gateway))
-    cmd('ipmitool lan set %s arp respond on' % channel)
+    detect_utils.cmd('ipmitool lan set %s ipsrc static' % channel)
+    detect_utils.cmd('ipmitool lan set %s ipaddr %s' % (channel, ipv4))
+    detect_utils.cmd('ipmitool lan set %s netmask %s' % (channel, netmask))
+    detect_utils.cmd(
+        'ipmitool lan set %s defgw ipaddr %s' % (channel, gateway))
+    detect_utils.cmd('ipmitool lan set %s arp respond on' % channel)
 
     if vlan_id >= 0:
-        cmd('ipmitool lan set %s vlan id %d' % (channel, vlan_id))
+        detect_utils.cmd('ipmitool lan set %s vlan id %d' % (channel, vlan_id))
     else:
-        cmd('ipmitool lan set %s vlan id off' % channel)
+        detect_utils.cmd('ipmitool lan set %s vlan id off' % channel)
 
     # We need to restart the bmc to insure the setup is properly done
     restart_bmc()
 
 
-LINE_REGEXP = re.compile(r'^([^:]+[^ ])\s*:\s*(.*[^ ])\s*$')
-
-
 def parse_lan_info(output, lst):
-    'Parse the output of ipmi lan info and turns add it to the hw list.'
+    """Parse the output of ipmi lan info and turns add it to the hw list."""
     for line in output.split('\n'):
         res = LINE_REGEXP.search(line)
         if res:
@@ -83,3 +85,39 @@ def parse_lan_info(output, lst):
                         '-'.join([s.lower() for s in res.group(1).split(' ')]),
                         res.group(2)))
     return lst
+
+
+def detect():
+    """Detect IPMI interfaces."""
+
+    hw_lst = []
+
+    detect_utils.modprobe("ipmi_smb")
+    detect_utils.modprobe("ipmi_si")
+    detect_utils.modprobe("ipmi_devintf")
+    if (os.path.exists('/dev/ipmi0')
+            or os.path.exists('/dev/ipmi/0')
+            or os.path.exists('/dev/ipmidev/0')):
+        for channel in range(0, 16):
+            status, _ = detect_utils.cmd(
+                'ipmitool channel info %d 2>&1 | grep -sq Volatile' % channel)
+            if status == 0:
+                hw_lst.append(('system', 'ipmi', 'channel', '%s' % channel))
+                break
+        status, output = detect_utils.cmd('ipmitool lan print')
+        if status == 0:
+            parse_lan_info(output, hw_lst)
+
+        return hw_lst
+
+    # do we need a fake ipmi device for testing purpose ?
+    status, _ = detect_utils.cmd(
+        'grep -qi FAKEIPMI /proc/detect_utils.cmdline')
+    if status == 0:
+        # Yes ! So let's create a fake entry
+        hw_lst.append(('system', 'ipmi-fake', 'channel', '0'))
+        sys.stderr.write('Info: Added fake IPMI device\n')
+        return hw_lst
+
+    sys.stderr.write('Info: No IPMI device found\n')
+    return hw_lst
