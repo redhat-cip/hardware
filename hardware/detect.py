@@ -43,57 +43,6 @@ AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
 
 
-def detect_infiniband(hw_lst):
-    """Detect Infiniband devices.
-
-    To detect if an IB device is present, we search for a pci device.
-    This pci device shall be from vendor Mellanox (15b3) from class 0280
-    Class 280 stands for a Network Controller while ethernet device are 0200.
-    """
-    status, _ = detect_utils.cmd(
-        "lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
-    if status != 0:
-        sys.stderr.write('Info: No Infiniband device found\n')
-        return False
-
-    for ib_card in range(len(ib.ib_card_drv())):
-        card_type = ib.ib_card_drv()[ib_card]
-        ib_infos = ib.ib_global_info(card_type)
-        nb_ports = ib_infos['nb_ports']
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'card_type', card_type))
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'device_type', ib_infos['device_type']))
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'fw_version', ib_infos['fw_ver']))
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'hw_version', ib_infos['hw_ver']))
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'nb_ports', nb_ports))
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'sys_guid', ib_infos['sys_guid']))
-        hw_lst.append(('infiniband', 'card%i' % ib_card,
-                       'node_guid', ib_infos['node_guid']))
-        for port in range(1, int(nb_ports) + 1):
-            ib_port_infos = ib.ib_port_info(card_type, port)
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'state', ib_port_infos['state']))
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'physical_state',
-                           ib_port_infos['physical_state']))
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'rate', ib_port_infos['rate']))
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'base_lid', ib_port_infos['base_lid']))
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'lmc', ib_port_infos['lmc']))
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'sm_lid', ib_port_infos['sm_lid']))
-            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
-                           'port_guid', ib_port_infos['port_guid']))
-    return True
-
-
 def read_hwmon(hwlst, entry, sensor, label_name, appendix, processor_num,
                entry_name):
     try:
@@ -243,8 +192,8 @@ def main():
     hrdw.extend(system_info)
 
     hrdw.extend(ipmi.detect())
+    hrdw.extend(ib.detect())
 
-    detect_infiniband(hrdw)
     detect_temperatures(hrdw)
     detect_utils.get_ddr_timing(hrdw)
     detect_utils.ipmi_sdr(hrdw)
