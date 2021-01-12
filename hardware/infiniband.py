@@ -12,15 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Fetch information about Infiniband cards.'''
+"""Fetch information about Infiniband cards."""
 
 import re
+import sys
 
+from hardware import detect_utils
 from hardware.detect_utils import cmd
 
 
 def ib_card_drv():
-    '''Return an array of IB device (ex: ['mlx4_0']).'''
+    """Return an array of IB devices (ex: ['mlx4_0'])."""
     ret, output = cmd('ibstat -l')
     if ret == 0:
         # Use filter to omit empty item due to trailing newline.
@@ -34,10 +36,11 @@ def ib_card_drv():
 #   'device_type': 'MT4099',
 #   'hw_ver': '0', 'nb_ports': '2'}
 def ib_global_info(card_drv):
-    '''Return global info of a IB card in a python dict.
+    """Return global info of a IB card in a python dict.
 
-Take in argument a card_drv (ex: mlx4_0).
-    '''
+    :param card_drv: a card device ID (e.g. mlx4_0)
+    :returns: a list containing information on the card device
+    """
     global_card_info = {}
     ret, global_info = cmd('ibstat %s -s' % card_drv)
     if ret == 0:
@@ -66,10 +69,12 @@ Take in argument a card_drv (ex: mlx4_0).
 # {'base_lid': '0', 'port_guid': '0x0002c90300ea6841', 'rate': '40',
 # 'physical_state': 'Down', 'sm_lid': '0', 'state': 'Down', 'lmc': '0'}
 def ib_port_info(card_drv, port):
-    '''Return port infos of a IB card_drv in a python dict.
+    """Return port infos of a IB card_drv in a python dict.
 
-Take in argument the card_drv name and the port number (ex: mlx4_0,1).
-'''
+    :param card_drv: a card device ID (e.g. mlx4_0)
+    :param port: the port number (e.g. 1)
+    :returns: a list containing information on the port
+    """
     port_infos = {}
     ret, port_desc = cmd('ibstat %s %i' % (card_drv, port))
     if ret == 0:
@@ -96,3 +101,55 @@ Take in argument the card_drv name and the port number (ex: mlx4_0,1).
             if re_pguid is not None:
                 port_infos['port_guid'] = re_pguid.group(1)
     return port_infos
+
+
+def detect():
+    """Detect Infiniband devices.
+
+    To detect if an IB device is present, we search for a pci device.
+    This pci device shall be from vendor Mellanox (15b3) from class 0280
+    Class 280 stands for a Network Controller while ethernet device are 0200.
+    """
+    hw_lst = []
+    status, _ = detect_utils.cmd(
+        "lspci -d 15b3: -n|awk '{print $2}'|grep -q '0280'")
+    if status != 0:
+        sys.stderr.write('Info: No Infiniband device found\n')
+        return []
+
+    for ib_card in range(len(ib_card_drv())):
+        card_type = ib_card_drv()[ib_card]
+        ib_infos = ib_global_info(card_type)
+        nb_ports = ib_infos['nb_ports']
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'card_type', card_type))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'device_type', ib_infos['device_type']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'fw_version', ib_infos['fw_ver']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'hw_version', ib_infos['hw_ver']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'nb_ports', nb_ports))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'sys_guid', ib_infos['sys_guid']))
+        hw_lst.append(('infiniband', 'card%i' % ib_card,
+                       'node_guid', ib_infos['node_guid']))
+        for port in range(1, int(nb_ports) + 1):
+            ib_port_infos = ib_port_info(card_type, port)
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'state', ib_port_infos['state']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'physical_state',
+                           ib_port_infos['physical_state']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'rate', ib_port_infos['rate']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'base_lid', ib_port_infos['base_lid']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'lmc', ib_port_infos['lmc']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'sm_lid', ib_port_infos['sm_lid']))
+            hw_lst.append(('infiniband', 'card%i_port%i' % (ib_card, port),
+                           'port_guid', ib_port_infos['port_guid']))
+    return hw_lst

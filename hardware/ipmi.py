@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# Set of functions to manage IPMI
+"""Set of functions to manage IPMI."""
 
 import os
 import re
