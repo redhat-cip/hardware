@@ -33,6 +33,7 @@ from hardware import hpacucli
 from hardware import infiniband as ib
 from hardware import ipmi
 from hardware import megacli
+from hardware import meminfo
 from hardware import rtc
 from hardware import sensors
 from hardware import system
@@ -142,7 +143,8 @@ def main():
     hrdw.extend(ib.detect())
     hrdw.extend(sensors.detect_temperatures())
 
-    detect_utils.get_ddr_timing(hrdw)
+    hrdw.extend(meminfo.get_ddr_timing())
+
     detect_utils.ipmi_sdr(hrdw)
     detect_rtc_clock(hrdw)
     detect_auxv(hrdw)
