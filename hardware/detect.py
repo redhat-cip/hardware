@@ -142,7 +142,6 @@ def main():
     hrdw.extend(ib.detect())
     hrdw.extend(sensors.detect_temperatures())
 
-    detect_utils.get_ddr_timing(hrdw)
     detect_utils.ipmi_sdr(hrdw)
     detect_rtc_clock(hrdw)
     detect_auxv(hrdw)
