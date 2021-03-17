@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# DNM #
+
 """Main entry point for hardware and system detection routines in eDeploy."""
 
 import argparse
