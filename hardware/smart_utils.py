@@ -112,41 +112,8 @@ def read_smart_scsi(hwlst, device, optional_flag="", mode=""):
                                         "-d cciss,%d" % pdisk_number, "cciss")
             return hwlst
 
-        read_smart_field(hwlst, line, device_name, "Serial number:",
-                         "serial_number")
-        read_smart_field(hwlst, line, device_name, "SMART Health Status:",
-                         "health")
-        read_smart_field(hwlst, line, device_name,
-                         "Specified cycle count over device lifetime:",
-                         "specified_start_stop_cycle_count_over_lifetime")
-        read_smart_field(hwlst, line, device_name,
-                         "Accumulated start-stop cycles:",
-                         "start_stop_cycle_count")
-        read_smart_field(hwlst, line, device_name,
-                         "Specified load-unload count over device lifetime:",
-                         "specified_load_count_over_lifetime")
-        read_smart_field(hwlst, line, device_name,
-                         "Accumulated load-unload cycles:", "load_count")
-        read_smart_field(hwlst, line, device_name,
-                         "number of hours powered up =", "power_on_hours")
-        read_smart_field(hwlst, line, device_name,
-                         "Blocks sent to initiator =", "blocks_sent")
-        read_smart_field(hwlst, line, device_name,
-                         "Blocks received from initiator =", "blocks_received")
-        read_smart_field(hwlst, line, device_name,
-                         "Blocks read from cache and sent to initiator =",
-                         "blocks_read_from_cache")
-        read_smart_field(hwlst, line, device_name, "Non-medium error count:",
-                         "non_medium_errors_count")
-        read_smart_field(hwlst, line, device_name,
-                         "Current Drive Temperature:",
-                         "current_drive_temperature")
-        read_smart_field(hwlst, line, device_name, "Drive Trip Temperature:",
-                         "drive_trip_temperature")
-        read_smart_field(hwlst, line, device_name, "Manufactured in ",
-                         "manufacture_date")
-        read_smart_field(hwlst, line, device_name, "Rotation Rate",
-                         "rotation_rate")
+        for smart_info, hwlst_value in smart_utils_info.SMART_FIELDS.items():
+            read_smart_field(hwlst, line, device_name, smart_info, hwlst_value)
 
         for error_log in ["read", "write", "verify"]:
             if line.startswith("%s:" % error_log):
