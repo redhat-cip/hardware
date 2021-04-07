@@ -25,3 +25,23 @@ NVME_INFOS = {
     'Media and Data Integrity Errors:': 'media_data_integrity_errors',
     'Error Information Log Entries:': 'error_information_log_entries',
 }
+
+SMART_FIELDS = {
+    "Serial number:": "serial_number",
+    "SMART Health Status:": "health",
+    "Specified cycle count over device "
+    "lifetime:": "specified_start_stop_cycle_count_over_lifetime",
+    "Accumulated start-stop cycles:": "start_stop_cycle_count",
+    "Specified load-unload count over device "
+    "lifetime:": "specified_load_count_over_lifetime",
+    "Accumulated load-unload cycles:": "load_count",
+    "number of hours powered up =": "power_on_hours",
+    "Blocks sent to initiator =": "blocks_sent",
+    "Blocks received from initiator =": "blocks_received",
+    "Blocks read from cache and sent to initiator =": "blocks_read_from_cache",
+    "Non-medium error count:": "non_medium_errors_count",
+    "Current Drive Temperature:": "current_drive_temperature",
+    "Drive Trip Temperature:": "drive_trip_temperature",
+    "Manufactured in ": "manufacture_date",
+    "Rotation Rate": "rotation_rate",
+}
