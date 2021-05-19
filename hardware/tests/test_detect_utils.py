@@ -21,11 +21,6 @@ from hardware.tests.utils import sample
 
 class TestDetectUtils(unittest.TestCase):
 
-    def test_parse_ipmi_sdr(self):
-        hw = []
-        detect_utils.parse_ipmi_sdr(hw, sample('parse_ipmi_sdr').split('\n'))
-        self.assertEqual(hw, detect_utils_results.IPMI_SDR_RESULT)
-
     def test_size_in_gb(self):
         self.assertEqual(detect_utils.size_in_gb('100 GB'), '100')
 

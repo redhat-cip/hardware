@@ -141,8 +141,8 @@ def main():
     hrdw.extend(ipmi.detect())
     hrdw.extend(ib.detect())
     hrdw.extend(sensors.detect_temperatures())
+    hrdw.extend(ipmi.get_ipmi_sdr())
 
-    detect_utils.ipmi_sdr(hrdw)
     detect_rtc_clock(hrdw)
     detect_auxv(hrdw)
     parse_dmesg(hrdw)
