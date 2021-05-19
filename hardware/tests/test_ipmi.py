@@ -15,18 +15,16 @@
 import unittest
 
 from hardware import ipmi
+from hardware.tests.results import ipmi_results
 from hardware.tests.utils import sample
 
 
 class TestIpmi(unittest.TestCase):
+    def test_parse_ipmi_sdr(self):
+        hw = ipmi.parse_ipmi_sdr(sample('parse_ipmi_sdr').split('\n'))
+        self.assertEqual(hw, ipmi_results.IPMI_SDR_RESULT)
 
     def test_parse_lan_info(self):
         res = []
         ipmi.parse_lan_info(sample('ipmi_lan_info'), res)
         self.assertEqual(len(res), 19)
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-# test_ipmi.py ends here

@@ -16,6 +16,7 @@
 
 import os
 import re
+import subprocess
 import sys
 
 from hardware import detect_utils
@@ -85,6 +86,40 @@ def parse_lan_info(output, lst):
                         '-'.join([s.lower() for s in res.group(1).split(' ')]),
                         res.group(2)))
     return lst
+
+
+def parse_ipmi_sdr(output):
+    """Parse the output of the sdr info retrieved with ipmitool"""
+    hrdw = []
+
+    for line in output:
+        items = line.split("|")
+        if len(items) < 3:
+            continue
+
+        if "Not Readable" in line:
+            hrdw.append(('ipmi', items[0].strip(), 'value', 'Not Readable'))
+            continue
+
+        hrdw.append(('ipmi', items[0].strip(), 'value',
+                     '%s' % items[1].split()[0].strip()))
+        units = ""
+        for unit in items[1].split()[1:]:
+            units = "%s %s" % (units, unit.strip())
+        units = units.strip()
+        if units:
+            hrdw.append(('ipmi', items[0].strip(), 'unit', units))
+
+    return hrdw
+
+
+def get_ipmi_sdr():
+    ipmi_cmd = subprocess.Popen("ipmitool -I open sdr",
+                                shell=True,
+                                stdout=subprocess.PIPE,
+                                universal_newlines=True)
+
+    return parse_ipmi_sdr(ipmi_cmd.stdout)
 
 
 def detect():

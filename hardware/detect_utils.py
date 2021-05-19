@@ -131,34 +131,6 @@ def which(program):
     return None
 
 
-def parse_ipmi_sdr(hrdw, output):
-    for line in output:
-        items = line.split("|")
-        if len(items) < 3:
-            continue
-
-        if "Not Readable" in line:
-            hrdw.append(('ipmi', items[0].strip(), 'value', 'Not Readable'))
-            continue
-
-        hrdw.append(('ipmi', items[0].strip(), 'value',
-                     '%s' % items[1].split()[0].strip()))
-        units = ""
-        for unit in items[1].split()[1:]:
-            units = "%s %s" % (units, unit.strip())
-        units = units.strip()
-        if units:
-            hrdw.append(('ipmi', items[0].strip(), 'unit', units))
-
-
-def ipmi_sdr(hrdw):
-    ipmi_cmd = subprocess.Popen("ipmitool -I open sdr",
-                                shell=True,
-                                stdout=subprocess.PIPE,
-                                universal_newlines=True)
-    parse_ipmi_sdr(hrdw, ipmi_cmd.stdout)
-
-
 def size_in_gb(size):
     """Return the size in GB without the unit."""
     result = size.replace(' ', '')
