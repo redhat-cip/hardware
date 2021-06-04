@@ -38,3 +38,9 @@ def get_rtc():
     else:
         LOG.warning('Unable to determine RTC timezone (no output)')
     return 'unknown'
+
+
+def detect_rtc_clock():
+    hw_lst = []
+    hw_lst.append(('system', 'rtc', 'utc', get_rtc()))
+    return hw_lst

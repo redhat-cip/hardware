@@ -44,10 +44,6 @@ AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
 AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
 
 
-def detect_rtc_clock(hw_lst):
-    hw_lst.append(('system', 'rtc', 'utc', rtc.get_rtc()))
-
-
 def detect_auxv(hw_lst):
     new_env = os.environ.copy()
     new_env["LD_SHOW_AUXV"] = "1"
@@ -142,8 +138,8 @@ def main():
     hrdw.extend(ib.detect())
     hrdw.extend(sensors.detect_temperatures())
     hrdw.extend(ipmi.get_ipmi_sdr())
+    hrdw.extend(rtc.detect_rtc_clock())
 
-    detect_rtc_clock(hrdw)
     detect_auxv(hrdw)
     parse_dmesg(hrdw)
     bios_hp.dump_hp_bios(hrdw)
