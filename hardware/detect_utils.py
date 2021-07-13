@@ -16,8 +16,15 @@ import contextlib
 import os
 import re
 import subprocess
+from subprocess import Popen
 import sys
 import uuid
+
+
+AUXV_FLAGS = ["AT_HWCAP", "AT_HWCAP2", "AT_PAGESZ",
+              "AT_FLAGS", "AT_PLATFORM"]
+# These flags may or not be present on a particular arch
+AUXV_OPT_FLAGS = ["AT_BASE_PLATFORM"]
 
 
 def cmd(cmdline):
@@ -413,3 +420,49 @@ def modprobe(module):
     status, _ = cmd('modprobe %s' % module)
     if status == 0:
         sys.stderr.write('Info: Probing %s failed\n' % module)
+
+
+def detect_auxv(hw_lst):
+    new_env = os.environ.copy()
+    new_env["LD_SHOW_AUXV"] = "1"
+
+    auxv_cmd = Popen("/bin/true", env=new_env, stdout=subprocess.PIPE)
+    stdout, err = auxv_cmd.communicate()
+    if err is not None:
+        sys.stderr.write("Info: AUXV output received\n")
+        return
+
+    auxv = dict()
+    supported_flags = AUXV_FLAGS + AUXV_OPT_FLAGS
+    for line in stdout.decode("utf-8").splitlines():
+        k, v = [i.strip() for i in line.split(":")]
+        if k in supported_flags:
+            auxv[k[3:].lower()] = v
+            hw_lst.append(('hw', 'auxv', k[3:].lower(), v))
+
+
+def parse_ahci(hrdw, words):
+    if len(words) < 4:
+        return
+    if "flags" in words[2]:
+        flags = ""
+        for flag in sorted(words[3:]):
+            flags = "%s %s" % (flags, flag)
+        hrdw.append(('ahci', words[1], "flags", flags.strip()))
+
+
+def parse_dmesg(hrdw):
+    """Run dmesg and parse the output."""
+
+    _, output = cmd("dmesg")
+    for line in output.split('\n'):
+        words = line.strip().split(" ")
+
+        if words[0].startswith("[") and words[0].endswith("]"):
+            words = words[1:]
+
+        if not words:
+            continue
+
+        if "ahci" in words[0]:
+            parse_ahci(hrdw, words)
