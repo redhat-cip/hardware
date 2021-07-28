@@ -36,7 +36,7 @@ def read_smart_field(hwlst, line, device_name, item, title):
         else:
             value = ""
             for result in line.split(item)[1:]:
-                value = "%s %s" % (value, result.strip())
+                value = f"{value} {result.strip()}"
             hwlst.append(("disk", device_name, "SMART/%s" % title,
                           value.strip()))
             return value.strip()
@@ -47,14 +47,14 @@ def read_smart_scsi_error_log(hwlst, line, device_name, error_log):
     result = line.split()
     if len(result) > 7:
         hwlst.append(("disk", device_name,
-                      "SMART/%s_%s" % (error_log, "total_corrected_errors"),
-                      result[4].strip()))
+                      f"SMART/{error_log}_total_corrected_errors",
+                     result[4].strip()))
         hwlst.append(("disk", device_name,
-                      "SMART/%s_%s" % (error_log, "gigabytes_processed"),
-                      result[6].strip()))
+                      f"SMART/{error_log}_gigabytes_processed",
+                     result[6].strip()))
         hwlst.append(("disk", device_name,
-                      "SMART/%s_%s" % (error_log, "total_uncorrected_errors"),
-                      result[7].strip()))
+                      f"SMART/{error_log}_total_uncorrected_errors",
+                     result[7].strip()))
 
 
 def read_smart_scsi(hwlst, device, optional_flag="", mode=""):
@@ -64,7 +64,7 @@ def read_smart_scsi(hwlst, device, optional_flag="", mode=""):
 
     device_name = os.path.basename(device)
     if mode:
-        device_name = "%s{%s}" % (device_name, optional_flag.split()[1])
+        device_name = f"{device_name}{{{optional_flag.split()[1]}}}"
 
     sdparm_cmd = subprocess.Popen("smartctl -a %s %s" %
                                   (device, optional_flag),
@@ -131,11 +131,11 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
 
     values = {}
     if mode:
-        device_name = "%s{%s}" % (device_name, optional_flag.split()[1])
+        device_name = f"{device_name}{{{optional_flag.split()[1]}}}"
 
-    sdparm_cmd = subprocess.Popen("smartctl -a %s %s" % (device,
-                                                         optional_flag),
-                                  shell=True, stdout=subprocess.PIPE)
+    sdparm_cmd = subprocess.Popen(
+        f"smartctl -a {device} {optional_flag}",
+        shell=True, stdout=subprocess.PIPE)
     for line in sdparm_cmd.stdout:
         line = _parse_line(line)
 
@@ -184,14 +184,13 @@ def read_smart_ata(hwlst, device, optional_flag="", mode=""):
             raw_values = fields[9:]
             raw_value = ""
             for raw in raw_values:
-                raw_value = "%s %s" % (raw_value, raw)
+                raw_value = f"{raw_value} {raw}"
             values["raw"] = raw_value
             for title in ["value", "worst", "thresh", "when_failed", "raw"]:
-                hwlst.append(("disk", device_name,
-                              "SMART/%s(%s)/%s" % (values["name"],
-                                                   values["id"],
-                                                   title),
-                              values[title]))
+                hwlst.append(
+                    ("disk", device_name,
+                     f"SMART/{values['name']}({values['id']})/{title}",
+                     values[title]))
             continue
 
         except Exception:

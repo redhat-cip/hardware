@@ -41,7 +41,7 @@ class StateError(Exception):
     pass
 
 
-class State(object):
+class State:
 
     def __init__(self, data=None, cfg_dir=None, filename=None, lockname=None):
         self._data = data

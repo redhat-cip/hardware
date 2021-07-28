@@ -37,7 +37,7 @@ class Error(Exception):
     """Exception to capture errors while calling hpacucli sub-commands."""
 
     def __init__(self, value):
-        super(Error, self).__init__()
+        super().__init__()
         self.value = value
 
     def __str__(self):
@@ -275,7 +275,7 @@ class Cli:
         Returns its output parsed in a structured data.
         """
         return parse_ctrl_pd_disk_show(
-            self._sendline('ctrl %s pd %s show' % (selector, disk)))
+            self._sendline(f'ctrl {selector} pd {disk} show'))
 
     def ctrl_ld_all_show(self, selector):
         """Send the 'ctrl <selector> ld all show' sub-command.
@@ -291,7 +291,7 @@ class Cli:
         Returns its output parsed in a structured data.
         """
         return parse_ctrl_ld_show(
-            self._sendline('ctrl %s ld %s show' % (selector, ldid)))
+            self._sendline(f'ctrl {selector} ld {ldid} show'))
 
     def ctrl_delete(self, selector):
         """Send the 'ctrl <selector> delete forced' sub-command."""

@@ -99,7 +99,7 @@ def parse_ethtool(hw_lst, interface_name, lines):
         line = line.strip('\n')
         if line.startswith('\t'):
             sub_header = data[0].replace('\t', '').strip()
-            header = "%s/%s" % (original_header, sub_header)
+            header = f"{original_header}/{sub_header}"
         else:
             header = data[0]
             original_header = header
@@ -163,7 +163,7 @@ def clean_str(val):
 
 def clean_tuples(lst):
     """Clean a list of tuples from bad UTF-8 strings."""
-    return [tuple([clean_str(val) for val in elt]) for elt in lst]
+    return [tuple(clean_str(val) for val in elt) for elt in lst]
 
 
 def _get_uuid_x86_64():
@@ -325,10 +325,10 @@ def get_cpus(hw_lst):
         hw_lst.append(("cpu", "physical", "smt", value))
 
     for processor in range(int(lscpu["Socket(s)"])):
-        ptag = "physical_{}".format(processor)
+        ptag = f"physical_{processor}"
         try:
             value = from_file("/sys/devices/system/cpu/cpufreq/boost")
-        except IOError:
+        except OSError:
             pass
         else:
             value = 'enabled' if value == '1' else 'disabled'
@@ -366,7 +366,7 @@ def get_cpus(hw_lst):
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
     # Governors could be different on logical cpus
     for cpu in range(int(lscpu['CPU(s)'])):
-        ltag = "logical_{}".format(cpu)
+        ltag = f"logical_{cpu}"
 
         governor = _get_governor(cpu)
         if governor is not None:
@@ -389,7 +389,7 @@ def get_cpus(hw_lst):
     # on that.
     numa_nodes.sort(key=lambda t: t[1])
     for (key, node_id) in numa_nodes:
-        ntag = 'node_{}'.format(node_id)
+        ntag = f'node_{node_id}'
         cpus = lscpu[key]
         # lscpu -x provides the cpu mask
         cpu_mask = lscpux[key]
@@ -435,7 +435,7 @@ def detect_auxv(hw_lst):
     auxv = dict()
     supported_flags = AUXV_FLAGS + AUXV_OPT_FLAGS
     for line in stdout.decode("utf-8").splitlines():
-        k, v = [i.strip() for i in line.split(":")]
+        k, v = (i.strip() for i in line.split(":"))
         if k in supported_flags:
             auxv[k[3:].lower()] = v
             hw_lst.append(('hw', 'auxv', k[3:].lower(), v))
@@ -447,7 +447,7 @@ def parse_ahci(hrdw, words):
     if "flags" in words[2]:
         flags = ""
         for flag in sorted(words[3:]):
-            flags = "%s %s" % (flags, flag)
+            flags = f"{flags} {flag}"
         hrdw.append(('ahci', words[1], "flags", flags.strip()))
 
 

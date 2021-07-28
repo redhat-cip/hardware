@@ -29,7 +29,7 @@ def get_hp_conrep(hwlst):
             if i[3] not in ['HPE', 'HP']:
                 return True, ""
     output_file = next(tempfile._get_candidate_names())
-    status, output = cmd("hp-conrep --save -f {}".format(output_file))
+    status, output = cmd(f"hp-conrep --save -f {output_file}")
     if status != 0:
         sys.stderr.write("Unable to run hp-conrep: %s\n" % output)
         return False, ""

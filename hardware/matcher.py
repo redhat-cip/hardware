@@ -201,7 +201,7 @@ Store variables starting with a $ in <arr>. Variables starting with
         spec = specs.pop(0)
         line = match_spec(spec, lines, arr)
         if debug:
-            sys.stderr.write('match_spec: %s %s\n' % (line, spec))
+            sys.stderr.write(f'match_spec: {line} {spec}\n')
         # No match
         if not line:
             # Backtrack on the backtracking points
@@ -229,7 +229,7 @@ Store variables starting with a $ in <arr>. Variables starting with
                 points.append((copy_lines, copy_specs, copy_arr))
                 copy_arr = dict(arr)
                 if debug:
-                    sys.stderr.write('new var: %s %s\n' % (arr, line))
+                    sys.stderr.write(f'new var: {arr} {line}\n')
 
     # Manage $$ variables
     for key in list(arr):

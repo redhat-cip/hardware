@@ -62,10 +62,10 @@ def setup_network(channel, ipv4, netmask, gateway, vlan_id=-1):
     # and this already happened
     # ipmitool always returns 0 and prompt the valid values...
     detect_utils.cmd('ipmitool lan set %s ipsrc static' % channel)
-    detect_utils.cmd('ipmitool lan set %s ipaddr %s' % (channel, ipv4))
-    detect_utils.cmd('ipmitool lan set %s netmask %s' % (channel, netmask))
+    detect_utils.cmd(f'ipmitool lan set {channel} ipaddr {ipv4}')
+    detect_utils.cmd(f'ipmitool lan set {channel} netmask {netmask}')
     detect_utils.cmd(
-        'ipmitool lan set %s defgw ipaddr %s' % (channel, gateway))
+        f'ipmitool lan set {channel} defgw ipaddr {gateway}')
     detect_utils.cmd('ipmitool lan set %s arp respond on' % channel)
 
     if vlan_id >= 0:
@@ -105,7 +105,7 @@ def parse_ipmi_sdr(output):
                      '%s' % items[1].split()[0].strip()))
         units = ""
         for unit in items[1].split()[1:]:
-            units = "%s %s" % (units, unit.strip())
+            units = f"{units} {unit.strip()}"
         units = units.strip()
         if units:
             hrdw.append(('ipmi', items[0].strip(), 'unit', units))

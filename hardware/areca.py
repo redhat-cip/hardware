@@ -52,7 +52,7 @@ def _parse_output(output, rev=False):
                 append = match.group(1).replace('#', '') + "/"
                 continue
             if append:
-                lis[0] = "%s%s" % (append, lis[0])
+                lis[0] = f"{append}{lis[0]}"
             if len(lis[1]) > 1 and lis[1][-1] == '.':
                 lis[1] = lis[1][:-1]
             unit = _split_units(lis)

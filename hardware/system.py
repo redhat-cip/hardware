@@ -147,7 +147,7 @@ def detect(output=None):
                         cidr = detect_utils.get_cidr(netmask)
                         hw_lst.append(
                             ('network', name.text, 'ipv4-cidr', cidr))
-                        net = (ipaddress.IPv4Interface('%s/%s' % (ipv4, cidr))
+                        net = (ipaddress.IPv4Interface(f'{ipv4}/{cidr}')
                                .network.network_address)
                         hw_lst.append(
                             ('network', name.text, 'ipv4-network', str(net)))

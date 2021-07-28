@@ -58,8 +58,7 @@ def _generate_values(pattern, prefix=_PREFIX):
     """
 
     if isinstance(pattern, list):
-        for elt in pattern:
-            yield elt
+        yield from pattern
     elif isinstance(pattern, dict):
         pattern_copy = pattern.copy()
         for key, entry in pattern_copy.items():
@@ -102,7 +101,7 @@ def _generate_values(pattern, prefix=_PREFIX):
             yield pattern
 
 
-STRING_TYPE = type('')
+STRING_TYPE = str
 GENERATOR_TYPE = types.GeneratorType
 
 

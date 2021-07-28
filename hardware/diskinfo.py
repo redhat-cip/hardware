@@ -43,21 +43,20 @@ def get_disk_info(name, sizes, hw_lst):
                  'queue/optimal_io_size', 'queue/physical_block_size',
                  'queue/rotational', 'queue/nr_requests']
     for info in info_list:
-        disk_sys_info = '/sys/block/%s/%s' % (name, info)
+        disk_sys_info = f'/sys/block/{name}/{info}'
         # revision can be explicitly named
         if not os.path.exists(disk_sys_info) and info == 'device/rev':
             info = 'device/revision'
         # for nvme devices we can have a nested device dir
         if not os.path.exists(disk_sys_info):
-            disk_sys_info = '/sys/block/%s/device/%s' % (name, info)
+            disk_sys_info = f'/sys/block/{name}/device/{info}'
         try:
             with open(disk_sys_info, 'r') as dev:
                 hw_lst.append(('disk', name, info.split('/')[1],
                                dev.readline().rstrip('\n').strip()))
         except Exception as exc:
-            sys.stderr.write(
-                'Failed retrieving disk information %s for %s: %s\n' % (
-                    info, name, str(exc)))
+            sys.stderr.write(f"Failed retrieving disk information {info} "
+                             f"for {name}: {exc}\n")
     try:
         with open('/sys/block/%s/queue/scheduler' % name, 'r') as dev:
             s_line = dev.readline().rstrip('\n').strip()
@@ -65,20 +64,18 @@ def get_disk_info(name, sizes, hw_lst):
             if sched:
                 hw_lst.append(('disk', name, 'scheduler', sched[0]))
     except Exception as exc:
-        sys.stderr.write('Cannot extract scheduler for disk %s: %s' % (
-            name, exc))
+        sys.stderr.write(f"Cannot extract scheduler for disk {name}: {exc}")
 
 
 def get_disk_cache(name, hw_lst):
     # WCE & RCD from sysfs
     # https://www.kernel.org/doc/Documentation/scsi/sd-parameters.txt
-    device_path = '/sys/block/{0}/device'.format(name)
+    device_path = f'/sys/block/{name}/device'
 
     try:
         _link_info = os.readlink(device_path)
         _scsi_addr = _link_info.rsplit('/', 1)[1]
-        device_path = (device_path + '/scsi_disk/{0}/cache_type').format(
-            _scsi_addr)
+        device_path = f"{device_path} /scsi_disk/{_scsi_addr}/cache_type"
         with open(device_path, 'r') as cache_info:
             my_text = cache_info.readline().rstrip('\n').strip()
             _wce = '1'
@@ -124,12 +121,12 @@ def parse_hdparm_output(output):
 
 
 def diskperfs(names):
-    return dict((name, parse_hdparm_output(
-        detect_utils.cmd('hdparm -t /dev/%s' % name))) for name in names)
+    return {name: parse_hdparm_output(
+        detect_utils.cmd('hdparm -t /dev/%s' % name)) for name in names}
 
 
 def disksizes(names):
-    return dict((name, disksize(name)) for name in names)
+    return {name: disksize(name) for name in names}
 
 
 def detect():

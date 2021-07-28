@@ -21,13 +21,13 @@ import sys
 def read_hwmon(hwlst, entry, sensor, label_name, appendix, processor_num,
                entry_name):
     try:
-        hwmon = "%s_%s" % (sensor, appendix)
-        filename = "/sys/devices/platform/%s/%s" % (entry, hwmon)
+        hwmon = f"{sensor}_{appendix}"
+        filename = f"/sys/devices/platform/{entry}/{hwmon}"
         if not os.path.isfile(filename):
             if len(hwmon) > 16:
                 # Some kernels are shortening the filename to 17 chars
                 # Let's try to find if we are in this case
-                filename = "/sys/devices/platform/%s/%s" % (entry, hwmon[:16])
+                filename = f"/sys/devices/platform/{entry}/{hwmon[:16]}"
                 if not os.path.isfile(filename):
                     sys.stderr.write("read_hwmon: No entry found for %s/%s\n" %
                                      (label_name, entry_name))

@@ -244,8 +244,8 @@ def detect():
                                '%s:%d' % (info['EnclosureDeviceId'],
                                           slot_num)))
                 disk_size = detect_utils.size_in_gb(
-                    "%s %s" % (info['CoercedSize'].split()[0],
-                               info['CoercedSize'].split()[1]))
+                    f"{info['CoercedSize'].split()[0]} "
+                    f"{info['CoercedSize'].split()[1]}")
                 global_pdisk_size = global_pdisk_size + float(disk_size)
                 hw_lst.append(('pdisk', disk, 'size', disk_size))
 

@@ -28,48 +28,47 @@ class CmdbError(Exception):
 
 
 def cmdb_filename(cfg_dir, name):
-    'Return the cmdb filename.'
+    """Return the cmdb filename."""
     return os.path.join(cfg_dir, name + '.cmdb')
 
 
 def load_cmdb(cfg_dir, name):
-    'Load the cmdb.'
+    """Load the cmdb."""
     filename = cmdb_filename(cfg_dir, name)
     try:
         return eval(open(filename).read(-1))
-    except IOError as xcpt:
+    except FileNotFoundError as xcpt:
         if xcpt.errno != errno.ENOENT:
-            LOG.error("exception while processing CMDB (%s) %s" % (filename,
-                                                                   str(xcpt)))
+            LOG.error(f"exception while processing CMDB "
+                      f"({filename}) {xcpt}")
         return None
 
 
 def save_cmdb(cfg_dir, name, cmdb):
-    'Save the cmdb.'
+    """Save the cmdb."""
     filename = cmdb_filename(cfg_dir, name)
     # backup the cmdb if there is a generate call in it
     try:
         if "generate(" in open(filename).read(20):
             shutil.copy2(filename, filename + ".orig")
-    except IOError as xcpt:
-        LOG.warning("Unable to backup CMDB (%s) %s" % (filename, str(xcpt)))
+    except OSError as xcpt:
+        LOG.warning(f"Unable to backup CMDB ({filename}) {xcpt}")
     # save the new version of the cmdb
     try:
         pprint.pprint(cmdb, stream=open(filename, 'w'))
-    except IOError as xcpt:
-        LOG.error("exception while saving CMDB (%s) %s" % (filename,
-                                                           str(xcpt)))
+    except OSError as xcpt:
+        LOG.error(f"exception while saving CMDB ({filename}) {xcpt}")
 
 
 def update_cmdb(cmdb, var, pref, forced_find):
-    '''Handle CMDB settings if present.
+    """Handle CMDB settings if present.
 
-CMDB is updated with var. var is also augmented with the cmdb entry
-found.
-'''
+    CMDB is updated with var. var is also augmented with the cmdb entry
+    found.
+    """
 
     def update_entry(entry, cmdb, idx):
-        'Update var using a cmdb entry and save the full cmdb on disk.'
+        """Update var using a cmdb entry and save the full cmdb on disk."""
         entry.update(var)
         var.update(entry)
         var['used'] = 1
@@ -98,5 +97,3 @@ found.
         else:
             raise CmdbError("No entry matched in the CMDB, aborting.")
     return True
-
-# cmdb.py ends here
