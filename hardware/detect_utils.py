@@ -435,7 +435,9 @@ def detect_auxv(hw_lst):
     auxv = dict()
     supported_flags = AUXV_FLAGS + AUXV_OPT_FLAGS
     for line in stdout.decode("utf-8").splitlines():
-        k, v = [i.strip() for i in line.split(":")]
+        line = line.replace(':', ' ')
+        line_split = [i.strip() for i in line.split()]
+        k, v = line_split[0], " ".join(line_split[1:])
         if k in supported_flags:
             auxv[k[3:].lower()] = v
             hw_lst.append(('hw', 'auxv', k[3:].lower(), v))
