@@ -99,10 +99,10 @@ class TestParsing(unittest.TestCase):
 
     def test_error(self):
         # => ctrl slot=2 delete force
-        return self.assertRaisesRegexp(hpacucli.Error,
-                                       '^\'Syntax error at "force"\'$',
-                                       hpacucli.parse_error,
-                                       '''
+        return self.assertRaisesRegex(hpacucli.Error,
+                                      '^\'Syntax error at "force"\'$',
+                                      hpacucli.parse_error,
+                                      '''
 Error: Syntax error at "force"
 
 ''')

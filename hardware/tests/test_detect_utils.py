@@ -254,7 +254,7 @@ class TestDetectUtils(unittest.TestCase):
         # NOTE(mrda): x86 doesn't have AUXV_OPT_FLAGS
         for k in detect_utils.AUXV_FLAGS:
             t = ('hw', 'auxv', test_data[k][0], test_data[k][1])
-            self.assertTrue(t in hw)
+            self.assertIn(t, hw)
 
     @mock.patch.object(detect_utils, 'Popen')
     @mock.patch('os.environ.copy')
@@ -283,4 +283,4 @@ class TestDetectUtils(unittest.TestCase):
         ppc_flags = detect_utils.AUXV_FLAGS + detect_utils.AUXV_OPT_FLAGS
         for k in ppc_flags:
             t = ('hw', 'auxv', test_data[k][0], test_data[k][1])
-            self.assertTrue(t in hw)
+            self.assertIn(t, hw)
