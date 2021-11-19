@@ -248,8 +248,7 @@ class TestDetectUtils(unittest.TestCase):
         process_mock.configure_mock(**attrs)
         mock_popen.return_value = process_mock
 
-        hw = []
-        detect_utils.detect_auxv(hw)
+        hw = detect_utils.detect_auxv()
 
         # NOTE(mrda): x86 doesn't have AUXV_OPT_FLAGS
         for k in detect_utils.AUXV_FLAGS:
@@ -277,8 +276,7 @@ class TestDetectUtils(unittest.TestCase):
         process_mock.configure_mock(**attrs)
         mock_popen.return_value = process_mock
 
-        hw = []
-        detect_utils.detect_auxv(hw)
+        hw = detect_utils.detect_auxv()
 
         ppc_flags = detect_utils.AUXV_FLAGS + detect_utils.AUXV_OPT_FLAGS
         for k in ppc_flags:
