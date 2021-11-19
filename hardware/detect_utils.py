@@ -444,18 +444,23 @@ def detect_auxv():
     return lst
 
 
-def parse_ahci(hrdw, words):
+def parse_ahci(words):
+    lst = []
+
     if len(words) < 4:
         return
     if "flags" in words[2]:
         flags = ""
         for flag in sorted(words[3:]):
             flags = "%s %s" % (flags, flag)
-        hrdw.append(('ahci', words[1], "flags", flags.strip()))
+        lst.append(('ahci', words[1], "flags", flags.strip()))
+
+    return lst
 
 
-def parse_dmesg(hrdw):
+def parse_dmesg():
     """Run dmesg and parse the output."""
+    ahci_output = []
 
     _, output = cmd("dmesg")
     for line in output.split('\n'):
@@ -468,4 +473,6 @@ def parse_dmesg(hrdw):
             continue
 
         if "ahci" in words[0]:
-            parse_ahci(hrdw, words)
+            ahci_output = parse_ahci(words)
+
+    return ahci_output

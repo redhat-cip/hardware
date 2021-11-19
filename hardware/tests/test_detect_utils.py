@@ -225,8 +225,7 @@ class TestDetectUtils(unittest.TestCase):
                 return_value=(0, sample('dmesg')),
                 autospec=True)
     def test_parse_dmesg(self, mock_cmd):
-        hw = []
-        detect_utils.parse_dmesg(hw)
+        hw = detect_utils.parse_dmesg()
         self.assertEqual(hw, [('ahci', '0000:00:1f.2:', 'flags',
                                '64bit apst clo ems led '
                                'ncq part pio slum sntf')])
