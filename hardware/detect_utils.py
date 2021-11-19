@@ -422,7 +422,8 @@ def modprobe(module):
         sys.stderr.write('Info: Probing %s failed\n' % module)
 
 
-def detect_auxv(hw_lst):
+def detect_auxv():
+    lst = []
     new_env = os.environ.copy()
     new_env["LD_SHOW_AUXV"] = "1"
 
@@ -438,7 +439,9 @@ def detect_auxv(hw_lst):
         k, v = [i.strip() for i in line.split(":")]
         if k in supported_flags:
             auxv[k[3:].lower()] = v
-            hw_lst.append(('hw', 'auxv', k[3:].lower(), v))
+            lst.append(('hw', 'auxv', k[3:].lower(), v))
+
+    return lst
 
 
 def parse_ahci(hrdw, words):
