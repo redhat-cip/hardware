@@ -84,8 +84,8 @@ def main():
     hrdw.extend(ipmi.get_ipmi_sdr())
     hrdw.extend(rtc.detect_rtc_clock())
     hrdw.extend(detect_utils.detect_auxv())
+    hrdw.extend(detect_utils.parse_dmesg())
 
-    detect_utils.parse_dmesg(hrdw)
     bios_hp.dump_hp_bios(hrdw)
 
     if args.benchmark:
