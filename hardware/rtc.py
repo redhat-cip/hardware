@@ -41,6 +41,5 @@ def get_rtc():
 
 
 def detect_rtc_clock():
-    hw_lst = []
-    hw_lst.append(('system', 'rtc', 'utc', get_rtc()))
-    return hw_lst
+    rtc_clock = [('system', 'rtc', 'utc', get_rtc())]
+    return rtc_clock
