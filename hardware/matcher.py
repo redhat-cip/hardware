@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-'''Functions to match according to a requirement specification.'''
+"""Functions to match according to a requirement specification."""
 
 import ipaddress
 import logging
@@ -24,12 +24,12 @@ LOG = logging.getLogger('hardware.matcher')
 
 
 def _adder(array, index, value):
-    'Auxiliary function to add a value to an array.'
+    """Auxiliary function to add a value to an array."""
     array[index] = value
 
 
 def _appender(array, index, value):
-    'Auxiliary function to append a value to an array.'
+    """Auxiliary function to append a value to an array."""
     try:
         array[index].append(value)
     except KeyError:
@@ -37,22 +37,22 @@ def _appender(array, index, value):
 
 
 def _range(elt, minval, maxval):
-    'Helper for match_spec.'
-    return float(elt) >= float(minval) and float(elt) <= float(maxval)
+    """Helper for match_spec."""
+    return float(minval) <= float(elt) <= float(maxval)
 
 
 def _gt(left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return float(left) > float(right)
 
 
 def _ge(left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return float(left) >= float(right)
 
 
 def _lt(left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return float(left) < float(right)
 
 
@@ -62,32 +62,32 @@ def _le(left, right):
 
 
 def _not(_, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return not right
 
 
 def _and(_, left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return left and right
 
 
 def _or(_, left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return left or right
 
 
 def _network(left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return ipaddress.IPv4Address(left) in ipaddress.IPv4Network(right)
 
 
 def _regexp(left, right):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return re.search(right, left) is not None
 
 
 def _in(elt, *lst):
-    'Helper for match_spec.'
+    """Helper for match_spec."""
     return elt in lst
 
 
@@ -98,7 +98,7 @@ _FUNC_REGEXP = re.compile(r'^([^(]+)'          # function name
 
 
 def _call_func(func, implicit, res):
-    'Helper function for extract_result and match_spec'
+    """Helper function for extract_result and match_spec"""
     args = [implicit, res.group(2)]
     # split the optional arguments if we have some
     if res.group(3):
@@ -111,7 +111,7 @@ def _call_func(func, implicit, res):
 
 
 def _extract_result(implicit, expr):
-    'Helper function for match_spec'
+    """Helper function for match_spec."""
     res = _FUNC_REGEXP.search(expr)
     if res:
         func_name = '_' + res.group(1)
@@ -122,7 +122,7 @@ def _extract_result(implicit, expr):
 
 
 def match_spec(spec, lines, arr, adder=_adder):
-    'Match a line according to a spec and store variables in <var>.'
+    """Match a line according to a spec and store variables in <var>."""
     # match a line without variable
     for idx in range(len(lines)):
         if lines[idx] == spec:
@@ -180,11 +180,11 @@ def match_spec(spec, lines, arr, adder=_adder):
 
 
 def match_all(lines, specs, arr, arr2, debug=False, level=0):
-    '''Match all lines according to a spec.
+    """Match all lines according to a spec.
 
-Store variables starting with a $ in <arr>. Variables starting with
-2 $ like $$vda are stored in arr and arr2.
-'''
+    Store variables starting with a $ in <arr>. Variables starting with
+    2 $ like $$vda are stored in arr and arr2.
+    """
     # Work on a copy of lines to avoid changing the real lines because
     # match_spec removes the matched line to not match it again on next
     # calls.
@@ -192,7 +192,7 @@ Store variables starting with a $ in <arr>. Variables starting with
     specs = list(specs)
     copy_arr = dict(arr)
     points = []
-    # Prevent infinit loops
+    # Prevent infinite loops
     if level == 50:
         return False
     # Match lines using specs
@@ -242,7 +242,7 @@ Store variables starting with a $ in <arr>. Variables starting with
 
 
 def match_multiple(lines, spec, arr):
-    'Use spec to find all the matching lines and gather variables.'
+    """Use spec to find all the matching lines and gather variables."""
     ret = False
     lines = list(lines)
     while match_spec(spec, lines, arr, adder=_appender):
@@ -251,14 +251,14 @@ def match_multiple(lines, spec, arr):
 
 
 def generate_filename_and_macs(items):
-    '''Generate a file name for a hardware using DMI information.
+    """Generate a file name for a hardware using DMI information.
 
-(product name and version) then if the DMI serial number is
-available we use it unless we lookup the first mac address.
-As a result, we do have a filename like :
+    (product name and version) then if the DMI serial number is
+    available we use it unless we lookup the first mac address.
+    As a result, we do have a filename like :
 
-<dmi_product_name>-<dmi_product_version>-{dmi_serial_num|mac_address}
-'''
+    <dmi_product_name>-<dmi_product_version>-{dmi_serial_num|mac_address}
+    """
 
     # Duplicate items as it will be modified by match_* functions
     hw_items = list(items)
@@ -287,5 +287,3 @@ As a result, we do have a filename like :
         LOG.warning('unable to detect network macs')
 
     return sysvars
-
-# matcher.py ends here
