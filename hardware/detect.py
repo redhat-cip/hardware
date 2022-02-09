@@ -85,8 +85,7 @@ def main():
     hrdw.extend(rtc.detect_rtc_clock())
     hrdw.extend(detect_utils.detect_auxv())
     hrdw.extend(detect_utils.parse_dmesg())
-
-    bios_hp.dump_hp_bios(hrdw)
+    hrdw.extend(bios_hp.dump_hp_bios(hrdw))
 
     if args.benchmark:
         if 'cpu' in args.benchmark:

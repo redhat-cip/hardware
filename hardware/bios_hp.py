@@ -15,7 +15,6 @@
 """API to the hp-conrep utility to list the bios settings"""
 
 import os
-import pprint
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -23,12 +22,12 @@ import xml.etree.ElementTree as ET
 from hardware.detect_utils import cmd
 
 
-def get_hp_conrep(hwlst):
-    for i in hwlst:
+def get_hp_conrep(hrdw):
+    for i in hrdw:
         if i[0:3] == ('system', 'product', 'vendor'):
             if i[3] not in ['HPE', 'HP']:
                 return True, ""
-    output_file = next(tempfile._get_candidate_names())
+    output_file = tempfile.TemporaryFile()
     status, output = cmd("hp-conrep --save -f {}".format(output_file))
     if status != 0:
         sys.stderr.write("Unable to run hp-conrep: %s\n" % output)
@@ -38,11 +37,13 @@ def get_hp_conrep(hwlst):
     return True, return_value
 
 
-def dump_hp_bios(hwlst):
+def dump_hp_bios(hrdw):
+    hwlst = []
+
     # handle output injection for testing purpose
-    valid, hpconfig = get_hp_conrep(hwlst)
+    valid, hpconfig = get_hp_conrep(hrdw)
     if not valid:
-        return False
+        return hwlst
 
     if hpconfig:
         xml = ET.fromstring(hpconfig)
@@ -51,10 +52,4 @@ def dump_hp_bios(hwlst):
         for child in root:
             hwlst.append(('hp', 'bios', child.attrib['name'], child.text))
 
-    return True
-
-
-if __name__ == "__main__":
-    hwlst = []
-    dump_hp_bios(hwlst)
-    pprint.pprint(hwlst)
+    return hwlst
