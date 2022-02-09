@@ -25,8 +25,8 @@ class TestBiosHP(unittest.TestCase):
                 return_value=(True, sample('conrep.dat')))
     def test_bios_hp(self, mocked_cmd):
         self.maxDiff = None
-        hardware_lst = []
-        bios_hp.dump_hp_bios(hardware_lst)
+        hw_list = []
+        hardware_lst = bios_hp.dump_hp_bios(hw_list)
         self.assertEqual(
             hardware_lst,
             [(u'hp', u'bios', u'Language', u'English'),
