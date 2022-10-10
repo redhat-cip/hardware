@@ -18,8 +18,8 @@
 Benchmark Disk functions.
 """
 
+import json
 import os
-import re
 import subprocess
 import sys
 
@@ -70,7 +70,7 @@ def run_fio(hw_lst, disks_list, mode, io_size, time, rampup_time):
     for myfile in filelist:
         os.remove(myfile)
     fio = ("fio --ioengine=libaio --invalidate=1 --ramp_time=%d --iodepth=32 "
-           "--runtime=%d --time_based --direct=1 "
+           "--runtime=%d --time_based --direct=1 --output-format=json "
            "--bs=%s --rw=%s" % (rampup_time, time, io_size, mode))
 
     global_disk_list = ''
@@ -87,54 +87,21 @@ def run_fio(hw_lst, disks_list, mode, io_size, time, rampup_time):
         'Benchmarking storage %s for %s seconds in '
         '%s mode with blocksize=%s\n' %
         (global_disk_list, time, mode, io_size))
-    fio_cmd = subprocess.Popen(fio,
-                               shell=True, stdout=subprocess.PIPE)
-    current_disk = ''
-    for line in fio_cmd.stdout:
-        line = line.decode(errors='ignore')
-        if ('MYJOB-' in line) and ('pid=' in line):
-            # MYJOB-sda: (groupid=0, jobs=1): err= 0: pid=23652: Mon Sep  9
-            # 16:21:42 2013
-            current_disk = re.search(r"MYJOB-(.*): \(groupid", line).group(1)
-            continue
-        if ("read : io=" in line) or ("write: io=" in line):
-            # read : io=169756KB, bw=16947KB/s, iops=4230, runt= 10017msec
-            if len(disks_list) > 1:
-                mode_str = "simultaneous_%s_%s" % (mode, io_size)
-            else:
-                mode_str = "standalone_%s_%s" % (mode, io_size)
+    fio_cmd = subprocess.check_output(fio, shell=True)
+    data = json.loads(fio_cmd)
+    for job in data['jobs']:
+        current_disk = job['jobname'].replace("MYJOB-", "")
+        if len(disks_list) > 1:
+            mode_str = "simultaneous_%s_%s" % (mode, io_size)
+        else:
+            mode_str = "standalone_%s_%s" % (mode, io_size)
 
-            try:
-                perf = re.search('bw=(.*?B/s),', line).group(1)
-            except Exception:
-                sys.stderr.write('Failed at detecting '
-                                 'bwps pattern with %s\n' % line)
-            else:
-                multiply = 1
-                divide = 1
-                if "MB/s" in perf:
-                    multiply = 1024
-                elif "KB/s" in perf:
-                    multiply = 1
-                elif "B/s" in perf:
-                    divide = 1024
-                try:
-                    iperf = perf.replace(
-                        'KB/s', '').replace('MB/s', '').replace('B/s', '')
-                except Exception:
-                    True
-
-                value = str(int(float(float(iperf) * multiply / divide)))
+        for item in ['read', 'write']:
+            if job[item]['runtime'] > 0:
                 hw_lst.append(('disk', current_disk, mode_str + '_KBps',
-                               value))
-
-            try:
-                value = re.search('iops=(.*),', line).group(1).strip(' ')
+                               str(job[item]['bw'])))
                 hw_lst.append(('disk', current_disk, mode_str + '_IOps',
-                               value))
-            except Exception:
-                sys.stderr.write('Failed at detecting iops '
-                                 'pattern with %s\n' % line)
+                               str(job[item]['iops'])))
 
 
 def disk_perf(hw_lst, destructive=False, running_time=10):
