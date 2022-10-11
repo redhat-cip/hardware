@@ -22,8 +22,31 @@ from unittest import mock
 from hardware.benchmark import disk
 
 
-FIO_OUTPUT_READ = """MYJOB-fake-disk: (groupid=0, jobs=1): err= 0: pid=5427:
-  read : io=123456KB, bw=123456KB/s, iops=123, runt= 10304msec"""
+FIO_OUTPUT_READ = """{
+    "jobs": [
+        {
+        "jobname": "MYJOB-fake-disk",
+        "groupid": 0,
+        "error": 0,
+        "read": {
+            "io_bytes": 126418944,
+            "io_kbytes": 123456,
+            "bw_bytes": 126418944,
+            "bw": 123456,
+            "iops": 123,
+            "runtime": 10304
+            },
+        "write": {
+            "io_bytes": 0,
+            "io_kbytes": 0,
+            "bw_bytes": 0,
+            "bw": 0,
+            "iops": 0,
+            "runtime": 0
+            }
+        }
+        ]
+    }"""
 
 DISK_PERF_EXPECTED = [
     ('disk', 'fake-disk', 'size', '10'),
@@ -43,7 +66,7 @@ DISK_PERF_EXPECTED = [
 ]
 
 
-@mock.patch.object(subprocess, 'Popen')
+@mock.patch.object(subprocess, 'check_output')
 class TestBenchmarkDisk(unittest.TestCase):
 
     def setUp(self):
@@ -51,19 +74,17 @@ class TestBenchmarkDisk(unittest.TestCase):
         self.hw_data = [('disk', 'fake-disk', 'size', '10'),
                         ('disk', 'fake-disk2', 'size', '15')]
 
-    def test_disk_perf_bytes(self, mock_popen):
-        mock_popen.return_value = mock.Mock(
-            stdout=FIO_OUTPUT_READ.encode().splitlines())
+    def test_disk_perf_bytes(self, mock_check_output):
+        mock_check_output.return_value = FIO_OUTPUT_READ.encode('utf-8')
         disk.disk_perf(self.hw_data)
         self.assertEqual(sorted(DISK_PERF_EXPECTED), sorted(self.hw_data))
 
-    def test_get_disks_name(self, mock_popen):
+    def test_get_disks_name(self, mock_check_output):
         result = disk.get_disks_name(self.hw_data)
         self.assertEqual(sorted(['fake-disk', 'fake-disk2']), sorted(result))
 
-    def test_run_fio(self, mock_popen):
-        mock_popen.return_value = mock.Mock(
-            stdout=FIO_OUTPUT_READ.encode().splitlines())
+    def test_run_fio(self, mock_check_output):
+        mock_check_output.return_value = FIO_OUTPUT_READ.encode('utf-8')
         hw_data = []
         disks_list = ['fake-disk', 'fake-disk2']
         disk.run_fio(hw_data, disks_list, "read", 123, 10, 5)
