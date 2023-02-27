@@ -25,6 +25,8 @@ from hardware import detect_utils
 LINE_REGEXP = re.compile(r'^([^:]+[^ ])\s*:\s*(.*[^ ])\s*$')
 
 
+# NOTE(elfosardo): this function is not used anywhere, but we leave it
+# here as it's a good example of how to implement this type of functions.
 def setup_user(channel, username, password):
     """Setup an IPMI user."""
     sys.stderr.write('Info: ipmi_setup_user: Setting user="%s", '
