@@ -19,6 +19,9 @@ from subprocess import PIPE
 from subprocess import Popen
 import sys
 
+from hardware import detect_utils
+
+
 SEP_REGEXP = re.compile(r"\s*:\s*")
 
 
@@ -147,6 +150,13 @@ def _disable_password():
 
 def detect():
     """Detect Areca controller configuration."""
+    if not detect_utils.which('cli64'):
+        sys.stderr.write('Cannot find cli64 binary\n')
+        return []
+    return detect_areca()
+
+
+def detect_areca():
     hwlist = []
     device = _sys_info()
     if not device:
@@ -193,6 +203,4 @@ def detect():
     if len(hwlist):
         return hwlist
 
-    # If we dont't detect any areca controller, return None
-    # This avoid having empty lists
-    return None
+    return []
