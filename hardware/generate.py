@@ -134,7 +134,7 @@ def generate(model, prefix=_PREFIX):
 
     # Safe guard for models without ranges
     for value in model.values():
-        if type(value) != STRING_TYPE:
+        if not isinstance(value, STRING_TYPE):
             break
         elif _RANGE_REGEXP.search(value):
             break
