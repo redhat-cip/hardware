@@ -71,7 +71,8 @@ def run_fio(hw_lst, disks_list, mode, io_size, time, rampup_time):
         os.remove(myfile)
     fio = ("fio --ioengine=libaio --invalidate=1 --ramp_time=%d --iodepth=32 "
            "--runtime=%d --time_based --direct=1 --output-format=json "
-           "--bs=%s --rw=%s" % (rampup_time, time, io_size, mode))
+           "--bs=%s --rw=%s --random_generator=tausworthe64" %
+           (rampup_time, time, io_size, mode))
 
     global_disk_list = ''
     for disk in disks_list:
