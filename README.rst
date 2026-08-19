@@ -68,7 +68,7 @@ Networking
 
 System
 ======
-* ipmitool from https://sourceforge.net/projects/ipmitool/
+* ipmitool from https://codeberg.org/IPMITool/ipmitool
 * pciutils
 * lshw from http://www.ezix.org/project/wiki/HardwareLiSter
 
