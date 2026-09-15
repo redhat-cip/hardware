@@ -270,36 +270,43 @@ def fix_bad_serial(hw_lst, system_uuid, mobo_id, nic_id):
                 break
 
 
-def get_cpus(hw_lst):
-    def _maybe_int(v):
-        try:
-            base = 10
-            if 'x' in v:
-                base = 16
-            v = int(v, base)
-        except Exception:
-            pass
-        return v
+def _maybe_int(v):
+    """Convert value to int with hex support, return original if fails."""
+    try:
+        base = 10
+        if 'x' in v:
+            base = 16
+        v = int(v, base)
+    except Exception:
+        pass
+    return v
 
-    def _get_governor(lcpu):
-        """Return the scaling governor of a logical core.
 
-        :param lcpu: the logical core number
-        :returns: the scaling governor if it exists, otherwise None
-        """
-        with contextlib.suppress(IOError):
-            file_name = ("/sys/devices/system/cpu/cpufreq/"
-                         "policy{}/scaling_governor".format(lcpu))
-            return from_file(file_name)
+def _get_governor(lcpu):
+    """Return the scaling governor of a logical core.
 
-        # fallback to the old interface available in kernels < 4.3;
-        with contextlib.suppress(IOError):
-            file_name = ("/sys/devices/system/cpu/cpu{}/cpufreq/"
-                         "scaling_governor".format(lcpu))
-            return from_file(file_name)
-        return None
+    :param lcpu: the logical core number
+    :returns: the scaling governor if it exists, otherwise None
+    """
+    with contextlib.suppress(IOError):
+        file_name = ("/sys/devices/system/cpu/cpufreq/"
+                     "policy{}/scaling_governor".format(lcpu))
+        return from_file(file_name)
 
-    # Extracting lspcu information
+    # fallback to the old interface available in kernels < 4.3;
+    with contextlib.suppress(IOError):
+        file_name = ("/sys/devices/system/cpu/cpu{}/cpufreq/"
+                     "scaling_governor".format(lcpu))
+        return from_file(file_name)
+    return None
+
+
+def _parse_lscpu_output():
+    """Parse lscpu command output into dictionaries.
+
+    :returns: tuple of (lscpu_dict, lscpux_dict) containing parsed output
+    """
+    # Parse basic lscpu information
     lscpu = {}
     output = output_lines('LANG=en_US.UTF-8 lscpu')
 
@@ -308,8 +315,7 @@ def get_cpus(hw_lst):
             item, value = line.split(':', 1)
             lscpu[item.strip(':')] = value.strip()
 
-    # Extracting lspcu -x information
-    # Use hexadecimal masks for CPU sets
+    # Parse extended lscpu -x information with hexadecimal masks
     lscpux = {}
     output = output_lines('LANG=en_US.UTF-8 lscpu -x')
 
@@ -318,14 +324,27 @@ def get_cpus(hw_lst):
             item, value = line.split(':', 1)
             lscpux[item.strip(':')] = value.strip()
 
+    return lscpu, lscpux
+
+
+def _detect_physical_cpus(hw_lst, lscpu):
+    """Detect and append physical CPU information.
+
+    :param hw_lst: hardware list to append CPU info to
+    :param lscpu: parsed lscpu output dictionary
+    """
     hw_lst.append(("cpu", "physical", "number", int(lscpu["Socket(s)"])))
 
+    # SMT (Simultaneous Multi-Threading) control
     with contextlib.suppress(IOError):
         value = from_file("/sys/devices/system/cpu/smt/control")
         hw_lst.append(("cpu", "physical", "smt", value))
 
+    # Process each physical processor socket
     for processor in range(int(lscpu["Socket(s)"])):
         ptag = "physical_{}".format(processor)
+
+        # CPU boost setting
         try:
             value = from_file("/sys/devices/system/cpu/cpufreq/boost")
         except IOError:
@@ -334,37 +353,51 @@ def get_cpus(hw_lst):
             value = 'enabled' if value == '1' else 'disabled'
             hw_lst.append(('cpu', ptag, 'boost', value))
 
-        for (t_key, d_key, conv) in [('vendor', 'Vendor ID', None),
-                                     ('product', 'Model name', None),
-                                     ('cores', 'Core(s) per socket', int),
-                                     ('threads', None, None),
-                                     ('family', 'CPU family', int),
-                                     ('model', 'Model', _maybe_int),
-                                     ('stepping', 'Stepping', _maybe_int),
-                                     ('architecture', 'Architecture', None),
-                                     ('l1d cache', 'L1d cache', None),
-                                     ('l1i cache', 'L1i cache', None),
-                                     ('l2 cache', 'L2 cache', None),
-                                     ('l3 cache', 'L3 cache', None),
-                                     ('min_Mhz', 'CPU min MHz', float),
-                                     ('max_Mhz', 'CPU max MHz', float),
-                                     ('current_Mhz', 'CPU MHz', float),
-                                     ('flags', 'Flags', None),
-                                     ('threads_per_core', 'Thread(s) per core',
-                                      int)]:
+        # CPU properties mapping: (hw_key, lscpu_key, converter_func)
+        cpu_properties = [
+            ('vendor', 'Vendor ID', None),
+            ('product', 'Model name', None),
+            ('cores', 'Core(s) per socket', int),
+            ('threads', None, None),  # Special case: calculated below
+            ('family', 'CPU family', int),
+            ('model', 'Model', _maybe_int),
+            ('stepping', 'Stepping', _maybe_int),
+            ('architecture', 'Architecture', None),
+            ('l1d cache', 'L1d cache', None),
+            ('l1i cache', 'L1i cache', None),
+            ('l2 cache', 'L2 cache', None),
+            ('l3 cache', 'L3 cache', None),
+            ('min_Mhz', 'CPU min MHz', float),
+            ('max_Mhz', 'CPU max MHz', float),
+            ('current_Mhz', 'CPU MHz', float),
+            ('flags', 'Flags', None),
+            ('threads_per_core', 'Thread(s) per core', int)
+        ]
+
+        for (t_key, d_key, conv) in cpu_properties:
             value = None
-            if d_key in lscpu:
+            if d_key and d_key in lscpu:
                 value = lscpu[d_key]
                 if conv:
                     value = conv(value)
             elif t_key == 'threads':
+                # Calculate total threads per socket
                 value = (int(lscpu.get('Thread(s) per core', 1))
                          * int(lscpu.get('Core(s) per socket', 1)))
+
             if value is not None:
                 hw_lst.append(('cpu', ptag, t_key, value))
 
+
+def _detect_logical_cpus(hw_lst, lscpu):
+    """Detect and append logical CPU information including governors.
+
+    :param hw_lst: hardware list to append CPU info to
+    :param lscpu: parsed lscpu output dictionary
+    """
     hw_lst.append(('cpu', 'logical', 'number', int(lscpu['CPU(s)'])))
-    # Governors could be different on logical cpus
+
+    # Check governor for each logical CPU (can be different per CPU)
     for cpu in range(int(lscpu['CPU(s)'])):
         ltag = "logical_{}".format(cpu)
 
@@ -372,47 +405,66 @@ def get_cpus(hw_lst):
         if governor is not None:
             hw_lst.append(('cpu', ltag, "governor", governor))
 
-    # Extracting numa nodes
+
+def _detect_numa_nodes(hw_lst, lscpu, lscpux):
+    """Detect and append NUMA node information.
+
+    :param hw_lst: hardware list to append NUMA info to
+    :param lscpu: parsed lscpu output dictionary
+    :param lscpux: parsed lscpu -x output dictionary
+    """
+    # Overall NUMA node count
     try:
         hw_lst.append(('numa', 'nodes', 'count', int(lscpu['NUMA node(s)'])))
     except KeyError:
         pass
 
-    # Allow for sparse numa nodes.
+    # Process individual NUMA nodes (handle sparse node numbering)
     numa_nodes = []
     for key in lscpux:
         match = re.match(r"NUMA node(\d+) CPU\(s\)", key)
         if match:
             numa_nodes.append((key, int(match.groups()[0])))
-    # NOTE(tonyb): Explicitly sort the list as prior to python 3.7? keys() did
-    # not have a predictable ordering and there maybe consumers of hw_lst rely
-    # on that.
+
+    # Sort nodes by ID for consistent ordering (ensures reproducible output)
     numa_nodes.sort(key=lambda t: t[1])
+
     for (key, node_id) in numa_nodes:
         ntag = 'node_{}'.format(node_id)
         cpus = lscpu[key]
-        # lscpu -x provides the cpu mask
-        cpu_mask = lscpux[key]
+        cpu_mask = lscpux[key]  # Hexadecimal CPU mask from lscpu -x
         total_cpus = 0
-        min_cpu = None
-        max_cpu = None
 
-        # It's possible to have a NUMA node without any CPUs
+        # Parse CPU range/list (e.g., "0-5,48-53" or "0,1,2")
         if cpus:
             for item in cpus.split(','):
-                # lscpu report numa nodes like 0-5,48-53
                 if "-" in item:
-                    max_cpu = int(item.split("-")[1])
-                    min_cpu = int(item.split("-")[0])
-                    total_cpus = total_cpus + max_cpu - min_cpu + 1
+                    # Handle ranges like "0-5"
+                    start, end = item.split("-")
+                    total_cpus += int(end) - int(start) + 1
                 else:
-                    # or like 0,1
-                    # As we don't have dashes, there is only one core to count
-                    total_cpus = total_cpus + 1
+                    # Handle individual CPUs like "0"
+                    total_cpus += 1
 
-        # total_cpus = 12 for "0-5,48-53"
         hw_lst.append(('numa', ntag, 'cpu_count', total_cpus))
         hw_lst.append(('numa', ntag, 'cpu_mask', cpu_mask))
+
+
+def get_cpus(hw_lst):
+    """Detect and append CPU and NUMA information to hardware list.
+
+    This function orchestrates CPU detection by calling focused sub-functions
+    for different aspects of CPU hardware detection.
+
+    :param hw_lst: list to append hardware tuples to
+    """
+    # Parse lscpu output once and reuse for all detection functions
+    lscpu, lscpux = _parse_lscpu_output()
+
+    # Detect different aspects of CPU hardware
+    _detect_physical_cpus(hw_lst, lscpu)
+    _detect_logical_cpus(hw_lst, lscpu)
+    _detect_numa_nodes(hw_lst, lscpu, lscpux)
 
 
 def modprobe(module):
