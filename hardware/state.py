@@ -63,11 +63,15 @@ class State(object):
                 content = state_file.read()
                 self._data = ast.literal_eval(content)
         except (OSError, IOError) as e:
-            LOG.error('Failed to read state file %s: %s', self._state_filename, e)
-            raise StateError('Cannot read state file %s: %s' % (self._state_filename, e))
+            LOG.error('Failed to read state file %s: %s',
+                      self._state_filename, e)
+            raise StateError('Cannot read state file %s: %s' %
+                             (self._state_filename, e))
         except (ValueError, SyntaxError) as e:
-            LOG.error('Invalid state file format %s: %s', self._state_filename, e)
-            raise StateError('Invalid state file format %s: %s' % (self._state_filename, e))
+            LOG.error('Invalid state file format %s: %s',
+                      self._state_filename, e)
+            raise StateError('Invalid state file format %s: %s' %
+                             (self._state_filename, e))
 
     def failed_profile(self, prof):
         '''If we get a failure report, let's reincrement the counter

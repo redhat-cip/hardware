@@ -65,7 +65,8 @@ class TestCmdb(unittest.TestCase):
         tmpdir = tempfile.mkdtemp()
         try:
             # Create a valid CMDB file
-            valid_data = [{'hostname': 'test1', 'mac': 'aa:bb:cc'}, {'hostname': 'test2', 'used': 1}]
+            valid_data = [{'hostname': 'test1', 'mac': 'aa:bb:cc'},
+                          {'hostname': 'test2', 'used': 1}]
             cmdb_file = os.path.join(tmpdir, 'test.cmdb')
             with open(cmdb_file, 'w') as f:
                 import pprint
@@ -95,10 +96,13 @@ class TestCmdb(unittest.TestCase):
         tmpdir = tempfile.mkdtemp()
         try:
             cmdb_file = os.path.join(tmpdir, 'test.cmdb')
-            # Create a CMDB file with malicious code that would execute with eval()
-            malicious_code = '__import__("os").system("echo CMDB_SECURITY_BREACH")'
+            # Create a CMDB file with malicious code
+            malicious_code = '__import__("os").system("echo CMDB_BREACH")'
             with open(cmdb_file, 'w') as f:
-                f.write(f'[{{"hostname": "test1", "exploit": {malicious_code}}}]')
+                # Write malicious data that would be executed with eval()
+                exploit_entry = (f'{{"hostname": "test1", '
+                                 f'"exploit": {malicious_code}}}')
+                f.write(f'[{exploit_entry}]')
 
             result = cmdb.load_cmdb(tmpdir, 'test')
             # Should return None instead of executing malicious code
