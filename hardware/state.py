@@ -23,6 +23,7 @@ which means try first to match hardware specs from the hw1 hardware
 profile and matches only 3 times then try hw2 any number of times.
 '''
 
+import ast
 import errno
 import logging
 import os
@@ -57,7 +58,20 @@ class State(object):
         self._validate_lockname()
         self.lock()
         LOG.info('Reading state from %s' % self._state_filename)
-        self._data = eval(open(self._state_filename).read(-1))
+        try:
+            with open(self._state_filename, 'r') as state_file:
+                content = state_file.read()
+                self._data = ast.literal_eval(content)
+        except (OSError, IOError) as e:
+            LOG.error('Failed to read state file %s: %s',
+                      self._state_filename, e)
+            raise StateError('Cannot read state file %s: %s' %
+                             (self._state_filename, e))
+        except (ValueError, SyntaxError) as e:
+            LOG.error('Invalid state file format %s: %s',
+                      self._state_filename, e)
+            raise StateError('Invalid state file format %s: %s' %
+                             (self._state_filename, e))
 
     def failed_profile(self, prof):
         '''If we get a failure report, let's reincrement the counter
@@ -95,7 +109,16 @@ Returns True if the state is modified and needs to be saved.
         if self._cfg_dir:
             fname = os.path.join(self._cfg_dir, name + '.specs')
             if os.path.exists(fname):
-                return eval(open(fname, 'r').read(-1))
+                try:
+                    with open(fname, 'r') as specs_file:
+                        content = specs_file.read()
+                        return ast.literal_eval(content)
+                except (OSError, IOError) as e:
+                    LOG.error('Failed to read specs file %s: %s', fname, e)
+                    return _INVALID_SPECS
+                except (ValueError, SyntaxError) as e:
+                    LOG.error('Invalid specs file format %s: %s', fname, e)
+                    return _INVALID_SPECS
 
             LOG.info('Specs file %s not found' % fname)
 

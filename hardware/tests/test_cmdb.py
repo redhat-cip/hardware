@@ -12,6 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
+import shutil
+import tempfile
 import unittest
 
 from hardware import cmdb
@@ -56,6 +59,61 @@ class TestCmdb(unittest.TestCase):
         var = {'a': 'FF:FF'}
         self.assertRaises(cmdb.CmdbError, cmdb.update_cmdb,
                           data, var, var, True)
+
+    def test_load_cmdb_valid_file(self):
+        """Test loading a valid CMDB file with safe parsing."""
+        tmpdir = tempfile.mkdtemp()
+        try:
+            # Create a valid CMDB file
+            valid_data = [{'hostname': 'test1', 'mac': 'aa:bb:cc'},
+                          {'hostname': 'test2', 'used': 1}]
+            cmdb_file = os.path.join(tmpdir, 'test.cmdb')
+            with open(cmdb_file, 'w') as f:
+                import pprint
+                pprint.pprint(valid_data, stream=f)
+
+            result = cmdb.load_cmdb(tmpdir, 'test')
+            self.assertEqual(result, valid_data)
+        finally:
+            shutil.rmtree(tmpdir)
+
+    def test_load_cmdb_invalid_file_syntax(self):
+        """Test that invalid Python syntax in CMDB file returns None."""
+        tmpdir = tempfile.mkdtemp()
+        try:
+            cmdb_file = os.path.join(tmpdir, 'test.cmdb')
+            # Create an invalid CMDB file with syntax errors
+            with open(cmdb_file, 'w') as f:
+                f.write('[{"hostname": "test1", "mac":}]')  # Missing value
+
+            result = cmdb.load_cmdb(tmpdir, 'test')
+            self.assertIsNone(result)
+        finally:
+            shutil.rmtree(tmpdir)
+
+    def test_load_cmdb_malicious_file(self):
+        """Test that malicious code in CMDB file cannot be executed."""
+        tmpdir = tempfile.mkdtemp()
+        try:
+            cmdb_file = os.path.join(tmpdir, 'test.cmdb')
+            # Create a CMDB file with malicious code
+            malicious_code = '__import__("os").system("echo CMDB_BREACH")'
+            with open(cmdb_file, 'w') as f:
+                # Write malicious data that would be executed with eval()
+                exploit_entry = (f'{{"hostname": "test1", '
+                                 f'"exploit": {malicious_code}}}')
+                f.write(f'[{exploit_entry}]')
+
+            result = cmdb.load_cmdb(tmpdir, 'test')
+            # Should return None instead of executing malicious code
+            self.assertIsNone(result)
+        finally:
+            shutil.rmtree(tmpdir)
+
+    def test_load_cmdb_nonexistent_file(self):
+        """Test loading nonexistent CMDB file returns None."""
+        result = cmdb.load_cmdb('/nonexistent/directory', 'test')
+        self.assertIsNone(result)
 
 
 if __name__ == "__main__":
