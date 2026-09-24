@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import ast
 import errno
 import logging
 import os
@@ -36,11 +37,16 @@ def load_cmdb(cfg_dir, name):
     'Load the cmdb.'
     filename = cmdb_filename(cfg_dir, name)
     try:
-        return eval(open(filename).read(-1))
+        with open(filename, 'r') as cmdb_file:
+            content = cmdb_file.read()
+            return ast.literal_eval(content)
     except IOError as xcpt:
         if xcpt.errno != errno.ENOENT:
             LOG.error("exception while processing CMDB (%s) %s" % (filename,
                                                                    str(xcpt)))
+        return None
+    except (ValueError, SyntaxError) as e:
+        LOG.error('Invalid CMDB file format %s: %s', filename, e)
         return None
 
 
