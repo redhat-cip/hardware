@@ -30,9 +30,9 @@ from hardware import diskinfo
 from hardware import hpacucli
 from hardware import infiniband as ib
 from hardware import ipmi
-from hardware import megacli
 from hardware import rtc
 from hardware import sensors
+from hardware import storcli
 from hardware import system
 
 
@@ -70,7 +70,7 @@ def main():
 
     hrdw.extend(areca.detect())
     hrdw.extend(hpacucli.detect())
-    hrdw.extend(megacli.detect())
+    hrdw.extend(storcli.detect())
     hrdw.extend(diskinfo.detect())
 
     system_info = system.detect()

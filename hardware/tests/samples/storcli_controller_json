@@ -1,0 +1,44 @@
+{
+  "Controllers": [
+    {
+      "Command Status": {
+        "CLI Version": "007.1804.0000.0000",
+        "Status": "Success",
+        "Description": "None"
+      },
+      "Response Data": {
+        "Basics": {
+          "Controller": 0,
+          "Serial Number": "0123456789",
+          "Model": "Sample RAID Controller"
+        },
+        "Version": {
+          "Firmware Version": "1.2.3"
+        },
+        "Status": {
+          "Controller Status": "Optimal"
+        },
+        "PD LIST": [
+          {
+            "EID:Slt": "32:5",
+            "DID": 5,
+            "State": "Onln",
+            "Size": "465.25 GB",
+            "Intf": "SAS",
+            "Med": "HDD",
+            "Model": "Sample Physical Disk"
+          }
+        ],
+        "VD LIST": [
+          {
+            "DG/VD": "0/0",
+            "TYPE": "RAID1",
+            "State": "Optl",
+            "Size": "465.25 GB",
+            "Name": "Sample Virtual Disk"
+          }
+        ]
+      }
+    }
+  ]
+}
