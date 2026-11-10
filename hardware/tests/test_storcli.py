@@ -39,6 +39,28 @@ class TestStorcli(unittest.TestCase):
         with mock.patch.object(storcli.shutil, 'which', side_effect=which):
             self.assertEqual(storcli.search_exec(), '/usr/bin/storcli64')
 
+    def test_search_exec_uses_vendor_storcli_path(self):
+        def which(name):
+            if name == '/opt/MegaRAID/storcli/storcli64':
+                return name
+            return None
+
+        with mock.patch.object(storcli.shutil, 'which', side_effect=which):
+            self.assertEqual(storcli.search_exec(),
+                             '/opt/MegaRAID/storcli/storcli64')
+
+    def test_search_exec_prefers_vendor_perccli_over_path_storcli(self):
+        def which(name):
+            if name == 'storcli64':
+                return '/usr/bin/storcli64'
+            if name == '/opt/MegaRAID/perccli/perccli64':
+                return name
+            return None
+
+        with mock.patch.object(storcli.shutil, 'which', side_effect=which):
+            self.assertEqual(storcli.search_exec(),
+                             '/opt/MegaRAID/perccli/perccli64')
+
     def test_search_exec_returns_none_when_missing(self):
         with mock.patch.object(storcli.shutil, 'which', return_value=None):
             self.assertIsNone(storcli.search_exec())
