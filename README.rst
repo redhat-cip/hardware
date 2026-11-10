@@ -60,6 +60,11 @@ Logical disks
 * hdparm
 * smartmontools
 
+Benchmarks
+==========
+* sysbench 1.0 or newer for CPU and memory benchmarks
+* fio for disk benchmarks
+
 Networking
 ==========
 * ethtool
