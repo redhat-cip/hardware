@@ -121,6 +121,11 @@ class TestBenchmarkMem(unittest.TestCase):
         mem.run_sysbench_memory_forked(hw_data, 10, '1K', 2)
         self.assertEqual([('cpu', 'logical', 'forked_bandwidth_1K', '382')],
                          hw_data)
+        mock_popen.assert_called_once_with(
+            '(sysbench memory --time=10 --events=100000000 --threads=1 '
+            '--memory-block-size=1K run &sysbench memory --time=10 '
+            '--events=100000000 --threads=1 --memory-block-size=1K run &)',
+            shell=True, stdout=subprocess.PIPE)
 
     def test_run_sysbench_memory_threaded_bytes(self, mock_popen,
                                                 mock_cpu_socket,
@@ -133,3 +138,7 @@ class TestBenchmarkMem(unittest.TestCase):
         mem.run_sysbench_memory_threaded(hw_data, 10, '1K', 2)
         self.assertEqual([('cpu', 'logical', 'threaded_bandwidth_1K', '382')],
                          hw_data)
+        mock_popen.assert_called_once_with(
+            ' sysbench memory --time=10 --events=100000000 --threads=2 '
+            '--memory-block-size=1K run',
+            shell=True, stdout=subprocess.PIPE)

@@ -92,9 +92,8 @@ class TestBenchmarkCPU(unittest.TestCase):
             stdout=SYSBENCH_OUTPUT.encode().splitlines())
         hw_data = []
         cpu.run_sysbench_cpu(hw_data, 10, 1)
-        mock_popen.assert_called_once_with(' sysbench --max-time=10 '
-                                           '--max-requests=10000000 '
-                                           '--num-threads=1 --test=cpu '
+        mock_popen.assert_called_once_with(' sysbench cpu --time=10 '
+                                           '--events=10000000 --threads=1 '
                                            '--cpu-max-prime=15000 run',
                                            shell=True, stdout=subprocess.PIPE)
         self.assertEqual([('cpu', 'logical', 'loops_per_sec', '123')], hw_data)

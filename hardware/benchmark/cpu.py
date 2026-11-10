@@ -43,8 +43,8 @@ def run_sysbench_cpu(hw_lst, max_time, cpu_count, processor_num=None):
         sys.stderr.write('Benchmarking all CPUs for '
                          '%d seconds (%d threads)\n' % (max_time, cpu_count))
 
-    cmds = ('%s sysbench --max-time=%d --max-requests=10000000'
-            ' --num-threads=%d --test=cpu --cpu-max-prime=15000 run'
+    cmds = ('%s sysbench cpu --time=%d --events=10000000'
+            ' --threads=%d --cpu-max-prime=15000 run'
             % (taskset, max_time, cpu_count))
     sysbench_cmd = subprocess.Popen(cmds, shell=True, stdout=subprocess.PIPE)
 

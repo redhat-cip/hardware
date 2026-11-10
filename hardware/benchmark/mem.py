@@ -81,8 +81,8 @@ def run_sysbench_memory_threaded(hw_lst, max_time, block_size, cpu_count,
                          'for %d seconds (%d threads)\n'
                          % (block_size, max_time, cpu_count))
 
-    _cmd = ('%s sysbench --max-time=%d --max-requests=100000000 '
-            '--num-threads=%d --test=memory --memory-block-size=%s run')
+    _cmd = ('%s sysbench memory --time=%d --events=100000000 '
+            '--threads=%d --memory-block-size=%s run')
     sysbench_cmd = subprocess.Popen(_cmd % (taskset, max_time,
                                             cpu_count, block_size),
                                     shell=True, stdout=subprocess.PIPE)
@@ -115,8 +115,8 @@ def run_sysbench_memory_forked(hw_lst, max_time, block_size, cpu_count):
                      % (block_size, max_time, cpu_count))
     sysbench_cmd = '('
     for _ in range(cpu_count):
-        _cmd = ('sysbench --max-time=%d --max-requests=100000000 '
-                '--num-threads=1 --test=memory --memory-block-size=%s run &')
+        _cmd = ('sysbench memory --time=%d --events=100000000 '
+                '--threads=1 --memory-block-size=%s run &')
         sysbench_cmd += _cmd % (max_time, block_size)
 
     sysbench_cmd.rstrip('&')
