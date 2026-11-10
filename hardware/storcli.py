@@ -27,17 +27,29 @@ from hardware import megacli
 # PERCCLI is the preferred utility for Dell PERC controllers. StorCLI is the
 # general-purpose alternative for controllers supported by the same CLI.
 EXECUTABLES = (
-    'perccli64', 'perccli', 'PercCLI64', 'PercCLI',
-    'storcli64', 'storcli', 'StorCLI64', 'StorCLI',
+    ('perccli', ('perccli64', 'perccli', 'PercCLI64', 'PercCLI')),
+    ('storcli', ('storcli64', 'storcli', 'StorCLI64', 'StorCLI')),
 )
+INSTALL_DIRECTORIES = {
+    'perccli': ('/opt/MegaRAID/perccli',),
+    'storcli': ('/opt/MegaRAID/storcli',),
+}
+
+
+def _executable_candidates(tool, executable):
+    yield executable
+    for directory in INSTALL_DIRECTORIES[tool]:
+        yield '%s/%s' % (directory, executable)
 
 
 def search_exec():
-    """Return the path to the first available PERCCLI/StorCLI executable."""
-    for executable in EXECUTABLES:
-        path = shutil.which(executable)
-        if path:
-            return path
+    """Find PERCCLI or StorCLI on PATH or in common vendor directories."""
+    for tool, executables in EXECUTABLES:
+        for executable in executables:
+            for candidate in _executable_candidates(tool, executable):
+                path = shutil.which(candidate)
+                if path:
+                    return path
     return None
 
 

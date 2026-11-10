@@ -75,4 +75,9 @@ System
 Raid controllers
 ================
 * for HP controllers: hpacucli from http://h20564.www2.hpe.com/hpsc/swd/public/detail?swItemId=MTX_d6ebba0f5cd642edace4648b9a
-* for Dell controllers: megacli from http://www.avagotech.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/8-07-14_MegaCLI.zip
+* for Dell PERC controllers: PERCCLI (``perccli`` or ``perccli64``)
+* for other LSI/Broadcom MegaRAID controllers: StorCLI (``storcli`` or ``storcli64``)
+
+The detector searches ``PATH`` and the standard vendor installation directories
+``/opt/MegaRAID/perccli`` and ``/opt/MegaRAID/storcli``. MegaCLI is deprecated
+upstream but remains supported as a fallback for older installations.
