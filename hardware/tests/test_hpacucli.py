@@ -184,6 +184,34 @@ class TestController(unittest.TestCase):
             mock.MagicMock(side_effect=pexpect.TIMEOUT('')))
         return self.assertRaises(hpacucli.Error, self.cli.ctrl_all_show)
 
+
+class TestCliDiscovery(unittest.TestCase):
+
+    def test_launch_finds_all_supported_cli_names(self):
+        for executable in ('ssacli', 'hpssacli', 'hpacucli'):
+            cli_path = '/usr/sbin/%s' % executable
+            with self.subTest(executable=executable):
+                cli = hpacucli.Cli()
+                with mock.patch.object(hpacucli.os, 'system'), \
+                        mock.patch.object(
+                            hpacucli.os.path, 'exists',
+                            side_effect=lambda path: path == cli_path), \
+                        mock.patch.object(hpacucli.pexpect, 'spawn') as spawn:
+                    self.assertTrue(cli.launch())
+                    spawn.assert_called_once_with(cli_path, encoding='utf-8')
+                    cli.process.expect.assert_called_once_with(
+                        hpacucli.PROMPT_REGEXP)
+
+    def test_launch_prefers_ssacli_when_all_names_exist(self):
+        cli = hpacucli.Cli()
+        with mock.patch.object(hpacucli.os, 'system'), \
+                mock.patch.object(hpacucli.os.path, 'exists',
+                                  return_value=True), \
+                mock.patch.object(hpacucli.pexpect, 'spawn') as spawn:
+            self.assertTrue(cli.launch())
+            spawn.assert_called_once_with('/usr/sbin/ssacli',
+                                          encoding='utf-8')
+
 ##############################################################################
 # Output from real commands and expected results below
 ##############################################################################

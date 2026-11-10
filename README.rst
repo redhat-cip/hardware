@@ -79,7 +79,7 @@ System
 
 Raid controllers
 ================
-* for HP controllers: hpacucli from http://h20564.www2.hpe.com/hpsc/swd/public/detail?swItemId=MTX_d6ebba0f5cd642edace4648b9a
+* for HPE Smart Array controllers: ``ssacli`` from the `HPE SSA CLI <https://support.hpe.com/connect/s/softwaredetails?softwareId=MTX_521fc533ba8f468f9ad9db20e4>`_ (``hpssacli`` and ``hpacucli`` are also detected for older installations)
 * for Dell PERC controllers: PERCCLI (``perccli`` or ``perccli64``)
 * for other LSI/Broadcom MegaRAID controllers: StorCLI (``storcli`` or ``storcli64``)
 
