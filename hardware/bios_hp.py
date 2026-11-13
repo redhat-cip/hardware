@@ -15,11 +15,10 @@
 """API to the hp-conrep utility to list the bios settings"""
 
 import os
+import subprocess
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
-
-from hardware.detect_utils import cmd
 
 
 def get_hp_conrep(hrdw):
@@ -27,14 +26,33 @@ def get_hp_conrep(hrdw):
         if i[0:3] == ('system', 'product', 'vendor'):
             if i[3] not in ['HPE', 'HP']:
                 return True, ""
-    output_file = tempfile.TemporaryFile()
-    status, output = cmd("hp-conrep --save -f {}".format(output_file))
-    if status != 0:
-        sys.stderr.write("Unable to run hp-conrep: %s\n" % output)
-        return False, ""
-    return_value = open(output_file).read()
-    os.remove(output_file)
-    return True, return_value
+
+    with tempfile.TemporaryDirectory(prefix='hardware-hp-conrep-') as tmpdir:
+        output_file = os.path.join(tmpdir, 'conrep.xml')
+        try:
+            result = subprocess.run(
+                ['hp-conrep', '--save', '-f', output_file],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+        except OSError as exc:
+            sys.stderr.write('Unable to run hp-conrep: %s\n' % exc)
+            return False, ""
+
+        if result.returncode != 0:
+            error = result.stderr or result.stdout or (
+                'exit status %d' % result.returncode)
+            sys.stderr.write('Unable to run hp-conrep: %s\n' % error)
+            return False, ""
+
+        try:
+            with open(output_file, 'r', encoding='utf-8') as conrep_file:
+                return True, conrep_file.read()
+        except OSError as exc:
+            sys.stderr.write('Unable to read hp-conrep output: %s\n' % exc)
+            return False, ""
 
 
 def dump_hp_bios(hrdw):
@@ -46,7 +64,11 @@ def dump_hp_bios(hrdw):
         return hwlst
 
     if hpconfig:
-        xml = ET.fromstring(hpconfig)
+        try:
+            xml = ET.fromstring(hpconfig)
+        except ET.ParseError as exc:
+            sys.stderr.write('Unable to parse hp-conrep output: %s\n' % exc)
+            return hwlst
         root = xml.iter("Section")
 
         for child in root:

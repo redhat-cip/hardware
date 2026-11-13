@@ -12,6 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import io
+import os
+import subprocess
 import unittest
 from unittest import mock
 
@@ -20,6 +23,68 @@ from hardware.tests.utils import sample
 
 
 class TestBiosHP(unittest.TestCase):
+
+    def test_get_hp_conrep_uses_temporary_output_path(self):
+        hardware = [('system', 'product', 'vendor', 'HPE')]
+        conrep_xml = ('<Conrep><Section name="Boot_Mode">'
+                      'UEFI</Section></Conrep>')
+        output_paths = []
+
+        def run(args, **kwargs):
+            output_path = args[-1]
+            output_paths.append(output_path)
+            with open(output_path, 'w', encoding='utf-8') as conrep_file:
+                conrep_file.write(conrep_xml)
+            return subprocess.CompletedProcess(args, 0, '', '')
+
+        with mock.patch.object(bios_hp.subprocess, 'run',
+                               side_effect=run) as cmd:
+            self.assertEqual(bios_hp.get_hp_conrep(hardware),
+                             (True, conrep_xml))
+
+        cmd.assert_called_once_with(
+            ['hp-conrep', '--save', '-f', output_paths[0]],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        self.assertFalse(os.path.exists(os.path.dirname(output_paths[0])))
+
+    def test_get_hp_conrep_handles_command_failure_and_cleans_up(self):
+        hardware = [('system', 'product', 'vendor', 'HP')]
+        output_paths = []
+
+        def run(args, **kwargs):
+            output_paths.append(args[-1])
+            return subprocess.CompletedProcess(args, 1, '', 'command failed')
+
+        with mock.patch.object(bios_hp.subprocess, 'run', side_effect=run), \
+                mock.patch.object(bios_hp.sys, 'stderr', new=io.StringIO()):
+            self.assertEqual(bios_hp.get_hp_conrep(hardware), (False, ''))
+
+        self.assertFalse(os.path.exists(os.path.dirname(output_paths[0])))
+
+    def test_get_hp_conrep_handles_missing_output(self):
+        hardware = [('system', 'product', 'vendor', 'HPE')]
+        output_paths = []
+
+        def run(args, **kwargs):
+            output_paths.append(args[-1])
+            return subprocess.CompletedProcess(args, 0, '', '')
+
+        with mock.patch.object(bios_hp.subprocess, 'run', side_effect=run), \
+                mock.patch.object(bios_hp.sys, 'stderr', new=io.StringIO()):
+            self.assertEqual(bios_hp.get_hp_conrep(hardware), (False, ''))
+
+        self.assertFalse(os.path.exists(os.path.dirname(output_paths[0])))
+
+    @mock.patch.object(bios_hp, 'get_hp_conrep',
+                       return_value=(True, '<broken'))
+    def test_dump_hp_bios_handles_malformed_xml(self, _get_hp_conrep):
+        hardware = [('system', 'product', 'vendor', 'HPE')]
+        with mock.patch.object(bios_hp.sys, 'stderr', new=io.StringIO()):
+            self.assertEqual(bios_hp.dump_hp_bios(hardware), [])
 
     @mock.patch('hardware.bios_hp.get_hp_conrep',
                 return_value=(True, sample('conrep.dat')))
